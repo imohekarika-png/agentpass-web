@@ -1,0 +1,13 @@
+<!-- public/logo.svg -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Simplified 'A' Frame -->
+  <path 
+    d="M 50 12 L 20 82 H 36 L 50 48 L 64 82 H 80 L 50 12 Z" 
+    fill="#E11D48" 
+  />
+  <!-- Crisp Sharp Checkmark Accent -->
+  <path 
+    d="M 32 58 L 48 76 L 86 30 L 76 22 L 46 60 L 38 50 L 32 58 Z" 
+    fill="#EAB308" 
+  />
+</svg>
