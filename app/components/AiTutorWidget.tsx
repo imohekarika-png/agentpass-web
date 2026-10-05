@@ -1,7 +1,7 @@
 // app/components/AiTutorWidget.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { Bot, X, Send, Sparkles, User } from 'lucide-react';
 
@@ -10,12 +10,16 @@ interface AiTutorWidgetProps {
 }
 
 export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) {
+  const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
 
-  // Explicitly point to /api/tutor
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { messages, status, sendMessage } = (useChat as any)({
-    api: '/api/tutor',
+    fetch: (url: string, options: any) => fetch('/api/tutor', options),
     body: { locale },
   });
 
@@ -45,6 +49,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     }
     return '';
   };
+
+  if (!mounted) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

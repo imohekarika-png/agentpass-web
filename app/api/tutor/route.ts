@@ -17,7 +17,8 @@ export async function POST(req: Request) {
          Provide guidance grounded in the Estate Agents Ordinance (Cap. 511) and EAA regulatory guidelines. Keep responses precise, clear, and professional.`;
 
     const result = streamText({
-      model: openrouter('openai/gpt-4o-mini'),
+      // Use Meta Llama 3.3 70B Instruct (supported on restricted OpenRouter accounts)
+      model: openrouter('meta-llama/llama-3.3-70b-instruct'),
       system: systemPrompt,
       messages,
     });
