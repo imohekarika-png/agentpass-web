@@ -18,8 +18,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     setMounted(true);
   }, []);
 
-  const { messages, status, sendMessage } = (useChat as any)({
-    fetch: (url: string, options: any) => fetch('/api/tutor', options),
+  const { messages, status, append } = (useChat as any)({
+    api: '/api/tutor',
     body: { locale },
   });
 
@@ -33,9 +33,9 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     const userText = input;
     setInput('');
 
-    await sendMessage({
+    await append({
       role: 'user',
-      parts: [{ type: 'text', text: userText }],
+      content: userText,
     });
   };
 
