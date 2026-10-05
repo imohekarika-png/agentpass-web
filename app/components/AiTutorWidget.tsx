@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import type { UIMessage } from 'ai';
 import { Bot, X, Send, Sparkles, User } from 'lucide-react';
 
 interface AiTutorWidgetProps {
@@ -14,8 +13,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
 
-  const { messages, append, status } = useChat({
-    endpoint: '/api/tutor',
+  const { messages, status, sendMessage } = useChat({
+    api: '/api/tutor',
     body: { locale },
   });
 
@@ -29,10 +28,21 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     const userText = input;
     setInput('');
 
-    await append({
+    await sendMessage({
       role: 'user',
       content: userText,
     });
+  };
+
+  const renderMessageContent = (m: any) => {
+    if (m.content) return m.content;
+    if (m.parts && Array.isArray(m.parts)) {
+      return m.parts
+        .filter((p: any) => p.type === 'text')
+        .map((p: any) => p.text)
+        .join('');
+    }
+    return '';
   };
 
   return (
@@ -83,7 +93,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
               </div>
             )}
 
-            {messages.map((m: UIMessage) => (
+            {messages.map((m: any) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -100,7 +110,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                       : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
                   }`}
                 >
-                  {m.content}
+                  {renderMessageContent(m)}
                 </div>
                 {m.role === 'user' && (
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700">
