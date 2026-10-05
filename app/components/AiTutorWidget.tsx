@@ -1,9 +1,14 @@
 // app/components/AiTutorWidget.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useChat } from '@ai-sdk/react';
+import { useState, useEffect, useRef } from 'react';
 import { Bot, X, Send, Sparkles, User } from 'lucide-react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+}
 
 interface AiTutorWidgetProps {
   locale?: 'zh-HK' | 'en';
@@ -13,17 +18,18 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  const { messages, status, sendMessage } = (useChat as any)({
-    api: '/api/tutor',
-    body: { locale },
-  });
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isLoading]);
 
-  const isLoading = status === 'submitted' || status === 'streaming';
   const isZh = locale === 'zh-HK';
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -33,21 +39,82 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     const userText = input;
     setInput('');
 
-    await sendMessage({
+    const userMessage: Message = {
+      id: Date.now().toString(),
       role: 'user',
-      parts: [{ type: 'text', text: userText }],
-    });
-  };
+      content: userText,
+    };
 
-  const renderMessageContent = (m: any) => {
-    if (typeof m.content === 'string' && m.content) return m.content;
-    if (Array.isArray(m.parts)) {
-      return m.parts
-        .filter((p: any) => p.type === 'text')
-        .map((p: any) => p.text)
-        .join('');
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
+    setIsLoading(true);
+
+    const assistantId = (Date.now() + 1).toString();
+    setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
+    try {
+      const response = await fetch('/api/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          locale,
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to fetch AI stream');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        
+        // Parse stream chunks formatted as 0:"token"
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('0:')) {
+            try {
+              const textToken = JSON.parse(line.slice(2));
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, content: m.content + textToken } : m
+                )
+              );
+            } catch {
+              // Fallback for raw text chunks
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === assistantId ? { ...m, content: m.content + line.slice(2) } : m
+                )
+              );
+            }
+          } else if (line.trim() && !line.startsWith('{')) {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, content: m.content + line } : m
+              )
+            );
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Streaming error:', err);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: isZh ? '發生錯誤，請重試。' : 'An error occurred. Please try again.' }
+            : m
+        )
+      );
+    } finally {
+      setIsLoading(false);
     }
-    return '';
   };
 
   if (!mounted) return null;
@@ -100,7 +167,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
               </div>
             )}
 
-            {messages.map((m: any) => (
+            {messages.map((m) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -111,13 +178,13 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   </div>
                 )}
                 <div
-                  className={`rounded-xl px-3.5 py-2 max-w-[80%] text-xs leading-relaxed ${
+                  className={`rounded-xl px-3.5 py-2 max-w-[80%] text-xs leading-relaxed whitespace-pre-wrap ${
                     m.role === 'user'
                       ? 'bg-indigo-600 text-white rounded-br-none'
                       : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
                   }`}
                 >
-                  {renderMessageContent(m)}
+                  {m.content}
                 </div>
                 {m.role === 'user' && (
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700">
@@ -132,6 +199,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                 {isZh ? '導師思考中...' : 'Tutor is thinking...'}
               </div>
             )}
+            <div ref={chatEndRef} />
           </div>
 
           <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
