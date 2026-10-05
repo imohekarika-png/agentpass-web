@@ -13,7 +13,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
 
-  const { messages, status, sendMessage } = useChat({
+  // Cast options to any to bypass version-mismatched strict generics in @ai-sdk/react v5
+  const { messages, status, sendMessage } = (useChat as any)({
     api: '/api/tutor',
     body: { locale },
   });
@@ -30,13 +31,13 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
 
     await sendMessage({
       role: 'user',
-      content: userText,
+      parts: [{ type: 'text', text: userText }],
     });
   };
 
   const renderMessageContent = (m: any) => {
-    if (m.content) return m.content;
-    if (m.parts && Array.isArray(m.parts)) {
+    if (typeof m.content === 'string' && m.content) return m.content;
+    if (Array.isArray(m.parts)) {
       return m.parts
         .filter((p: any) => p.type === 'text')
         .map((p: any) => p.text)
