@@ -1,6 +1,6 @@
 // app/api/tutor/route.ts
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { streamText } from 'ai';
+import { streamText, convertToCoreMessages } from 'ai';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -8,40 +8,17 @@ const openrouter = createOpenRouter({
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const rawMessages = body.messages || [];
-    const locale = body.locale || 'zh-HK';
-
-    // Normalize messages to satisfy AI SDK ModelMessage schema
-    const formattedMessages = rawMessages.map((m: any) => {
-      let contentString = '';
-
-      if (typeof m.content === 'string' && m.content) {
-        contentString = m.content;
-      } else if (Array.isArray(m.parts)) {
-        contentString = m.parts
-          .filter((p: any) => p.type === 'text' && p.text)
-          .map((p: any) => p.text)
-          .join('');
-      }
-
-      return {
-        role: m.role || 'user',
-        content: contentString || 'Hello',
-      };
-    });
+    const { messages, locale } = await req.json();
 
     const systemPrompt =
-      locale === 'zh-HK'
-        ? `你是 AgentPass AI 導師，專為香港地產代理資格考試 (EAQE) 及營業員資格考試 (SQE) 考生提供輔導。
-請依據《地產代理條例》(第511章) 及地產代理監管局 (EAA) 指引回答問題。保持答案精準、專業且易於理解。`
-        : `You are the AgentPass AI Tutor for Hong Kong EAQE and SQE licensing exams.
-Provide guidance grounded in the Estate Agents Ordinance (Cap. 511) and EAA regulatory guidelines. Keep responses precise, clear, and professional.`;
+      locale === 'en'
+        ? `You are the AgentPass AI Tutor for Hong Kong EAQE and SQE licensing exams. Provide guidance grounded in the Estate Agents Ordinance (Cap. 511) and EAA regulatory guidelines. Keep responses precise, clear, and professional.`
+        : `你是 AgentPass AI 導師，專為香港地產代理資格考試 (EAQE) 及營業員資格考試 (SQE) 考生提供輔導。請依據《地產代理條例》(第511章) 及地產代理監管局 (EAA) 指引回答問題。保持答案精準、專業且易於理解。`;
 
     const result = streamText({
       model: openrouter('meta-llama/llama-3.3-70b-instruct'),
       system: systemPrompt,
-      messages: formattedMessages,
+      messages: convertToCoreMessages(messages || []),
     });
 
     return result.toDataStreamResponse();
