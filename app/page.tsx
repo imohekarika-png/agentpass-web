@@ -171,6 +171,16 @@ export default function HomePage() {
         </div>
       </section>
 
+// app/page.tsx (At the very end of the main JSX container)
+import AiTutorWidget from './components/AiTutorWidget';
+
+export default function Home() {
+  return (
+    <main className="min-h-screen bg-slate-950 text-white">
+      {/* Existing landing page hero & cards */}
+      
+      {/* Floating AI Tutor */}
+      <AiTutorWidget locale="zh-HK" />
     </main>
   );
 }

@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AiTutorWidget from '@/components/AiTutorWidget';
 import { LanguageProvider } from '@/context/LanguageContext';
 import './globals.css';
 
@@ -25,11 +26,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900">
+      <body className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900 relative">
         <LanguageProvider>
           <Navbar />
           <div className="flex-1">{children}</div>
           <Footer />
+          {/* Floating AI Tutor Widget */}
+          <AiTutorWidget locale="zh-HK" />
         </LanguageProvider>
       </body>
     </html>
