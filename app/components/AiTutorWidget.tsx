@@ -13,7 +13,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
 
-  // Cast options to any to bypass version-mismatched strict generics in @ai-sdk/react v5
+  // Explicitly point to /api/tutor
   const { messages, status, sendMessage } = (useChat as any)({
     api: '/api/tutor',
     body: { locale },
