@@ -2,185 +2,158 @@
 'use client';
 
 import Link from 'next/link';
+import { Sparkles, BookOpen, Scale, LayoutDashboard, ArrowRight, ShieldCheck, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
-export default function HomePage() {
+export default function Home() {
   const { language } = useLanguage();
-  const isZh = language === 'ZH';
-
-  const externalResources = [
-    {
-      titleZh: '地產代理監管局 (EAA) 考試大綱',
-      titleEn: 'EAA Qualifying Examination Syllabuses',
-      descZh: '查看 EAQE 及 SQE 官方最新考試範圍與規則',
-      descEn: 'Official examination guidelines and syllabus breakdown.',
-      href: 'https://www.eaa.org.hk/zh-hk/Qualifying-Examinations/Syllabuses',
-    },
-    {
-      titleZh: '《地產代理條例》(第511章)',
-      titleEn: 'Estate Agents Ordinance (Cap. 511)',
-      descZh: '香港電子版香港法例 (eLegislation) 條文檢索',
-      descEn: 'Official Hong Kong eLegislation statutory database.',
-      href: 'https://www.elegislation.gov.hk/hk/cap511!zh-Hant-HK',
-    },
-    {
-      titleZh: '土地註冊處 — 查冊指南',
-      titleEn: 'Land Registry — Search Procedures',
-      descZh: '土地查冊 (Land Search) 及土地登記冊法律常識',
-      descEn: 'Land register procedures and search guidance.',
-      href: 'https://www.landreg.gov.hk/tc/services/services_b.htm',
-    },
-  ];
+  const isZh = language === 'zh-HK';
 
   return (
-    <main className="min-h-[calc(100vh-4rem)] bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-indigo-100 selection:text-indigo-900">
-      
+    <main className="relative min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between overflow-x-hidden">
+      {/* Top Banner Notice */}
+      <div className="bg-indigo-950/60 border-b border-indigo-900/50 py-2 px-4 text-center text-xs font-medium text-indigo-300">
+        {isZh
+          ? '專為香港地產代理 (EAQE) 及營業員 (SQE) 資格考試而設的 AI 智能備考平台'
+          : 'AI-Powered Exam Preparation Platform for HK EAQE & SQE Licensing Exams'}
+      </div>
+
       {/* Hero Section */}
-      <section className="max-w-6xl mx-auto px-4 pt-16 pb-16 text-center space-y-8">
-        
-        {/* Language Badge */}
-        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/80 border border-indigo-200/80 dark:border-indigo-800 text-indigo-700 dark:text-indigo-300 text-xs font-bold shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-          <span>
-            {isZh ? '🇭🇰 繁體中文 (香港) — 地產代理監管局 (EAA) 試題規範' : '🇭🇰 Traditional Chinese (Hong Kong) — EAA Exam Aligned'}
-          </span>
+      <section className="relative pt-20 pb-16 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto text-center">
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-medium mb-6">
+          <Sparkles className="w-4 h-4 text-yellow-400" />
+          <span>{isZh ? '全新 AI 導師現已上線' : 'New AI Legal Mentor Enabled'}</span>
         </div>
 
-        {/* Hero Title & Subtitle */}
-        <div className="space-y-4 max-w-4xl mx-auto">
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-slate-900 dark:text-slate-100 leading-tight">
-            {isZh ? (
-              <>
-                地產代理及營業員資格考試 <br className="hidden sm:inline" />
-                <span className="text-indigo-600 dark:text-indigo-400">AI 智能雙語高效通關平台</span>
-              </>
-            ) : (
-              <>
-                Pass HK EAQE & SQE Exams <br className="hidden sm:inline" />
-                <span className="text-indigo-600 dark:text-indigo-400">With AI-Powered Precision</span>
-              </>
-            )}
-          </h1>
-          <p className="text-base sm:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
-            {isZh
-              ? 'AgentPass™ 專為 EAQE（大牌）及 SQE（細牌）考生打造。涵蓋《地產代理條例》(第511章) 及最新法例條文，AI 智能精準拆解考題陷阱。'
-              : 'Master Hong Kong EAQE and SQE licensing exams with statutory precision. Built on Cap. 511 standards with instant AI explanations and analytics.'}
-          </p>
-        </div>
+        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+          {isZh ? (
+            <>
+              高效、極速、智能的 <br />
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                香港地產牌照考證平台
+              </span>
+            </>
+          ) : (
+            <>
+              Intelligent, Bilingual & Efficient <br />
+              <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+                HK Real Estate Licensing Exam Prep
+              </span>
+            </>
+          )}
+        </h1>
 
-        {/* Call to Action Buttons */}
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4">
+        <p className="text-base sm:text-lg text-slate-400 max-w-3xl mx-auto mb-10 leading-relaxed">
+          {isZh
+            ? 'AgentPass™ 專為大牌 (EAQE) 及細牌 (SQE) 考生打造。涵蓋《地產代理條例》(第511章) 最新法例，利用 AI 導師精準拆解考題陷阱，助你一次過關。'
+            : 'AgentPass™ is designed specifically for EAQE (major) and SQE (minor) candidates. Covering the Real Estate Agents Ordinance (Cap. 511) with AI legal guidance.'}
+        </p>
+
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/quiz"
-            className="w-full sm:w-auto px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all text-center text-sm"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm transition shadow-lg shadow-indigo-600/30"
           >
-            {isZh ? '🚀 立即開始免費練習' : '🚀 Start Free Practice'}
+            <span>{isZh ? '立即免費練習' : 'Start Practicing Free'}</span>
+            <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             href="/mock-exam"
-            className="w-full sm:w-auto px-8 py-3.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-800 font-bold rounded-2xl transition-all text-center text-sm shadow-sm"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-slate-900 border border-slate-700 hover:bg-slate-800 text-slate-200 font-semibold text-sm transition"
           >
-            {isZh ? '⏱️ 全真模擬考試' : '⏱️ Timed Mock Exam'}
+            <BookOpen className="w-4 h-4 text-indigo-400" />
+            <span>{isZh ? '全真模擬考試' : 'Full-scale Mock Exam'}</span>
           </Link>
         </div>
-
-        {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12 text-left">
-          
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xl">
-              📚
-            </div>
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-              {isZh ? '雙語對照題庫' : 'Bilingual Question Bank'}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              {isZh
-                ? '隨時切換繁體中文（香港）與英文專業術語，精確掌握《發牌規例》(第511A章) 專有名詞。'
-                : 'Seamlessly toggle between Traditional Chinese (HK) and English legal terminology aligned with Cap. 511A.'}
-            </p>
-          </div>
-
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xl">
-              🤖
-            </div>
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-              {isZh ? 'AI 法例導師分析' : 'AI Legal Explanations'}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              {isZh
-                ? '即時提供法律依據與擬題陷阱分析，助你深度理解地產代理監管局 (EAA) 考題邏輯。'
-                : 'Get zero-latency explanations citing statutory clauses and exam trap analysis powered by AI.'}
-            </p>
-          </div>
-
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950 flex items-center justify-center text-xl">
-              📊
-            </div>
-            <h3 className="font-bold text-slate-900 dark:text-slate-100 text-base">
-              {isZh ? '弱點追蹤儀表板' : 'Weakness Analytics'}
-            </h3>
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              {isZh
-                ? '自動記錄錯題並分析個人知識短板，專攻土地註冊、土地查冊及物業轉易等高頻考點。'
-                : 'Track incorrect responses and focus revision on land registration, searches, and conveyancing topics.'}
-            </p>
-          </div>
-
-        </div>
-
       </section>
 
-      {/* External Official Resources Section */}
-      <section className="bg-slate-100/70 dark:bg-slate-900/50 border-t border-slate-200/80 dark:border-slate-800 py-12">
-        <div className="max-w-6xl mx-auto px-4 space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              {isZh ? '🏛️ 官方備考參考資源及法例指引' : '🏛️️ Official Statutory & Exam Resources'}
+      {/* Core Platform Features Grid */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600/20 flex items-center justify-center mb-4">
+              <BookOpen className="w-5 h-5 text-indigo-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {isZh ? '雙語題庫即時切換' : 'Bilingual Question Bank'}
+            </h3>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              {isZh
+                ? '支援繁體中文 (香港) 與英文題庫，對照《地產代理 (發牌) 規例》法例原文。'
+                : 'Switch seamlessly between Traditional Chinese (HK) and English for EAQE/SQE practice questions.'}
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+            <div className="w-10 h-10 rounded-xl bg-purple-600/20 flex items-center justify-center mb-4">
+              <Scale className="w-5 h-5 text-purple-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {isZh ? 'AI 法律導師解題' : 'AI Legal Mentor Analysis'}
+            </h3>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              {isZh
+                ? '針對錯題即時解析，根據地產代理監管局 (EAA) 考綱提示地查、表格簽署要點。'
+                : 'Get instant explanations referencing EAA regulatory codes and Cap. 511 Ordinance guidelines.'}
+            </p>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition">
+            <div className="w-10 h-10 rounded-xl bg-emerald-600/20 flex items-center justify-center mb-4">
+              <LayoutDashboard className="w-5 h-5 text-emerald-400" />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">
+              {isZh ? '個人弱點追蹤面板' : 'Vulnerability Tracking'}
+            </h3>
+            <p className="text-sm text-slate-400 leading-relaxed">
+              {isZh
+                ? '系統自動記錄常錯考題，包括物業轉讓、地查查冊、租務條例及註冊程序。'
+                : 'Track individual performance data across conveyancing, search procedures, and tenancy regulations.'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Official Legal References Section */}
+      <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto w-full">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 sm:p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <ShieldCheck className="w-6 h-6 text-indigo-400" />
+            <h2 className="text-lg font-bold text-white">
+              {isZh ? '官方考試參考指引與法例資源' : 'Official Regulatory Guidance & Legal References'}
             </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {isZh
-                ? '建議考生搭配地產代理監管局及香港政府律政司電子版香港法例研習'
-                : 'Recommended reference resources from the EAA and HKSAR eLegislation database.'}
-            </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {externalResources.map((res, i) => (
-              <a
-                key={i}
-                href={res.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 bg-white dark:bg-slate-900 hover:border-indigo-500/50 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm transition group"
-              >
-                <div className="flex items-center justify-between pb-1">
-                  <h4 className="font-bold text-xs text-indigo-600 dark:text-indigo-400 group-hover:underline">
-                    {isZh ? res.titleZh : res.titleEn}
-                  </h4>
-                  <span className="text-xs text-slate-400">↗</span>
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                  {isZh ? res.descZh : res.descEn}
-                </p>
-              </a>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            <a
+              href="https://www.eaa.org.hk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 flex items-center justify-between text-slate-300 transition"
+            >
+              <span>{isZh ? '地產代理監管局 (EAA) 考綱' : 'Estate Agents Authority (EAA)'}</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+            </a>
+            <a
+              href="https://www.elegislation.gov.hk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 flex items-center justify-between text-slate-300 transition"
+            >
+              <span>{isZh ? '《地產代理條例》(第511章)' : 'Cap. 511 Ordinance'}</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+            </a>
+            <a
+              href="https://www.landreg.gov.hk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-4 rounded-xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 flex items-center justify-between text-slate-300 transition"
+            >
+              <span>{isZh ? '土地註冊處查冊指引' : 'Land Registry Search Guide'}</span>
+              <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
+            </a>
           </div>
         </div>
       </section>
-
-// app/page.tsx (At the very end of the main JSX container)
-import AiTutorWidget from './components/AiTutorWidget';
-
-export default function Home() {
-  return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      {/* Existing landing page hero & cards */}
-      
-      {/* Floating AI Tutor */}
-      <AiTutorWidget locale="zh-HK" />
     </main>
   );
 }

@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import AiTutorWidget from '@/components/AiTutorWidget';
+import AiTutorWidget from './components/AiTutorWidget';
 import { LanguageProvider } from '@/context/LanguageContext';
 import './globals.css';
 
