@@ -23,8 +23,7 @@ export async function POST(req: Request) {
       messages: modelMessages,
     });
 
-    // Use toDataStreamResponse for @ai-sdk/react compatibility
-    return result.toDataStreamResponse();
+    return result.toTextStreamResponse();
   } catch (error: any) {
     console.error('API Tutor Handler Error:', error);
     return new Response(
