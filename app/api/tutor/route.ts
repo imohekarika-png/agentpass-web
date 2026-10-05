@@ -1,6 +1,6 @@
 // app/api/tutor/route.ts
 import { createOpenRouter } from '@openrouter/ai-sdk-provider';
-import { streamText, convertToCoreMessages } from 'ai';
+import { streamText, convertToModelMessages } from 'ai';
 
 const openrouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model: openrouter('meta-llama/llama-3.3-70b-instruct'),
       system: systemPrompt,
-      messages: convertToCoreMessages(messages || []),
+      messages: convertToModelMessages(messages || []),
     });
 
     return result.toDataStreamResponse();
