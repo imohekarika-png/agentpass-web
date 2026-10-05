@@ -7,7 +7,8 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function Home() {
   const { language } = useLanguage();
-  const isZh = language === 'zh-HK';
+  // Compatible with 'zh', 'zh-HK', or 'zh-TW' types
+  const isZh = (language as string) === 'zh-HK' || (language as string) === 'zh';
 
   return (
     <main className="relative min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between overflow-x-hidden">
