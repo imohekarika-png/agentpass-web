@@ -18,8 +18,10 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     setMounted(true);
   }, []);
 
+  // Pass api directly alongside transport override
   const { messages, status, sendMessage } = (useChat as any)({
-    fetch: (url: string, options: any) => fetch('/api/tutor', options),
+    api: '/api/tutor',
+    endpoint: '/api/tutor',
     body: { locale },
   });
 
@@ -33,10 +35,16 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     const userText = input;
     setInput('');
 
-    await sendMessage({
-      role: 'user',
-      parts: [{ type: 'text', text: userText }],
-    });
+    // Explicitly pass request options targeting /api/tutor
+    await sendMessage(
+      {
+        role: 'user',
+        parts: [{ type: 'text', text: userText }],
+      },
+      {
+        api: '/api/tutor',
+      }
+    );
   };
 
   const renderMessageContent = (m: any) => {
