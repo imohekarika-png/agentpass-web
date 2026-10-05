@@ -2,7 +2,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Bot, X, Send, Sparkles, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Bot, X, Send, Sparkles, User, Trash2 } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -14,6 +16,8 @@ interface AiTutorWidgetProps {
   locale?: 'zh-HK' | 'en';
 }
 
+const STORAGE_KEY = 'agentpass_tutor_messages_v1';
+
 export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -22,15 +26,37 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const isZh = locale === 'zh-HK';
+
   useEffect(() => {
     setMounted(true);
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.error('Failed to load chat history:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    } catch (err) {
+      console.error('Failed to save chat history:', err);
+    }
+  }, [messages, mounted]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const isZh = locale === 'zh-HK';
+  const clearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
+  };
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,9 +100,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        
-        // Parse stream chunks formatted as 0:"token"
         const lines = chunk.split('\n');
+
         for (const line of lines) {
           if (line.startsWith('0:')) {
             try {
@@ -87,7 +112,6 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                 )
               );
             } catch {
-              // Fallback for raw text chunks
               setMessages((prev) =>
                 prev.map((m) =>
                   m.id === assistantId ? { ...m, content: m.content + line.slice(2) } : m
@@ -135,6 +159,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
 
       {isOpen && (
         <div className="flex h-[520px] w-[360px] flex-col rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:w-[400px]">
+          {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-slate-800 px-4 py-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
@@ -147,14 +172,26 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                 </p>
               </div>
             </div>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-white"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <div className="flex items-center gap-1">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  title={isZh ? '清除紀錄' : 'Clear History'}
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-rose-400 transition"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                onClick={() => setIsOpen(false)}
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
           </div>
 
+          {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
             {messages.length === 0 && (
               <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
@@ -178,13 +215,21 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   </div>
                 )}
                 <div
-                  className={`rounded-xl px-3.5 py-2 max-w-[80%] text-xs leading-relaxed whitespace-pre-wrap ${
+                  className={`rounded-xl px-3.5 py-2 max-w-[85%] text-xs leading-relaxed ${
                     m.role === 'user'
                       ? 'bg-indigo-600 text-white rounded-br-none'
                       : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
                   }`}
                 >
-                  {m.content}
+                  {m.role === 'user' ? (
+                    <div className="whitespace-pre-wrap">{m.content}</div>
+                  ) : (
+                    <div className="prose prose-invert prose-xs max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-indigo-300 prose-strong:text-indigo-200 prose-table:border-collapse prose-td:border prose-td:border-slate-700 prose-td:p-1.5 prose-th:border prose-th:border-slate-700 prose-th:p-1.5 prose-th:bg-slate-800">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {m.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
                 </div>
                 {m.role === 'user' && (
                   <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700">
@@ -202,6 +247,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             <div ref={chatEndRef} />
           </div>
 
+          {/* Form Input */}
           <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
             <div className="flex items-center gap-2">
               <input

@@ -12,10 +12,23 @@ export async function POST(req: Request) {
 
     const systemPrompt =
       locale === 'en'
-        ? `You are the AgentPass AI Tutor for Hong Kong EAQE and SQE licensing exams. Provide guidance grounded in the Estate Agents Ordinance (Cap. 511) and EAA regulatory guidelines. Keep responses precise, clear, and professional.`
-        : `你是 AgentPass AI 導師，專為香港地產代理資格考試 (EAQE) 及營業員資格考試 (SQE) 考生提供輔導。請依據《地產代理條例》(第511章) 及地產代理監管局 (EAA) 指引回答問題。保持答案精準、專業且易於理解。`;
+        ? `You are the AgentPass AI Tutor for Hong Kong EAQE and SQE licensing exams. 
+Strictly follow these rules:
+1. Provide highly accurate guidance grounded in the Estate Agents Ordinance (Cap. 511) enacted in 1997, EAA Practice Circulars, and Hong Kong law.
+2. Ensure historical and legal facts (dates, section numbers, statutory form names) are exact. Do not guess or fabricate dates.
+3. Always structure your responses using Markdown formatting:
+   - Use bold text for key legal terms and section numbers.
+   - Use bullet points or numbered lists for scannable summaries.
+   - Use Markdown tables when comparing options, forms, or regulations.`
+        : `你是 AgentPass AI 導師，專為香港地產代理資格考試 (EAQE) 及營業員資格考試 (SQE) 考生提供輔導。
+請嚴格遵守以下規則：
+1. 依據 1997 年通過的《地產代理條例》(第511章) 及地產代理監管局 (EAA) 執業指引回答問題。
+2. 確保法律事實、日期、條例條款及法定表格 (Form 1 至 Form 6) 準確無誤。切勿虛構日期或條款。
+3. 必須使用標準 Markdown 格式回應：
+   - 使用粗體突出法律關鍵字與條款名稱。
+   - 使用清單 (Bullet Points) 整理考點。
+   - 比較不同表格或法例時使用 Markdown 表格。`;
 
-    // Map incoming array into standard role/content objects
     const formattedMessages = (messages || []).map((m: any) => ({
       role: m.role === 'assistant' ? 'assistant' : 'user',
       content: typeof m.content === 'string' ? m.content : '',
@@ -25,6 +38,7 @@ export async function POST(req: Request) {
       model: openrouter('meta-llama/llama-3.3-70b-instruct'),
       system: systemPrompt,
       messages: formattedMessages,
+      temperature: 0.2,
     });
 
     const encoder = new TextEncoder();
