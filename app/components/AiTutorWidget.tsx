@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import type { Message } from 'ai';
+import type { UIMessage } from 'ai';
 import { Bot, X, Send, Sparkles, User } from 'lucide-react';
 
 interface AiTutorWidgetProps {
@@ -12,13 +12,28 @@ interface AiTutorWidgetProps {
 
 export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [input, setInput] = useState('');
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: '/api/tutor',
+  const { messages, append, status } = useChat({
+    endpoint: '/api/tutor',
     body: { locale },
   });
 
+  const isLoading = status === 'submitted' || status === 'streaming';
   const isZh = locale === 'zh-HK';
+
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || isLoading) return;
+
+    const userText = input;
+    setInput('');
+
+    await append({
+      role: 'user',
+      content: userText,
+    });
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
@@ -68,7 +83,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
               </div>
             )}
 
-            {messages.map((m: Message) => (
+            {messages.map((m: UIMessage) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -102,11 +117,11 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
+          <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
             <div className="flex items-center gap-2">
               <input
                 value={input}
-                onChange={handleInputChange}
+                onChange={(e) => setInput(e.target.value)}
                 placeholder={
                   isZh
                     ? '輸入問題 (例：何謂雙重代理？)'
