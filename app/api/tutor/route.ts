@@ -4,7 +4,6 @@ import { streamText } from 'ai';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
-// Configure OpenAI SDK to route requests through OpenRouter
 const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -17,7 +16,6 @@ const openrouter = createOpenAI({
 export async function POST(req: Request) {
   const cookieStore = await cookies();
   
-  // Verify Supabase user session
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -43,11 +41,10 @@ export async function POST(req: Request) {
        Provide guidance grounded in the Estate Agents Ordinance (Cap. 511) and EAA regulatory guidelines. Keep responses precise, clear, and professional.`;
 
   const result = streamText({
-    // Use OpenRouter model slug (e.g. openai/gpt-4o-mini or anthropic/claude-3.5-sonnet)
     model: openrouter('openai/gpt-4o-mini'),
     system: systemPrompt,
     messages,
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }

@@ -2,7 +2,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
+import type { Message } from 'ai';
 import { Bot, X, Send, Sparkles, User } from 'lucide-react';
 
 interface AiTutorWidgetProps {
@@ -21,7 +22,6 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
-      {/* Floating Toggle Button */}
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
@@ -34,10 +34,8 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
         </button>
       )}
 
-      {/* Chat Window Drawer */}
       {isOpen && (
         <div className="flex h-[520px] w-[360px] flex-col rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:w-[400px]">
-          {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-slate-800 px-4 py-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
@@ -58,7 +56,6 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             </button>
           </div>
 
-          {/* Messages Container */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
             {messages.length === 0 && (
               <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
@@ -71,7 +68,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
               </div>
             )}
 
-            {messages.map((m) => (
+            {messages.map((m: Message) => (
               <div
                 key={m.id}
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -105,7 +102,6 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             )}
           </div>
 
-          {/* Input Form */}
           <form onSubmit={handleSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
             <div className="flex items-center gap-2">
               <input
@@ -131,4 +127,4 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
       )}
     </div>
   );
-} 
+}
