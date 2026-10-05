@@ -7,7 +7,6 @@ import { useLanguage } from '@/context/LanguageContext';
 
 export default function Home() {
   const { language } = useLanguage();
-  // Compatible with 'zh', 'zh-HK', or 'zh-TW' types
   const isZh = (language as string) === 'zh-HK' || (language as string) === 'zh';
 
   return (
