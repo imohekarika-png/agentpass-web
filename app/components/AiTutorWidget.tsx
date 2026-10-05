@@ -224,7 +224,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   {m.role === 'user' ? (
                     <div className="whitespace-pre-wrap">{m.content}</div>
                   ) : (
-                    <div className="prose prose-invert prose-xs max-w-none prose-p:my-1 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-headings:text-indigo-300 prose-strong:text-indigo-200 prose-table:border-collapse prose-td:border prose-td:border-slate-700 prose-td:p-1.5 prose-th:border prose-th:border-slate-700 prose-th:p-1.5 prose-th:bg-slate-800">
+                    <div className="prose prose-invert prose-xs max-w-none text-slate-200 prose-p:my-1.5 prose-ul:my-1.5 prose-ul:list-disc prose-ul:pl-4 prose-ol:my-1.5 prose-ol:list-decimal prose-ol:pl-4 prose-li:my-0.5 prose-headings:text-indigo-300 prose-headings:font-bold prose-headings:text-sm prose-strong:text-amber-300 prose-strong:font-semibold prose-table:border-collapse prose-td:border prose-td:border-slate-700 prose-td:p-1.5 prose-th:border prose-th:border-slate-700 prose-th:p-1.5 prose-th:bg-slate-800">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {m.content}
                       </ReactMarkdown>
