@@ -176,4 +176,4 @@ export const EAA_COURSE_SYLLABUS: CourseModule[] = [
       },
     ],
   },
-]; nul 
+];
