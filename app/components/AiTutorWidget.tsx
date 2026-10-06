@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bot, X, Send, Sparkles, User, Trash2 } from 'lucide-react';
+import { Bot, X, Send, Sparkles, User, Trash2, HelpCircle } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -18,6 +18,22 @@ interface AiTutorWidgetProps {
 
 const STORAGE_KEY = 'agentpass_tutor_messages_v1';
 
+// Quick suggested practice questions for EAQE / SQE candidates
+const QUICK_PROMPTS = {
+  'zh-HK': [
+    { label: '何謂雙重代理 (Dual Agency)？', query: '請解釋根據《地產代理條例》(第511章)，何謂雙重代理？代理有何法定披露責任？' },
+    { label: 'Form 1 至 Form 6 表格用途', query: '請整理及比較地產代理法定表格 (Form 1 至 Form 6) 的主要用途及適用交易類別。' },
+    { label: '營業員與地產代理牌照區別', query: '請問營業員牌照 (Salesperson\'s Licence) 與地產代理牌照 (Estate Agent\'s Licence) 有何權限區別？' },
+    { label: '出價傳達與誠實義務', query: '若買家提出口頭出價，地產代理是否有責任向業主傳達？EAA 指引如何規定？' },
+  ],
+  en: [
+    { label: 'What is Dual Agency under Cap. 511?', query: 'Explain Dual Agency under the Estate Agents Ordinance (Cap. 511) and the mandatory disclosure requirements.' },
+    { label: 'Summary of Statutory Forms 1 to 6', query: 'Provide a breakdown comparing Statutory Prescribed Forms (Form 1 to Form 6) used in residential transactions.' },
+    { label: 'Salesperson vs. Agent Licence', query: 'What are the key scope differences between a Salesperson\'s Licence and an Estate Agent\'s Licence?' },
+    { label: 'Duty to Convey Verbal Offers', query: 'Is an estate agent legally required to convey a verbal offer from a prospective purchaser to the vendor under EAA guidelines?' },
+  ],
+};
+
 export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) {
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +43,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const isZh = locale === 'zh-HK';
+  const suggestedPrompts = isZh ? QUICK_PROMPTS['zh-HK'] : QUICK_PROMPTS.en;
 
   useEffect(() => {
     setMounted(true);
@@ -58,11 +75,9 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+  const submitQuestion = async (userText: string) => {
+    if (!userText.trim() || isLoading) return;
 
-    const userText = input;
     setInput('');
 
     const userMessage: Message = {
@@ -141,6 +156,11 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     }
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    submitQuestion(input);
+  };
+
   if (!mounted) return null;
 
   return (
@@ -158,7 +178,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
       )}
 
       {isOpen && (
-        <div className="flex h-[520px] w-[360px] flex-col rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:w-[400px]">
+        <div className="flex h-[540px] w-[360px] flex-col rounded-2xl border border-slate-700 bg-slate-900 shadow-2xl sm:w-[420px]">
           {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-slate-800 px-4 py-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
@@ -191,16 +211,44 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             </div>
           </div>
 
-          {/* Chat Messages */}
+          {/* Chat Messages / Suggested Prompts */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
             {messages.length === 0 && (
-              <div className="flex h-full flex-col items-center justify-center text-center text-slate-400">
-                <Bot className="h-10 w-10 text-indigo-400 mb-2 opacity-80" />
-                <p className="text-xs max-w-[220px]">
-                  {isZh
-                    ? '歡迎！您可以詢問《地產代理條例》(第511章)、EAA 監管指引或模擬試題。'
-                    : 'Welcome! Ask questions regarding Cap. 511 Ordinance, EAA guidelines, or exam preparation.'}
-                </p>
+              <div className="flex h-full flex-col justify-center space-y-4">
+                <div className="text-center text-slate-400">
+                  <Bot className="h-10 w-10 text-indigo-400 mx-auto mb-2 opacity-80" />
+                  <p className="text-xs font-semibold text-slate-300 mb-1">
+                    {isZh ? '歡迎！我是您的 EAQE / SQE 考試導師' : 'Welcome! I am your EAQE / SQE Exam Tutor'}
+                  </p>
+                  <p className="text-xs max-w-[260px] mx-auto text-slate-400">
+                    {isZh
+                      ? '您可以點擊熱門考點提問，或直接輸入任何《地產代理條例》(第511章) 疑難：'
+                      : 'Click a suggested topic below or type any Cap. 511 exam question:'}
+                  </p>
+                </div>
+
+                {/* Quick Practice Question Chips */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-1 text-[11px] font-medium text-indigo-400">
+                    <HelpCircle className="h-3.5 w-3.5" />
+                    <span>{isZh ? '熱門試題速問' : 'Suggested Exam Topics'}</span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-1.5">
+                    {suggestedPrompts.map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => submitQuestion(item.query)}
+                        disabled={isLoading}
+                        className="w-full text-left rounded-xl bg-slate-800/80 border border-slate-700/80 p-2.5 text-xs text-slate-300 hover:bg-indigo-950/40 hover:border-indigo-500/50 hover:text-indigo-200 transition-all flex items-center justify-between group"
+                      >
+                        <span>{item.label}</span>
+                        <span className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold">
+                          →
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -247,7 +295,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             <div ref={chatEndRef} />
           </div>
 
-          {/* Form Input */}
+          {/* Input Form */}
           <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
             <div className="flex items-center gap-2">
               <input
