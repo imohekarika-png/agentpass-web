@@ -1,22 +1,14 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import AiTutorWidget from './components/AiTutorWidget';
-import { LanguageProvider } from '@/context/LanguageContext';
 import './globals.css';
+import { LanguageProvider } from '@/app/context/LanguageContext';
+import Navbar from '@/app/components/Navbar';
+import Footer from '@/app/components/Footer';
+import AiTutorWidget from '@/app/components/AiTutorWidget';
 
 export const metadata: Metadata = {
-  title: 'AgentPass™ | Hong Kong EAQE / SQE AI Exam Prep',
-  description:
-    'AI-powered, zero-latency exam preparation platform by Vektor Spatial Limited for HK Estate Agents & Salespersons.',
-  icons: {
-    icon: [
-      { url: '/icon.png', type: 'image/png' },
-    ],
-    shortcut: '/icon.png',
-    apple: '/icon.png',
-  },
+  title: 'AgentPass™ - EAQE / SQE 智能備考平台',
+  description: '香港地產代理及營業員牌照考試 AI 導師平台',
 };
 
 export default function RootLayout({
@@ -25,14 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased min-h-screen flex flex-col selection:bg-indigo-100 selection:text-indigo-900 relative">
+    <html lang="zh-HK" translate="no" className="notranslate" suppressHydrationWarning>
+      <body className="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen flex flex-col" suppressHydrationWarning>
         <LanguageProvider>
           <Navbar />
-          <div className="flex-1">{children}</div>
+          <main className="flex-1">{children}</main>
           <Footer />
-          {/* Floating AI Tutor Widget */}
-          <AiTutorWidget locale="zh-HK" />
+          <AiTutorWidget />
         </LanguageProvider>
       </body>
     </html>

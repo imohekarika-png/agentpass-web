@@ -1,10 +1,11 @@
 // app/components/AiTutorWidget.tsx
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Bot, X, Send, Sparkles, User, Trash2, HelpCircle } from 'lucide-react';
+import { useLanguage } from '@/app/context/LanguageContext';
+import { Bot, X, Send, Sparkles, User, Trash2, HelpCircle, Globe } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -12,13 +13,8 @@ interface Message {
   content: string;
 }
 
-interface AiTutorWidgetProps {
-  locale?: 'zh-HK' | 'en';
-}
-
 const STORAGE_KEY = 'agentpass_tutor_messages_v1';
 
-// Quick suggested practice questions for EAQE / SQE candidates
 const QUICK_PROMPTS = {
   'zh-HK': [
     { label: '何謂雙重代理 (Dual Agency)？', query: '請解釋根據《地產代理條例》(第511章)，何謂雙重代理？代理有何法定披露責任？' },
@@ -34,7 +30,8 @@ const QUICK_PROMPTS = {
   ],
 };
 
-export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) {
+export default function AiTutorWidget() {
+  const { locale, toggleLocale } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -70,12 +67,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  const clearHistory = () => {
-    setMessages([]);
-    localStorage.removeItem(STORAGE_KEY);
-  };
-
-  const submitQuestion = async (userText: string) => {
+  const submitQuestion = useCallback(async (userText: string) => {
     if (!userText.trim() || isLoading) return;
 
     setInput('');
@@ -104,7 +96,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
       });
 
       if (!response.ok || !response.body) {
-        throw new Error('Failed to fetch AI stream');
+        throw new Error('Failed to fetch AI response');
       }
 
       const reader = response.body.getReader();
@@ -154,6 +146,24 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
     } finally {
       setIsLoading(false);
     }
+  }, [isLoading, locale, messages, isZh]);
+
+  useEffect(() => {
+    const handleCustomAsk = (e: Event) => {
+      const customEvent = e as CustomEvent<{ prompt: string }>;
+      if (customEvent.detail?.prompt) {
+        setIsOpen(true);
+        submitQuestion(customEvent.detail.prompt);
+      }
+    };
+
+    window.addEventListener('agentpass:ask-tutor', handleCustomAsk);
+    return () => window.removeEventListener('agentpass:ask-tutor', handleCustomAsk);
+  }, [submitQuestion]);
+
+  const clearHistory = () => {
+    setMessages([]);
+    localStorage.removeItem(STORAGE_KEY);
   };
 
   const handleFormSubmit = (e: React.FormEvent) => {
@@ -168,7 +178,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-white shadow-lg transition-all hover:bg-indigo-700 hover:scale-105"
+          className="flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-white shadow-lg transition-all hover:bg-indigo-700 hover:scale-105 cursor-pointer"
         >
           <Sparkles className="h-5 w-5 text-yellow-300" />
           <span className="text-sm font-semibold">
@@ -188,11 +198,22 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
               <div>
                 <h3 className="text-sm font-bold text-white">AgentPass™ AI Tutor</h3>
                 <p className="text-xs text-slate-400">
-                  {isZh ? 'EAQE / SQE 條例導師' : 'EAQE / SQE Ordinance Assistant'}
+                  {isZh ? 'EAQE / SQE 條例導師' : 'EAQE / SQE Assistant'}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1">
+
+            <div className="flex items-center gap-1.5">
+              {/* Language Switcher Button in Header */}
+              <button
+                onClick={toggleLocale}
+                title={isZh ? '切換語言' : 'Switch Language'}
+                className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:border-indigo-500 transition"
+              >
+                <Globe className="h-3 w-3 text-indigo-400" />
+                <span>{isZh ? 'EN' : '繁'}</span>
+              </button>
+
               {messages.length > 0 && (
                 <button
                   onClick={clearHistory}
@@ -202,6 +223,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   <Trash2 className="h-4 w-4" />
                 </button>
               )}
+
               <button
                 onClick={() => setIsOpen(false)}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-white transition"
@@ -211,7 +233,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             </div>
           </div>
 
-          {/* Chat Messages / Suggested Prompts */}
+          {/* Chat Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
             {messages.length === 0 && (
               <div className="flex h-full flex-col justify-center space-y-4">
@@ -227,7 +249,6 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   </p>
                 </div>
 
-                {/* Quick Practice Question Chips */}
                 <div className="space-y-2">
                   <div className="flex items-center gap-1 text-[11px] font-medium text-indigo-400">
                     <HelpCircle className="h-3.5 w-3.5" />
@@ -239,7 +260,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                         key={idx}
                         onClick={() => submitQuestion(item.query)}
                         disabled={isLoading}
-                        className="w-full text-left rounded-xl bg-slate-800/80 border border-slate-700/80 p-2.5 text-xs text-slate-300 hover:bg-indigo-950/40 hover:border-indigo-500/50 hover:text-indigo-200 transition-all flex items-center justify-between group"
+                        className="w-full text-left rounded-xl bg-slate-800/80 border border-slate-700/80 p-2.5 text-xs text-slate-300 hover:bg-indigo-950/40 hover:border-indigo-500/50 hover:text-indigo-200 transition-all flex items-center justify-between group cursor-pointer"
                       >
                         <span>{item.label}</span>
                         <span className="text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold">
@@ -272,7 +293,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
                   {m.role === 'user' ? (
                     <div className="whitespace-pre-wrap">{m.content}</div>
                   ) : (
-                    <div className="prose prose-invert prose-xs max-w-none text-slate-200 prose-p:my-1.5 prose-ul:my-1.5 prose-ul:list-disc prose-ul:pl-4 prose-ol:my-1.5 prose-ol:list-decimal prose-ol:pl-4 prose-li:my-0.5 prose-headings:text-indigo-300 prose-headings:font-bold prose-headings:text-sm prose-strong:text-amber-300 prose-strong:font-semibold prose-table:border-collapse prose-td:border prose-td:border-slate-700 prose-td:p-1.5 prose-th:border prose-th:border-slate-700 prose-th:p-1.5 prose-th:bg-slate-800">
+                    <div className="prose prose-invert prose-xs max-w-none text-slate-200">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {m.content}
                       </ReactMarkdown>
@@ -295,7 +316,7 @@ export default function AiTutorWidget({ locale = 'zh-HK' }: AiTutorWidgetProps) 
             <div ref={chatEndRef} />
           </div>
 
-          {/* Input Form */}
+          {/* Form Input */}
           <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
             <div className="flex items-center gap-2">
               <input
