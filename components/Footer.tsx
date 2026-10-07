@@ -13,7 +13,7 @@ export default function Footer() {
     <footer className="bg-slate-100/80 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10 px-4 mt-auto">
       <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Top Grid: Brand & Quick Navigation & Customer Care */}
+        {/* Top Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-200 dark:border-slate-800">
           
           {/* Column 1: Brand Info */}
@@ -56,7 +56,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Column 3: Customer Care & Support Contacts */}
+          {/* Column 3: Customer Care & Support */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
               {isZh ? '客戶服務與支援' : 'Customer Care & Support'}
@@ -71,7 +71,7 @@ export default function Footer() {
               <p className="flex items-center space-x-2">
                 <span className="font-semibold text-slate-700 dark:text-slate-300">💬 WhatsApp:</span>
                 <a href="https://wa.me/85254327572" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 underline">
-                  +852 5432 7572
+                  +852 54327572
                 </a>
               </p>
               <p className="text-[11px] text-slate-500 pt-1">
@@ -84,7 +84,7 @@ export default function Footer() {
 
         </div>
 
-        {/* Bottom Legal & Statutory Disclaimers */}
+        {/* Bottom Legal & Disclaimers */}
         <div className="text-center text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto space-y-2">
           <p className="text-[11px] text-slate-500 dark:text-slate-400">
             {isZh
