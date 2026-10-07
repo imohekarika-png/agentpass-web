@@ -33,7 +33,7 @@ export default function ContactPage() {
               : 'Quick answers regarding account access, feature guidance, and subscriptions.'}
           </p>
           <a
-            href="https://wa.me/85290000000"
+            href="https://wa.me/85254327572"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block pt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"

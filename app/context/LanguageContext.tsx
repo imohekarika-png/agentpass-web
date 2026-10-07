@@ -7,17 +7,22 @@ export type Locale = 'zh-HK' | 'en';
 
 interface LanguageContextType {
   locale: Locale;
+  language?: string; // Backwards compatibility for legacy components
   setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
 }
 
 const STORAGE_KEY = 'agentpass_locale_preference';
 
-const LanguageContext = createContext<LanguageContextType>({
+// Provide safe defaults so static page generation never throws
+const defaultContextValue: LanguageContextType = {
   locale: 'zh-HK',
+  language: 'ZH',
   setLocale: () => {},
   toggleLocale: () => {},
-});
+};
+
+const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>('zh-HK');
@@ -29,7 +34,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         setLocaleState(saved);
       }
     } catch (err) {
-      console.error('Failed to load locale preference:', err);
+      console.error('Failed to load locale:', err);
     }
   }, []);
 
@@ -38,20 +43,30 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     try {
       localStorage.setItem(STORAGE_KEY, newLocale);
     } catch (err) {
-      console.error('Failed to save locale preference:', err);
+      console.error('Failed to save locale:', err);
     }
   };
 
   const toggleLocale = () => {
-    const nextLocale = locale === 'zh-HK' ? 'en' : 'zh-HK';
-    setLocale(nextLocale);
+    setLocale(locale === 'zh-HK' ? 'en' : 'zh-HK');
   };
 
   return (
-    <LanguageContext.Provider value={{ locale, setLocale, toggleLocale }}>
+    <LanguageContext.Provider
+      value={{
+        locale,
+        language: locale === 'zh-HK' ? 'ZH' : 'EN',
+        setLocale,
+        toggleLocale,
+      }}
+    >
       {children}
     </LanguageContext.Provider>
   );
 }
 
-export const useLanguage = () => useContext(LanguageContext);
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  // Return context or default fallback to guarantee zero build-time crashes
+  return context || defaultContextValue;
+}
