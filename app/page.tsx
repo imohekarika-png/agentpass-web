@@ -1,177 +1,168 @@
-// app/page.tsx
+// app/contact/page.tsx
 'use client';
 
-import Link from 'next/link';
-import { useLanguage } from '@/app/context/LanguageContext';
-import { 
-  BookOpen, 
-  HelpCircle, 
-  Sparkles, 
-  ArrowRight, 
-  ShieldCheck,
-  Mail
-} from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
+import { Mail, Phone, Clock, MapPin, MessageSquare, Send } from 'lucide-react';
 
-export default function HomePage() {
+export default function ContactPage() {
   const { locale, language } = useLanguage();
   const isZh = locale === 'zh-HK' || language === 'ZH';
 
-  const handleOpenAiTutor = () => {
-    window.dispatchEvent(
-      new CustomEvent('agentpass:ask-tutor', {
-        detail: {
-          prompt: isZh
-            ? '請簡介 EAQE / SQE 牌照考試範圍及如何備考？'
-            : 'Please introduce the EAQE / SQE exam syllabus and revision strategy.',
-        },
-      })
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b border-slate-800 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 py-20 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto text-center space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold text-indigo-300">
-            <ShieldCheck className="h-4 w-4 text-indigo-400" />
-            <span>
-              {isZh
-                ? '針對香港地產代理監管局 (EAA) 試題規範'
-                : 'Aligned with HK Estate Agents Authority (EAA) Guidelines'}
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
-            {isZh ? (
-              <>
-                一次通過 EAQE / SQE 牌照考試 <br />
-                <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                  AgentPass™ AI 智能備考平台
-                </span>
-              </>
-            ) : (
-              <>
-                Pass Your EAQE / SQE Licensing Exam <br />
-                <span className="bg-gradient-to-r from-indigo-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
-                  AgentPass™ AI Prep Platform
-                </span>
-              </>
-            )}
+    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6">
+      <div className="max-w-4xl mx-auto space-y-10">
+        
+        {/* Header Section */}
+        <div className="text-center space-y-3">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
+            {isZh ? '聯絡我們' : 'Contact Us'}
           </h1>
-
-          <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-400 max-w-xl mx-auto leading-relaxed">
             {isZh
-              ? '結合《地產代理條例》(第511章) 法定課程大綱、模擬試題庫及 24/7 AI 法律導師，助您高效考取地產代理與營業員牌照。'
-              : 'Master Cap. 511 Estate Agents Ordinance with interactive syllabus, exam question banks, and a 24/7 AI Tutor.'}
+              ? '如有關於 AgentPass™ 課程、模擬題庫或 AI 導師系統的任何查詢，歡迎隨時與我們的團隊聯絡。'
+              : 'Have questions about AgentPass™ course syllabus, practice bank, or AI tutor system? Reach out to our team anytime.'}
           </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
-            <Link
-              href="/course"
-              className="flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-indigo-600/30 hover:bg-indigo-500 transition"
-            >
-              <BookOpen className="h-4 w-4" />
-              <span>{isZh ? '開始學習課程大綱' : 'Start Course Syllabus'}</span>
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-
-            <Link
-              href="/quiz"
-              className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-6 py-3 text-sm font-bold text-slate-200 hover:border-slate-500 hover:bg-slate-800 transition"
-            >
-              <HelpCircle className="h-4 w-4 text-indigo-400" />
-              <span>{isZh ? '進入模擬測驗' : 'Take Practice Quiz'}</span>
-            </Link>
-
-            <button
-              onClick={handleOpenAiTutor}
-              className="flex items-center gap-2 rounded-xl border border-indigo-500/40 bg-indigo-950/40 px-6 py-3 text-sm font-bold text-indigo-300 hover:bg-indigo-900/60 transition cursor-pointer"
-            >
-              <Sparkles className="h-4 w-4 text-yellow-300" />
-              <span>{isZh ? '諮詢 AI 導師' : 'Ask AI Tutor'}</span>
-            </button>
-
-            <Link
-              href="/contact"
-              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-6 py-3 text-sm font-bold text-slate-300 hover:text-white hover:border-slate-600 transition"
-            >
-              <Mail className="h-4 w-4 text-cyan-400" />
-              <span>{isZh ? '聯絡我們' : 'Contact Us'}</span>
-            </Link>
-          </div>
         </div>
-      </section>
 
-      {/* Feature Cards Grid */}
-      <section className="py-16 px-4 sm:px-6 max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Contact Info Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
-          {/* Card 1: Course */}
-          <Link
-            href="/course"
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-all hover:border-indigo-500 hover:bg-slate-900 hover:shadow-xl"
-          >
-            <div className="h-12 w-12 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 group-hover:scale-110 transition">
-              <BookOpen className="h-6 w-6" />
+          {/* Card 1: Email Support */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+              <Mail className="h-5 w-5" />
             </div>
-            <h3 className="text-base font-bold text-white mb-2 group-hover:text-indigo-300 transition">
-              {isZh ? 'EAA 四大核心模組課程' : 'EAA 4 Core Modules'}
+            <h3 className="text-sm font-bold text-white">
+              {isZh ? '電子郵件 Support' : 'Email Support'}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              {isZh
-                ? '涵蓋第511章條例、土地查冊、法定表格 Form 1-6、物業估值及印花稅條例。'
-                : 'Covers Cap. 511 Ordinance, Land Search reading, Statutory Forms 1-6, Valuation & Stamp Duty.'}
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {isZh ? '我們會在 24 小時內回覆您的查詢：' : 'We typically respond to your inquiry within 24 hours:'}
             </p>
-            <span className="text-xs font-semibold text-indigo-400 flex items-center gap-1">
-              {isZh ? '查看課程內容' : 'Explore Modules'} <ArrowRight className="h-3 w-3" />
-            </span>
-          </Link>
+            <a
+              href="mailto:support@agentpass.hk"
+              className="inline-block text-sm font-semibold text-indigo-400 hover:text-indigo-300 underline transition"
+            >
+              support@agentpass.hk
+            </a>
+          </div>
 
-          {/* Card 2: Quiz */}
-          <Link
-            href="/quiz"
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-all hover:border-emerald-500 hover:bg-slate-900 hover:shadow-xl"
-          >
-            <div className="h-12 w-12 rounded-xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 mb-4 group-hover:scale-110 transition">
-              <HelpCircle className="h-6 w-6" />
+          {/* Card 2: Phone & WhatsApp */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <Phone className="h-5 w-5" />
             </div>
-            <h3 className="text-base font-bold text-white mb-2 group-hover:text-emerald-300 transition">
-              {isZh ? '全真模擬試題庫' : 'Exam Practice Bank'}
+            <h3 className="text-sm font-bold text-white">
+              {isZh ? '電話與 WhatsApp 查詢' : 'Phone & WhatsApp Inquiry'}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              {isZh
-                ? '提供即時題解、法定條款引用 (Cap. References) 及雙語對照模式。'
-                : 'Includes detailed explanations, statutory Cap. citations, and bilingual mode.'}
+            <p className="text-xs text-slate-400 leading-relaxed">
+              {isZh ? '專人即時解答報考及課程細節：' : 'Instant support for exam registration and syllabus details:'}
             </p>
-            <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-              {isZh ? '進入模擬測驗' : 'Start Practice'} <ArrowRight className="h-3 w-3" />
-            </span>
-          </Link>
+            <a
+              href="https://wa.me/85254327572"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block text-sm font-semibold text-emerald-400 hover:text-emerald-300 underline transition"
+            >
+              +852 54327572
+            </a>
+          </div>
 
-          {/* Card 3: AI Tutor */}
-          <div
-            onClick={handleOpenAiTutor}
-            className="group rounded-2xl border border-slate-800 bg-slate-900/60 p-6 transition-all hover:border-yellow-500 hover:bg-slate-900 hover:shadow-xl cursor-pointer"
-          >
-            <div className="h-12 w-12 rounded-xl bg-yellow-600/20 border border-yellow-500/30 flex items-center justify-center text-yellow-400 mb-4 group-hover:scale-110 transition">
-              <Sparkles className="h-6 w-6" />
+          {/* Card 3: Business Hours */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-amber-600/20 border border-amber-500/30 flex items-center justify-center text-amber-400">
+              <Clock className="h-5 w-5" />
             </div>
-            <h3 className="text-base font-bold text-white mb-2 group-hover:text-yellow-300 transition">
-              {isZh ? 'AI 法規導師助手' : 'AI Legal Assistant'}
+            <h3 className="text-sm font-bold text-white">
+              {isZh ? '服務時間' : 'Business Hours'}
             </h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-4">
-              {isZh
-                ? '24/7 解答任何條例疑難、雙重代理案例分析及過往考點解構。'
-                : '24/7 answers for dual agency questions, statutory disclosures, and exam scenarios.'}
+            <p className="text-xs text-slate-300 font-mono">
+              {isZh ? '星期一至五：09:00 - 18:00 (HKT)' : 'Monday - Friday: 09:00 - 18:00 (HKT)'}
             </p>
-            <span className="text-xs font-semibold text-yellow-400 flex items-center gap-1">
-              {isZh ? '打開 AI 導師' : 'Open AI Tutor'} <ArrowRight className="h-3 w-3" />
-            </span>
+            <p className="text-xs text-slate-500">
+              {isZh ? '公眾假期及週末休息' : 'Closed on Public Holidays & Weekends'}
+            </p>
+          </div>
+
+          {/* Card 4: Office Location */}
+          <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-3">
+            <div className="h-10 w-10 rounded-xl bg-cyan-600/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+              <MapPin className="h-5 w-5" />
+            </div>
+            <h3 className="text-sm font-bold text-white">
+              {isZh ? '辦公地點' : 'Office Location'}
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Vektor Spatial Limited <br />
+              {isZh ? '香港特別行政區' : 'Hong Kong SAR'}
+            </p>
           </div>
 
         </div>
-      </section>
+
+        {/* Online Message Form */}
+        <div className="p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
+          <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+            <MessageSquare className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-base font-bold text-white">
+              {isZh ? '線上留言查詢' : 'Online Message Form'}
+            </h2>
+          </div>
+
+          <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Name Input */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  {isZh ? '姓名' : 'Full Name'}
+                </label>
+                <input
+                  type="text"
+                  placeholder={isZh ? '張小明' : 'John Doe'}
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none transition"
+                />
+              </div>
+
+              {/* Email Input */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-400 mb-1">
+                  {isZh ? '電郵地址' : 'Email Address'}
+                </label>
+                <input
+                  type="email"
+                  placeholder={isZh ? 'name@example.com' : 'john@example.com'}
+                  className="w-full rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none transition"
+                />
+              </div>
+            </div>
+
+            {/* Message Textarea */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-400 mb-1">
+                {isZh ? '查詢內容' : 'Message'}
+              </label>
+              <textarea
+                rows={4}
+                placeholder={
+                  isZh
+                    ? '請輸入您關於 EAQE / SQE 課程或平台使用之查詢...'
+                    : 'Type your inquiry regarding EAQE / SQE courses or platform usage...'
+                }
+                className="w-full rounded-xl bg-slate-800 border border-slate-700 p-3.5 text-xs text-white placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none transition"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-indigo-500 transition cursor-pointer"
+            >
+              <Send className="h-3.5 w-3.5" />
+              <span>{isZh ? '提交查詢' : 'Submit Inquiry'}</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
     </div>
   );
 }
