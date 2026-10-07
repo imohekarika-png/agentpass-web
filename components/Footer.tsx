@@ -70,8 +70,8 @@ export default function Footer() {
               </p>
               <p className="flex items-center space-x-2">
                 <span className="font-semibold text-slate-700 dark:text-slate-300">💬 WhatsApp:</span>
-                <a href="https://wa.me/85290000000" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 underline">
-                  +852 9000 0000
+                <a href="https://wa.me/85254327572" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 underline">
+                  +852 5432 7572
                 </a>
               </p>
               <p className="text-[11px] text-slate-500 pt-1">

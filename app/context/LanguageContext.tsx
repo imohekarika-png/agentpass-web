@@ -1,4 +1,4 @@
-// app/context/LanguageContext.tsx
+// context/LanguageContext.tsx
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
@@ -7,19 +7,20 @@ export type Locale = 'zh-HK' | 'en';
 
 interface LanguageContextType {
   locale: Locale;
-  language?: string; // Backwards compatibility for legacy components
+  language: 'ZH' | 'EN';
   setLocale: (locale: Locale) => void;
   toggleLocale: () => void;
+  setLanguage?: (lang: 'ZH' | 'EN') => void;
 }
 
 const STORAGE_KEY = 'agentpass_locale_preference';
 
-// Provide safe defaults so static page generation never throws
 const defaultContextValue: LanguageContextType = {
   locale: 'zh-HK',
   language: 'ZH',
   setLocale: () => {},
   toggleLocale: () => {},
+  setLanguage: () => {},
 };
 
 const LanguageContext = createContext<LanguageContextType>(defaultContextValue);
@@ -58,6 +59,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         language: locale === 'zh-HK' ? 'ZH' : 'EN',
         setLocale,
         toggleLocale,
+        setLanguage: (lang) => setLocale(lang === 'ZH' ? 'zh-HK' : 'en'),
       }}
     >
       {children}
@@ -67,6 +69,5 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
 export function useLanguage() {
   const context = useContext(LanguageContext);
-  // Return context or default fallback to guarantee zero build-time crashes
   return context || defaultContextValue;
 }
