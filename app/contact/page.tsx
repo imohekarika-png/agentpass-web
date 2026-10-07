@@ -6,9 +6,9 @@ import { Mail, Phone, Clock, MapPin, MessageSquare, Send } from 'lucide-react';
 
 export default function ContactPage() {
   const { locale, language } = useLanguage();
-  
-  // Robust Chinese detection supporting both 'zh-HK' and legacy 'ZH'
-  const isZh = locale === 'zh-HK' || language === 'ZH' || !locale;
+
+  // Strict language state evaluation
+  const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6">
@@ -101,7 +101,7 @@ export default function ContactPage() {
 
         </div>
 
-        {/* Online Message Form / Inquiry Section */}
+        {/* Online Message Form */}
         <div className="p-6 sm:p-8 rounded-2xl bg-slate-900 border border-slate-800 space-y-6">
           <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
             <MessageSquare className="h-5 w-5 text-indigo-400" />
