@@ -40,21 +40,24 @@ export default function Footer() {
 
           {/* Column 2: Navigation Links */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-              {isZh ? '快速連結' : 'Navigation'}
-            </h4>
-            <div className="flex flex-col space-y-2 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-              <Link href="/course" className="hover:text-indigo-600 transition">
-                {isZh ? '📚 課程大綱' : '📚 Course Syllabus'}
-              </Link>
-              <Link href="/quiz" className="hover:text-indigo-600 transition">
-                {isZh ? '📝 雙語模擬題庫' : '📝 Practice Quiz'}
-              </Link>
-              <Link href="/dashboard" className="hover:text-indigo-600 transition">
-                {isZh ? '📊 個人弱點分析' : '📊 Analytics Dashboard'}
-              </Link>
-            </div>
-          </div>
+  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+    {isZh ? '快速連結' : 'Navigation'}
+  </h4>
+  <div className="flex flex-col space-y-2 text-xs text-slate-600 dark:text-slate-400 font-semibold">
+    <Link href="/course" className="hover:text-indigo-600 transition">
+      {isZh ? '📚 課程大綱' : '📚 Course Syllabus'}
+    </Link>
+    <Link href="/quiz" className="hover:text-indigo-600 transition">
+      {isZh ? '📝 雙語模擬題庫' : '📝 Practice Quiz'}
+    </Link>
+    <Link href="/dashboard" className="hover:text-indigo-600 transition">
+      {isZh ? '📊 個人弱點分析' : '📊 Analytics Dashboard'}
+    </Link>
+    <Link href="/contact" className="hover:text-indigo-600 transition">
+      {isZh ? '✉️ 聯絡我們' : '✉️ Contact Us'}
+    </Link>
+  </div>
+</div>
 
           {/* Column 3: Customer Care & Support */}
           <div className="space-y-3">

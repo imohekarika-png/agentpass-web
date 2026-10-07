@@ -8,12 +8,13 @@ import {
   HelpCircle, 
   Sparkles, 
   ArrowRight, 
-  ShieldCheck 
+  ShieldCheck,
+  Mail
 } from 'lucide-react';
 
 export default function HomePage() {
-  const { locale } = useLanguage();
-  const isZh = locale === 'zh-HK';
+  const { locale, language } = useLanguage();
+  const isZh = locale === 'zh-HK' || language === 'ZH';
 
   const handleOpenAiTutor = () => {
     window.dispatchEvent(
@@ -90,6 +91,14 @@ export default function HomePage() {
               <Sparkles className="h-4 w-4 text-yellow-300" />
               <span>{isZh ? '諮詢 AI 導師' : 'Ask AI Tutor'}</span>
             </button>
+
+            <Link
+              href="/contact"
+              className="flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/80 px-6 py-3 text-sm font-bold text-slate-300 hover:text-white hover:border-slate-600 transition"
+            >
+              <Mail className="h-4 w-4 text-cyan-400" />
+              <span>{isZh ? '聯絡我們' : 'Contact Us'}</span>
+            </Link>
           </div>
         </div>
       </section>
@@ -136,7 +145,7 @@ export default function HomePage() {
                 : 'Includes detailed explanations, statutory Cap. citations, and bilingual mode.'}
             </p>
             <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1">
-              {isZh ? '立即開始測驗' : 'Start Practice'} <ArrowRight className="h-3 w-3" />
+              {isZh ? '進入模擬測驗' : 'Start Practice'} <ArrowRight className="h-3 w-3" />
             </span>
           </Link>
 
