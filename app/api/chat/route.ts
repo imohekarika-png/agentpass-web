@@ -1,2 +1,6 @@
 // app/api/chat/route.ts
-export { POST } from '../tutor/route';
+import { POST as tutorPOST } from '../tutor/route';
+
+export async function POST(req: Request) {
+  return tutorPOST(req);
+}

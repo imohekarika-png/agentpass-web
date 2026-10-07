@@ -5,7 +5,7 @@ export interface Lesson {
   title: { 'zh-HK': string; en: string };
   summary: { 'zh-HK': string; en: string };
   capReference?: string;
-  promptTopic: string; // Query sent to AI Tutor when user clicks "Ask AI Tutor"
+  promptTopic: string;
 }
 
 export interface CourseModule {
@@ -173,6 +173,59 @@ export const EAA_COURSE_SYLLABUS: CourseModule[] = [
         },
         capReference: 'EAA Code of Ethics',
         promptTopic: '地產代理收到買家的口頭出價 (Verbal Offer) 後，是否有責任傳達給業主？EAA 有何規定？',
+      },
+    ],
+  },
+  {
+    id: 'module-4',
+    moduleNumber: 4,
+    title: {
+      'zh-HK': '模組四：物業估值、建築知識、按揭及印花稅條例',
+      en: 'Module 4: Valuation, Building Knowledge, Mortgages & Stamp Duty',
+    },
+    description: {
+      'zh-HK': '涵蓋實用面積定義、按揭成數上限 (LTV)、供款與入息比率 (DSR) 及印花稅 (Cap. 117)。',
+      en: 'Covers Saleable Area, Loan-to-Value (LTV) limits, Debt Servicing Ratios (DSR), and Stamp Duty Duty Duty Duty Cap. 117.',
+    },
+    lessons: [
+      {
+        id: 'm4-l1',
+        title: {
+          'zh-HK': '物業估值與實用面積 (Saleable Area) 定義',
+          en: 'Property Valuation & Saleable Area Definitions',
+        },
+        summary: {
+          'zh-HK': '掌握實用面積 (Saleable Area) 規範、直接比較估值法及影響物業價值的因素。',
+          en: 'Master Saleable Area statutory rules under Cap. 621, direct comparison valuation, and property pricing factors.',
+        },
+        capReference: 'Cap. 621 & EAA Practice Circular',
+        promptTopic: '請解釋根據一手住宅物業銷售條例，實用面積 (Saleable Area) 的法定定義及估值比較要點。',
+      },
+      {
+        id: 'm4-l2',
+        title: {
+          'zh-HK': '按揭貸款實務：按揭成數 (LTV) 與供款比率 (DSR)',
+          en: 'Mortgage Practice: LTV Limits & Debt Servicing Ratio',
+        },
+        summary: {
+          'zh-HK': '理解金管局 (HKMA) 按揭上限、H按與P按差別及按揭保險計劃 (MIP) 申請條件。',
+          en: 'Understand HKMA maximum LTV guidelines, H-rate vs P-rate mortgages, and Mortgage Insurance Programme (MIP) rules.',
+        },
+        capReference: 'HKMA Prudential Measures',
+        promptTopic: '請說明香港金管局 (HKMA) 對住宅物業按揭成數 (LTV) 及供款與入息比率 (DSR) 的最新監管指引。',
+      },
+      {
+        id: 'm4-l3',
+        title: {
+          'zh-HK': '《印花稅條例》(第117章) 與買賣交易稅率',
+          en: 'Stamp Duty Ordinance (Cap. 117) & Transaction Duties',
+        },
+        summary: {
+          'zh-HK': '掌握從價印花稅 (AVD)、買家印花稅 (BSD) 及額外印花稅 (SSD) 的計算與代理提示責任。',
+          en: 'Calculate Ad Valorem Stamp Duty (AVD), Buyer\'s Stamp Duty (BSD), and Special Stamp Duty (SSD) liabilities.',
+        },
+        capReference: 'Stamp Duty Ordinance (Cap. 117)',
+        promptTopic: '請詳細說明香港《印花稅條例》(第117章) 下的從價印花稅 (AVD) 計算方式及地產代理的提醒責任。',
       },
     ],
   },

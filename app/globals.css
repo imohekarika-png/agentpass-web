@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Restrict scanner to UI components to prevent parsing raw data objects */
+@source "../app/**/*.{tsx,jsx}";
+@source "../components/**/*.{tsx,jsx}";
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

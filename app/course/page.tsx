@@ -2,34 +2,34 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   EAA_COURSE_SYLLABUS, 
   CourseModule, 
   Lesson 
 } from '@/app/data/courseSyllabus';
 import { 
-  BookOpen, 
   CheckCircle2, 
   Circle, 
   Sparkles, 
   Globe, 
   Award, 
-  FileText, 
-  ChevronRight,
-  BookMarked
+  BookMarked,
+  PlayCircle,
+  ArrowRight,
+  HelpCircle
 } from 'lucide-react';
 
 const PROGRESS_STORAGE_KEY = 'agentpass_course_completed_lessons_v1';
 
 export default function CourseSyllabusPage() {
-  const [locale, setLocale] = useState<'zh-HK' | 'en'>('zh-HK');
+  const { locale, toggleLocale } = useLanguage();
   const [completedLessons, setCompletedLessons] = useState<string[]>([]);
   const [activeModuleId, setActiveModuleId] = useState<string>(EAA_COURSE_SYLLABUS[0].id);
+  const [activeLesson, setActiveLesson] = useState<Lesson>(EAA_COURSE_SYLLABUS[0].lessons[0]);
   const [mounted, setMounted] = useState(false);
 
-  const isZh = locale === 'zh-HK';
-
-  // Load completed lessons from localStorage
   useEffect(() => {
     setMounted(true);
     try {
@@ -42,7 +42,6 @@ export default function CourseSyllabusPage() {
     }
   }, []);
 
-  // Save progress changes
   useEffect(() => {
     if (!mounted) return;
     try {
@@ -52,6 +51,18 @@ export default function CourseSyllabusPage() {
     }
   }, [completedLessons, mounted]);
 
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-slate-100 p-8 flex items-center justify-center">
+        <div className="text-xs text-slate-500 font-mono animate-pulse">
+          Loading course syllabus...
+        </div>
+      </div>
+    );
+  }
+
+  const isZh = locale === 'zh-HK';
+
   const toggleLessonCompletion = (lessonId: string) => {
     setCompletedLessons((prev) =>
       prev.includes(lessonId)
@@ -60,20 +71,14 @@ export default function CourseSyllabusPage() {
     );
   };
 
-  // Dispatch custom event or open AI Tutor widget with pre-filled prompt
   const handleAskAiTutor = (promptTopic: string) => {
-    // Open widget if available or trigger custom prompt event
     window.dispatchEvent(
       new CustomEvent('agentpass:ask-tutor', { detail: { prompt: promptTopic } })
     );
-
-    // Fallback copy/alert if listener isn't configured
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(promptTopic);
-    }
   };
 
-  // Calculate overall syllabus completion
+  const currentModule = EAA_COURSE_SYLLABUS.find((m) => m.id === activeModuleId) || EAA_COURSE_SYLLABUS[0];
+
   const totalLessons = EAA_COURSE_SYLLABUS.reduce(
     (acc, mod) => acc + mod.lessons.length,
     0
@@ -83,38 +88,35 @@ export default function CourseSyllabusPage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 sm:p-8" translate="no">
+      <div className="max-w-6xl mx-auto space-y-8">
         
-        {/* Course Header */}
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-6">
           <div>
             <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs mb-1">
               <BookMarked className="h-4 w-4" />
-              <span>{isZh ? '香港地產代理牌照考試課程' : 'HK Estate Agency Licensing Course'}</span>
+              <span>
+                {isZh ? '香港地產代理牌照考試課程' : 'HK Estate Agency Licensing Course'}
+              </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold text-white">
-              {isZh ? 'EAQE / SQE 證書考試課程大綱' : 'EAQE / SQE Exam Syllabus & Revision Guide'}
+              <span>
+                {isZh ? 'EAQE / SQE 證書考試課程大綱' : 'EAQE / SQE Exam Syllabus & Revision Guide'}
+              </span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              {isZh
-                ? '根據地產代理監管局 (EAA) 最新考試大綱及《地產代理條例》(第511章) 編製，支援一鍵 AI 導師深入解題。'
-                : 'Structured according to EAA examination guidelines and Cap. 511 statutory requirements with instant AI Tutor assistance.'}
-            </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            <button
-              onClick={() => setLocale(isZh ? 'en' : 'zh-HK')}
-              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-medium text-slate-300 hover:border-slate-500 transition"
-            >
-              <Globe className="h-3.5 w-3.5" />
-              <span>{isZh ? 'English' : '繁體中文'}</span>
-            </button>
-          </div>
+          <button
+            onClick={toggleLocale}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs font-semibold text-slate-300 hover:border-indigo-500 hover:text-white transition self-start sm:self-auto"
+          >
+            <Globe className="h-4 w-4 text-indigo-400" />
+            <span>{isZh ? 'English' : '繁體中文'}</span>
+          </button>
         </div>
 
-        {/* Overall Completion Progress Banner */}
+        {/* Progress Bar */}
         <div className="rounded-2xl border border-indigo-900/50 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
           <div className="flex items-center gap-4">
             <div className="h-12 w-12 rounded-2xl bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
@@ -122,7 +124,7 @@ export default function CourseSyllabusPage() {
             </div>
             <div>
               <div className="text-sm font-bold text-white">
-                {isZh ? '課程完成進度' : 'Overall Course Progress'}
+                {isZh ? '總課程完成度' : 'Overall Course Progress'}
               </div>
               <div className="text-xs text-slate-400 mt-0.5">
                 {isZh
@@ -139,19 +141,19 @@ export default function CourseSyllabusPage() {
                 style={{ width: `${overallPercentage}%` }}
               />
             </div>
-            <span className="text-sm font-extrabold text-indigo-300 w-12 text-right">
+            <span className="text-sm font-extrabold text-indigo-300 w-12 text-right notranslate" translate="no">
               {overallPercentage}%
             </span>
           </div>
         </div>
 
-        {/* Course Modules Grid & Detail */}
+        {/* Course Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           
-          {/* Left Module Tabs (4 columns) */}
+          {/* Module Selector Sidebar */}
           <div className="lg:col-span-4 space-y-3">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
-              {isZh ? '課程模組列表' : 'Course Modules'}
+              {isZh ? '選擇模組' : 'Select Module'}
             </div>
             
             {EAA_COURSE_SYLLABUS.map((module: CourseModule) => {
@@ -163,7 +165,10 @@ export default function CourseSyllabusPage() {
               return (
                 <button
                   key={module.id}
-                  onClick={() => setActiveModuleId(module.id)}
+                  onClick={() => {
+                    setActiveModuleId(module.id);
+                    setActiveLesson(module.lessons[0]);
+                  }}
                   className={`w-full text-left p-4 rounded-xl border transition-all ${
                     isSelected
                       ? 'border-indigo-500 bg-indigo-950/30 text-white shadow-lg'
@@ -171,7 +176,7 @@ export default function CourseSyllabusPage() {
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 border border-slate-700">
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-400 border border-slate-700 notranslate" translate="no">
                       Module {module.moduleNumber}
                     </span>
                     <span className="text-[11px] text-slate-500 font-medium">
@@ -186,95 +191,107 @@ export default function CourseSyllabusPage() {
             })}
           </div>
 
-          {/* Right Active Module Lessons View (8 columns) */}
+          {/* Active Lesson View */}
           <div className="lg:col-span-8 space-y-4">
-            {EAA_COURSE_SYLLABUS.filter((m) => m.id === activeModuleId).map(
-              (activeModule) => (
-                <div key={activeModule.id} className="space-y-4">
-                  {/* Active Module Header */}
-                  <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-                    <h2 className="text-base font-bold text-white mb-1">
-                      {activeModule.title[locale]}
-                    </h2>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      {activeModule.description[locale]}
-                    </p>
-                  </div>
+            <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
+              <div className="flex items-center gap-2 text-xs text-indigo-400 font-semibold mb-1">
+                <PlayCircle className="h-4 w-4" />
+                <span>{isZh ? '目前學習章節' : 'Active Lesson'}</span>
+              </div>
+              <h2 className="text-base font-bold text-white mb-1">
+                {activeLesson.title[locale]}
+              </h2>
+              {activeLesson.capReference && (
+                <span className="inline-block text-xs text-amber-400 font-mono mb-2">
+                  {activeLesson.capReference}
+                </span>
+              )}
+              <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                {activeLesson.summary[locale]}
+              </p>
 
-                  {/* Lessons List */}
-                  <div className="space-y-3">
-                    {activeModule.lessons.map((lesson: Lesson) => {
-                      const isDone = completedLessons.includes(lesson.id);
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-slate-800">
+                <button
+                  onClick={() => toggleLessonCompletion(activeLesson.id)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition ${
+                    completedLessons.includes(activeLesson.id)
+                      ? 'bg-emerald-600/20 text-emerald-400 border border-emerald-500/40'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-500'
+                  }`}
+                >
+                  {completedLessons.includes(activeLesson.id) ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>{isZh ? '已完成考點' : 'Completed'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Circle className="h-4 w-4" />
+                      <span>{isZh ? '標示為已完成' : 'Mark as Completed'}</span>
+                    </>
+                  )}
+                </button>
 
-                      return (
-                        <div
-                          key={lesson.id}
-                          className={`p-5 rounded-2xl border transition-all ${
-                            isDone
-                              ? 'border-emerald-900/40 bg-emerald-950/10'
-                              : 'border-slate-800 bg-slate-900'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3 mb-2">
-                            <div className="flex items-start gap-2.5">
-                              <button
-                                onClick={() => toggleLessonCompletion(lesson.id)}
-                                title={isZh ? '標示為已完成' : 'Toggle Completion'}
-                                className="mt-0.5 text-slate-500 hover:text-emerald-400 transition shrink-0"
-                              >
-                                {isDone ? (
-                                  <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                                ) : (
-                                  <Circle className="h-5 w-5" />
-                                )}
-                              </button>
-                              <div>
-                                <h3
-                                  className={`text-xs sm:text-sm font-bold leading-snug ${
-                                    isDone ? 'line-through text-slate-400' : 'text-slate-100'
-                                  }`}
-                                >
-                                  {lesson.title[locale]}
-                                </h3>
-                                {lesson.capReference && (
-                                  <span className="inline-block text-[10px] text-indigo-400 font-mono mt-0.5">
-                                    {lesson.capReference}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
+                <button
+                  onClick={() => handleAskAiTutor(activeLesson.promptTopic)}
+                  className="flex items-center gap-1.5 rounded-xl bg-slate-800 border border-slate-700 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 transition"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
+                  <span>{isZh ? 'AI 導師解題' : 'Ask AI Tutor'}</span>
+                </button>
 
-                          <p className="text-xs text-slate-300 leading-relaxed pl-7 mb-4">
-                            {lesson.summary[locale]}
-                          </p>
+                <Link
+                  href="/quiz"
+                  className="flex items-center gap-1.5 rounded-xl bg-indigo-950/40 border border-indigo-800 px-3.5 py-2 text-xs font-semibold text-indigo-300 hover:bg-indigo-900/60 transition"
+                >
+                  <HelpCircle className="h-3.5 w-3.5" />
+                  <span>{isZh ? '前往模擬測驗' : 'Take Practice Quiz'}</span>
+                </Link>
+              </div>
+            </div>
 
-                          {/* Action Buttons */}
-                          <div className="pl-7 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800/60">
-                            <button
-                              onClick={() => handleAskAiTutor(lesson.promptTopic)}
-                              className="flex items-center gap-1.5 rounded-lg bg-indigo-600/20 border border-indigo-500/40 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-600 hover:text-white transition"
-                            >
-                              <Sparkles className="h-3.5 w-3.5 text-yellow-300" />
-                              <span>{isZh ? 'AI 導師深入解題' : 'Ask AI Tutor to Explain'}</span>
-                            </button>
+            {/* Lesson List within Module */}
+            <div className="space-y-2">
+              <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-1">
+                {isZh ? '模組章節列表' : 'Module Lessons'}
+              </div>
 
-                            <button
-                              onClick={() => toggleLessonCompletion(lesson.id)}
-                              className="text-xs text-slate-400 hover:text-slate-200 transition px-2 py-1"
-                            >
-                              {isDone
-                                ? (isZh ? '標示為未完成' : 'Mark Incomplete')
-                                : (isZh ? '完成此章節' : 'Mark Complete')}
-                            </button>
-                          </div>
+              {currentModule.lessons.map((lesson) => {
+                const isCurrent = activeLesson.id === lesson.id;
+                const isDone = completedLessons.includes(lesson.id);
+
+                return (
+                  <div
+                    key={lesson.id}
+                    onClick={() => setActiveLesson(lesson)}
+                    className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${
+                      isCurrent
+                        ? 'border-indigo-500 bg-indigo-950/20 text-white'
+                        : 'border-slate-800 bg-slate-900/50 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {isDone ? (
+                        <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+                      ) : (
+                        <Circle className="h-5 w-5 text-slate-600 shrink-0" />
+                      )}
+                      <div>
+                        <div className="text-xs font-bold">
+                          {lesson.title[locale]}
                         </div>
-                      );
-                    })}
+                        {lesson.capReference && (
+                          <div className="text-[10px] text-slate-500 font-mono">{lesson.capReference}</div>
+                        )}
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 text-slate-500" />
                   </div>
-                </div>
-              )
-            )}
+                );
+              })}
+            </div>
+
           </div>
 
         </div>

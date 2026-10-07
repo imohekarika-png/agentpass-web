@@ -1,13 +1,13 @@
-// components/Footer.tsx
+// app/components/Footer.tsx
 'use client';
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useLanguage } from '@/context/LanguageContext';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function Footer() {
-  const { language } = useLanguage();
-  const isZh = language === 'ZH';
+  const { locale } = useLanguage();
+  const isZh = locale === 'zh-HK';
 
   return (
     <footer className="bg-slate-100/80 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10 px-4 mt-auto">
@@ -44,11 +44,11 @@ export default function Footer() {
               {isZh ? '快速連結' : 'Navigation'}
             </h4>
             <div className="flex flex-col space-y-2 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-              <Link href="/quiz" className="hover:text-indigo-600 transition">
-                {isZh ? '📚 雙語模擬題庫' : '📚 Practice Quiz'}
+              <Link href="/course" className="hover:text-indigo-600 transition">
+                {isZh ? '📚 課程大綱' : '📚 Course Syllabus'}
               </Link>
-              <Link href="/mock-exam" className="hover:text-indigo-600 transition">
-                {isZh ? '⏱️ 全真模擬考試' : '⏱️ Mock Exam'}
+              <Link href="/quiz" className="hover:text-indigo-600 transition">
+                {isZh ? '📝 雙語模擬題庫' : '📝 Practice Quiz'}
               </Link>
               <Link href="/dashboard" className="hover:text-indigo-600 transition">
                 {isZh ? '📊 個人弱點分析' : '📊 Analytics Dashboard'}
@@ -92,7 +92,7 @@ export default function Footer() {
               : 'Study materials and statutory explanations are grounded in the Estate Agents Ordinance (Cap. 511), Licensing Regulation (Cap. 511A), and EAA syllabus standards. AgentPass™ is an independent prep provider and is not directly affiliated with the EAA.'}
           </p>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 font-medium">
-            © {new Date().getFullYear()} Vektor Spatial Limited. All rights reserved. Hong Kong SAR.
+            © 2026 Vektor Spatial Limited. All rights reserved. Hong Kong SAR.
           </p>
         </div>
 
