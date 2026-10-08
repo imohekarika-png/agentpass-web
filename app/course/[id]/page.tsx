@@ -20,6 +20,16 @@ import {
   BrainCircuit
 } from 'lucide-react';
 
+interface QuizData {
+  questionZh: string;
+  questionEn: string;
+  optionsZh: string[];
+  optionsEn: string[];
+  correctIndex: number;
+  explanationZh: string;
+  explanationEn: string;
+}
+
 interface LessonData {
   moduleZh: string;
   moduleEn: string;
@@ -34,23 +44,35 @@ interface LessonData {
   keyTakeawaysEn: string[];
   detailedContentZh: string;
   detailedContentEn: string;
-  trapsZh: string[];
-  trapsEn: string[];
-  quiz: {
-    questionZh: string;
-    questionEn: string;
-    optionsZh: string[];
-    optionsEn: string[];
-    correctIndex: number;
-    explanationZh: string;
-    explanationEn: string;
-  };
+  trapsZh?: string[];
+  trapsEn?: string[];
+  quiz?: QuizData;
 }
 
+const DEFAULT_QUIZ: QuizData = {
+  questionZh: '持牌地產代理在處理物業交易時，最基本的法定責任是什麼？',
+  questionEn: 'What is the primary statutory duty of a licensed estate agent when handling a property transaction?',
+  optionsZh: [
+    '盡力保障客戶利益並向客戶披露所有已知的重要事實',
+    '確保交易價格達到市場最高價',
+    '替買賣雙方決定最終成交金額',
+    '提供免費法律諮詢服務'
+  ],
+  optionsEn: [
+    'Act in the best interest of the client and disclose all material facts',
+    'Ensure the highest transaction price possible',
+    'Unilaterally determine the final transaction amount',
+    'Provide free legal representation'
+  ],
+  correctIndex: 0,
+  explanationZh: '正確答案為 A。地產代理對客戶負有謹慎及忠誠責任，必須及時披露所有重大資料。',
+  explanationEn: 'Correct answer is A. Agents owe a fiduciary duty and duty of care to disclose all material facts to their principal.'
+};
+
+const DEFAULT_TRAPS_ZH = ['⚠ 陷阱：混淆法定天數與監管局懲處權力界限。'];
+const DEFAULT_TRAPS_EN = ['⚠ Trap: Confusing statutory timeframes with EAA disciplinary powers.'];
+
 const EAA_LESSON_DATABASE: Record<string, LessonData> = {
-  // ==========================================
-  // MODULE 1: THE REGULATORY CORE (40% WEIGHT)
-  // ==========================================
   'm1-l1': {
     moduleZh: 'Module 1：監管核心 (The Regulatory Core)',
     moduleEn: 'Module 1: The Regulatory Core & Licensing',
@@ -79,12 +101,8 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
     ],
     detailedContentZh: '《地產代理條例》(第511章) 旨在提高地產代理行業的專業水平及保障消費者權益。行業發展已由個人經營轉型為公司型及大型連鎖企業。EAA 執行程序包括由行政總裁 (CEO) 處理投訴及調查，並由紀律委員會 (Disciplinary Committee) 進行研訊。',
     detailedContentEn: 'Cap. 511 aims to enhance professionalism and protect consumers. EAA oversees industry development. The CEO handles complaints and investigations, while the Disciplinary Committee conducts formal inquiries.',
-    trapsZh: [
-      '⚠ 陷阱：宣稱「資格考試由地產代理監管局直接親自監考及舉辦」— 錯誤！考試是由考評局 (HKEAA) 代辦。'
-    ],
-    trapsEn: [
-      '⚠ Trap: Claims EAA directly holds and invigilates the qualifying exam — FALSE! HKEAA administers it.'
-    ],
+    trapsZh: ['⚠ 陷阱：宣稱「資格考試由地產代理監管局直接親自監考及舉辦」— 錯誤！考試是由考評局 (HKEAA) 代辦。'],
+    trapsEn: ['⚠ Trap: Claims EAA directly holds and invigilates the qualifying exam — FALSE! HKEAA administers it.'],
     quiz: {
       questionZh: '下列關於地產代理監管局 (EAA) 職能的表述，哪項是完全正確的？',
       questionEn: 'Which statement regarding the functions of the EAA is correct?',
@@ -137,7 +155,7 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
     detailedContentZh: '根據 Cap. 511 第15及16條，獨資經營者或合夥人必須持有 EAQE 牌照。依第38條，分行主管必須持有 EAQE 牌照並獲監管局批准。續期窗口為屆滿前不早於 3 個月及不遲於 1 個月。',
     detailedContentEn: 'Under Cap. 511 Sections 15 & 16, sole proprietors/partners MUST hold an EAQE licence. Under Section 38, branch managers must hold EAQE. Renewal applies between 3 months and 1 month prior to expiry.',
     trapsZh: [
-      '⚠ 陷阱：宣稱「具備 3 年經驗的 22 歲 SQE 持有人可擔任分行主管」— 錯誤！無 EAQE 牌照絕不能擔任。',
+      '⚠ 陷阱：宣稱「具備 3 年經驗的 22 歲 SQE 持所有人可擔任分行主管」— 錯誤！無 EAQE 牌照絕不能擔任。',
       '⚠ 陷阱：宣稱「相關工作經驗是申請地產代理牌照的必要條件」— 錯誤！工作經驗並非發牌條件。'
     ],
     trapsEn: [
@@ -194,7 +212,28 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
       '✓ Form 3 duties: Market, obtain info, negotiate. EXCLUDE purchaser background search, bankruptcy search, valuation.'
     ],
     detailedContentZh: '《地產代理條例》第36條強制規定住宅代理須簽署預設協議。未填妥必填事項 (Mandatory Particulars) 會導致協議無效並喪失佣金追討權。',
-    detailedContentEn: 'Cap. 511 Section 36 mandates prescribed agreements for residential properties. Omission of mandatory items renders agreement void and forfeits commission.'
+    detailedContentEn: 'Cap. 511 Section 36 mandates prescribed agreements for residential properties. Omission of mandatory items renders agreement void and forfeits commission.',
+    trapsZh: ['⚠ 陷阱：宣稱「店舖買賣或寫字樓出租須使用 Form 3 或 Form 5」— 錯誤！法定預設表格僅適用於住宅。'],
+    trapsEn: ['⚠ Trap: Claims shop sales or office leases require Form 3 or 5 — FALSE! Prescribed forms apply to residential only.'],
+    quiz: {
+      questionZh: '下列哪種物業交易情況「不適用」法定預設地產代理協議表格 (Forms 1-6)？',
+      questionEn: 'For which of the following property transactions are prescribed forms (Forms 1-6) NOT required?',
+      optionsZh: [
+        '連同車位一同出售之住宅物業',
+        '獨立住宅單位之租賃',
+        '店舖 (Shop) 之買賣或寫字樓 (Office) 之租賃',
+        '連同車位一同出租之住宅物業'
+      ],
+      optionsEn: [
+        'Sale of residential property together with a car park',
+        'Leasing of a self-contained residential unit',
+        'Sale of a shop or leasing of an office',
+        'Leasing of residential property together with a car park'
+      ],
+      correctIndex: 2,
+      explanationZh: '正確答案為 C。法定表格僅適用於住宅物業。店舖買賣及寫字樓租賃均不適用 Forms 1-6。',
+      explanationEn: 'Correct answer is C. Prescribed forms apply strictly to residential properties, not commercial shops or offices.'
+    }
   },
 
   'm1-l4': {
@@ -287,9 +326,6 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
     detailedContentEn: 'Under Cap. 511, EAA exercises administrative discipline but no direct fines. Employing unlicensed staff triggers disciplinary, civil, and criminal liability.'
   },
 
-  // ==========================================
-  // MODULE 2: THE LEGAL TOOLKIT (10% WEIGHT)
-  // ==========================================
   'm2-l1': {
     moduleZh: 'Module 2：法律工具箱 (The Legal Toolkit)',
     moduleEn: 'Module 2: The Legal Toolkit & Conveyancing',
@@ -444,9 +480,6 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
     detailedContentEn: 'Cap. 117 governs stamping of conveyances and leases. Late stamping incurs penalties up to 10x the duty.'
   },
 
-  // ==========================================
-  // MODULE 3: LAND SEARCH & BUILDINGS (18% / 30%)
-  // ==========================================
   'm3-l1': {
     moduleZh: 'Module 3：閱讀物業 (Reading the Property)',
     moduleEn: 'Module 3: Land Search, Buildings & Valuation',
@@ -569,9 +602,6 @@ const EAA_LESSON_DATABASE: Record<string, LessonData> = {
     detailedContentEn: 'Utilize official property information portals. RVD provides authorized saleable area data.'
   },
 
-  // ==========================================
-  // MODULE 4: TENANCY & MANAGEMENT (22% WEIGHT)
-  // ==========================================
   'm4-l1': {
     moduleZh: 'Module 4：租務實務、機構管理與應試技巧',
     moduleEn: 'Module 4: Tenancy, Management & Exam Mastery',
@@ -755,31 +785,9 @@ const DEFAULT_LESSON: LessonData = {
   ],
   detailedContentZh: '本單元針對香港地產代理監管局 (EAA) 之最新考試大綱編寫。深入解析法定條文、相關司法判例及地產代理操守指引，幫助學員全面建立考點邏輯。',
   detailedContentEn: 'This lesson aligns with the latest EAA examination syllabus. It covers statutory principles, judicial precedents, and ethical guidelines for maximum exam readiness.',
-  trapsZh: [
-    '⚠ 陷阱：混淆法定天數與監管局懲處權力界限。'
-  ],
-  trapsEn: [
-    '⚠ Trap: Confusing statutory timeframes with EAA disciplinary powers.'
-  ],
-  quiz: {
-    questionZh: '持牌地產代理在處理物業交易時，最基本的法定責任是什麼？',
-    questionEn: 'What is the primary statutory duty of a licensed estate agent when handling a property transaction?',
-    optionsZh: [
-      '盡力保障客戶利益並向客戶披露所有已知的重要事實',
-      '確保交易價格達到市場最高價',
-      '替買賣雙方決定最終成交金額',
-      '提供免費法律諮詢服務'
-    ],
-    optionsEn: [
-      'Act in the best interest of the client and disclose all material facts',
-      'Ensure the highest transaction price possible',
-      'Unilaterally determine the final transaction amount',
-      'Provide free legal representation'
-    ],
-    correctIndex: 0,
-    explanationZh: '正確答案為 A。地產代理對客戶負有謹慎及忠誠責任，必須及時披露所有重大資料。',
-    explanationEn: 'Correct answer is A. Agents owe a fiduciary duty and duty of care to disclose all material facts to their principal.'
-  }
+  trapsZh: DEFAULT_TRAPS_ZH,
+  trapsEn: DEFAULT_TRAPS_EN,
+  quiz: DEFAULT_QUIZ
 };
 
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -788,11 +796,22 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const { locale, language } = useLanguage();
   const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
 
-  const lesson = EAA_LESSON_DATABASE[lessonId] || {
+  const rawLesson = EAA_LESSON_DATABASE[lessonId];
+
+  const lesson: LessonData = rawLesson ? {
+    ...rawLesson,
+    trapsZh: rawLesson.trapsZh || DEFAULT_TRAPS_ZH,
+    trapsEn: rawLesson.trapsEn || DEFAULT_TRAPS_EN,
+    quiz: rawLesson.quiz || DEFAULT_QUIZ
+  } : {
     ...DEFAULT_LESSON,
     titleZh: `章節 ${lessonId.toUpperCase()} 講義與考點分析`,
     titleEn: `Lesson ${lessonId.toUpperCase()} Study Notes & Key Points`
   };
+
+  const currentQuiz = lesson.quiz || DEFAULT_QUIZ;
+  const currentTrapsZh = lesson.trapsZh || DEFAULT_TRAPS_ZH;
+  const currentTrapsEn = lesson.trapsEn || DEFAULT_TRAPS_EN;
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -803,7 +822,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
     }
   };
 
-  const isCorrect = selectedOption === lesson.quiz.correctIndex;
+  const isCorrect = selectedOption === currentQuiz.correctIndex;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
@@ -881,7 +900,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             <span>{isZh ? '考官陷阱與干擾項拆解 (Exam Trap Register ⚠)' : 'Exam Trap Register ⚠'}</span>
           </div>
           <ul className="space-y-2">
-            {(isZh ? lesson.trapsZh : lesson.trapsEn).map((trap, idx) => (
+            {(isZh ? currentTrapsZh : currentTrapsEn).map((trap, idx) => (
               <li key={idx} className="text-xs sm:text-sm text-rose-200/90 leading-relaxed">
                 {trap}
               </li>
@@ -911,11 +930,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
           <div className="space-y-4">
             <p className="text-xs sm:text-sm font-semibold text-slate-200 leading-relaxed">
-              {isZh ? lesson.quiz.questionZh : lesson.quiz.questionEn}
+              {isZh ? currentQuiz.questionZh : currentQuiz.questionEn}
             </p>
 
             <div className="space-y-2.5">
-              {(isZh ? lesson.quiz.optionsZh : lesson.quiz.optionsEn).map((opt, idx) => {
+              {(isZh ? currentQuiz.optionsZh : currentQuiz.optionsEn).map((opt, idx) => {
                 let btnStyle = "border-slate-800 bg-slate-800/50 hover:bg-slate-800 text-slate-300";
                 
                 if (selectedOption === idx) {
@@ -923,7 +942,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                 }
 
                 if (isSubmitted) {
-                  if (idx === lesson.quiz.correctIndex) {
+                  if (idx === currentQuiz.correctIndex) {
                     btnStyle = "border-emerald-500 bg-emerald-950/50 text-emerald-200 font-bold";
                   } else if (selectedOption === idx) {
                     btnStyle = "border-rose-500 bg-rose-950/50 text-rose-200";
@@ -938,10 +957,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                     className={`w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between cursor-pointer ${btnStyle}`}
                   >
                     <span>{opt}</span>
-                    {isSubmitted && idx === lesson.quiz.correctIndex && (
+                    {isSubmitted && idx === currentQuiz.correctIndex && (
                       <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-2" />
                     )}
-                    {isSubmitted && selectedOption === idx && idx !== lesson.quiz.correctIndex && (
+                    {isSubmitted && selectedOption === idx && idx !== currentQuiz.correctIndex && (
                       <XCircle className="h-4 w-4 text-rose-400 shrink-0 ml-2" />
                     )}
                   </button>
@@ -972,7 +991,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  {isZh ? lesson.quiz.explanationZh : lesson.quiz.explanationEn}
+                  {isZh ? currentQuiz.explanationZh : currentQuiz.explanationEn}
                 </p>
               </div>
             )}
