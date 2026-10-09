@@ -46,9 +46,13 @@ const FALLBACK_QUIZ: QuizData = {
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const lessonId = resolvedParams.id.toLowerCase();
-  const { locale, language } = useLanguage();
-  const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
+  
+  // React to both language and locale properties from Context
+  const { language, locale } = useLanguage();
+  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
+  const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  // Retrieve unique lesson from LESSON_REGISTRY
   const lesson: FullLesson = LESSON_REGISTRY[lessonId] || LESSON_REGISTRY['m1-l1'];
 
   // Safely extract guaranteed non-null fallbacks
@@ -94,7 +98,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </h1>
         </div>
 
-        {/* 1. MEMORY HOOK */}
+        {/* 1. MEMORY HOOK (Dual Coding & Mnemonics) */}
         <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/40 space-y-3">
           <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
             <BrainCircuit className="h-5 w-5 text-amber-400" />
