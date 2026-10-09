@@ -65,17 +65,21 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
         {/* 1. MEMORY HOOK (Dual Coding Image & Mnemonics) */}
         <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/40 space-y-3">
-          <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-            <BrainCircuit className="h-5 w-5 text-amber-400" />
-            <span>{isZh ? lesson.memoryHookZh.title : lesson.memoryHookEn.title}</span>
-          </div>
-          <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs text-amber-300/90 italic">
-            💡 {isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept}
-          </div>
-          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-            {isZh ? lesson.memoryHookZh.desc : lesson.memoryHookEn.desc}
-          </p>
-        </div>
+  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+    <BrainCircuit className="h-5 w-5 text-amber-400" />
+    <span>{isZh ? lesson.memoryHookZh.title : lesson.memoryHookEn.title}</span>
+  </div>
+  
+  {(isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept) && (
+    <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs text-amber-300/90 italic">
+      💡 {isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept}
+    </div>
+  )}
+
+  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+    {isZh ? lesson.memoryHookZh.desc : lesson.memoryHookEn.desc}
+  </p>
+</div>
 
         {/* 2. CASE SCENARIO */}
         <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/30 space-y-3">
