@@ -5,9 +5,23 @@ import { useState } from 'react';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { MessageSquare, X, Send, Sparkles, Bot } from 'lucide-react';
 
-export default function AiTutorModal() {
+interface AiTutorModalProps {
+  questionId?: string;
+  question?: any;
+  userChoice?: string;
+  language?: 'ZH' | 'EN';
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export default function AiTutorModal({
+  questionId,
+  question,
+  userChoice,
+  language: propLanguage,
+}: AiTutorModalProps = {}) {
   const { language, locale } = useLanguage();
-  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
+  const currentLang = (propLanguage || language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const [isOpen, setIsOpen] = useState(false);
@@ -28,13 +42,11 @@ export default function AiTutorModal() {
     const userText = inputMsg;
     setInputMsg('');
 
-    // Append user message
     setMessages((prev) => [
       ...prev,
       { sender: 'user', textZh: userText, textEn: userText }
     ]);
 
-    // Simulated AI response (Replace with your actual API endpoint call if connected to backend)
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
