@@ -42,7 +42,7 @@ export const MODULE_1_LESSONS: Record<string, FullLesson> = {
     detailedLawNotesEn: [
       '1. Statutory Purpose: Cap. 511 establishes a licensing system to elevate professionalism and safeguard consumers.',
       '2. Authority Structure: EAA comprises standing committees. The CEO exercises powers to appoint investigators under Section 28.',
-       me3. Practice Circulars: EAA issues Practice Circulars to update licensees on regulatory standards and compliance.'
+      '3. Practice Circulars: EAA issues Practice Circulars to update licensees on regulatory standards and compliance.'
     ],
     trapsZh: [
       '⚠ 考官陷阱：宣稱「資格考試由地產代理監管局直接親自監考及舉辦」— 錯誤！考試是由考評局 (HKEAA) 託管代辦。',
