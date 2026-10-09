@@ -4,7 +4,7 @@
 import { use, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { MODULE_1_LESSONS } from '@/app/content/modules/module1';
+import { LESSON_REGISTRY } from '@/app/content';
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -28,8 +28,8 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
   const { locale, language } = useLanguage();
   const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
 
-  // Retrieve lesson or fallback to Module 1 lesson 1
-  const lesson = MODULE_1_LESSONS[lessonId] || MODULE_1_LESSONS['m1-l1'];
+  // Lookup lesson directly from master LESSON_REGISTRY
+  const lesson = LESSON_REGISTRY[lessonId] || LESSON_REGISTRY['m1-l1'];
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -77,7 +77,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </p>
         </div>
 
-        {/* 2. CASE SCENARIO (Pedagogical Hook) */}
+        {/* 2. CASE SCENARIO */}
         <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/30 space-y-3">
           <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
             <Lightbulb className="h-5 w-5 text-yellow-400" />
@@ -106,7 +106,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </ul>
         </div>
 
-        {/* 4. DEEP LEGAL & STATUTORY COMMENTARY (The Un-truncated Law Detail) */}
+        {/* 4. DEEP LEGAL & STATUTORY COMMENTARY */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
             <FileText className="h-5 w-5 text-indigo-400" />
@@ -136,7 +136,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </ul>
         </div>
 
-        {/* 6. ACTIVE RETRIEVAL CHECKLIST (Self-Testing) */}
+        {/* 6. ACTIVE RETRIEVAL CHECKLIST */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
             <CheckSquare className="h-5 w-5 text-indigo-400" />
@@ -230,7 +230,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </div>
         </div>
 
-        {/* Footer Links */}
+        {/* Footer Navigation Links */}
         <div className="flex items-center justify-between pt-4">
           <Link
             href="/course"
