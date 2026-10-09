@@ -94,21 +94,21 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
         {/* 3. VERIFIED SYLLABUS NOTES (✓) */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
-            <span>{isZh ? '試題庫核實考點 (Syllabus Verified Notes ✓)' : 'Syllabus Verified Notes ✓'}</span>
-          </h2>
-          <ul className="space-y-3">
-            {(isZh ? lesson.verifiedNotesZh : lesson.verifiedNotesEn).map((note, idx) => (
-              <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
-                <span className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-                  ✓
-                </span>
-                <span>{note}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+  <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
+    <ShieldCheck className="h-5 w-5 text-emerald-400" />
+    <span>{isZh ? '試題庫核實考點 (Syllabus Verified Notes ✓)' : 'Syllabus Verified Notes ✓'}</span>
+  </h2>
+  <ul className="space-y-3">
+    {((isZh ? (lesson.verifiedNotesZh || lesson.keyTakeawaysZh) : (lesson.verifiedNotesEn || lesson.keyTakeawaysEn)) || []).map((note, idx) => (
+      <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+        <span className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+          ✓
+        </span>
+        <span>{note}</span>
+      </li>
+    ))}
+  </ul>
+</div>
 
         {/* 4. DEEP LEGAL & STATUTORY COMMENTARY */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
