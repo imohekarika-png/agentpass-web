@@ -8,31 +8,31 @@ export interface FullLesson {
   titleEn: string;
   capRef: string;
   
-  // Section 1: Memory Mnemonic
-  memoryHookZh: { title: string; imageConcept: string; desc: string };
-  memoryHookEn: { title: string; imageConcept: string; desc: string };
+  // Section 1: Memory Mnemonic (imageConcept is optional)
+  memoryHookZh: { title: string; imageConcept?: string; desc: string };
+  memoryHookEn: { title: string; imageConcept?: string; desc: string };
   
-  // Section 2: Case Scenario / Practical Hook
+  // Section 2: Case Scenario
   scenarioZh: string;
   scenarioEn: string;
   
-  // Section 3: Verified Syllabus Notes (✓)
+  // Section 3: Verified Notes
   verifiedNotesZh: string[];
   verifiedNotesEn: string[];
   
-  // Section 4: Deep Legal & Statutory Commentary (The missing detail!)
+  // Section 4: Law Commentary
   detailedLawNotesZh: string[];
   detailedLawNotesEn: string[];
   
-  // Section 5: Master Exam Traps (⚠)
+  // Section 5: Traps
   trapsZh: string[];
   trapsEn: string[];
   
-  // Section 6: Active Retrieval Questions (Self-Test)
+  // Section 6: Retrieval
   retrievalQuestionsZh: string[];
   retrievalQuestionsEn: string[];
   
-  // Section 7: Sample Exam Multiple-Choice Question
+  // Section 7: Quiz
   quiz: {
     questionZh: string;
     questionEn: string;
