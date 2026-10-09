@@ -5,6 +5,7 @@ import { use, useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { LESSON_REGISTRY } from '@/app/content';
+import { FullLesson, QuizData } from '@/app/content/types';
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -22,17 +23,47 @@ import {
   CheckSquare
 } from 'lucide-react';
 
+const FALLBACK_QUIZ: QuizData = {
+  questionZh: '持牌地產代理在處理物業交易時，最基本的法定責任是什麼？',
+  questionEn: 'What is the primary statutory duty of a licensed estate agent when handling a property transaction?',
+  optionsZh: [
+    '盡力保障客戶利益並向客戶披露所有已知的重要事實',
+    '確保交易價格達到市場最高價',
+    '替買賣雙方決定最終成交金額',
+    '提供免費法律諮詢服務'
+  ],
+  optionsEn: [
+    'Act in the best interest of the client and disclose all material facts',
+    'Ensure the highest transaction price possible',
+    'Unilaterally determine the final transaction amount',
+    'Provide free legal representation'
+  ],
+  correctIndex: 0,
+  explanationZh: '正確答案為 A。地產代理對客戶負有謹慎及忠誠責任，必須及時披露所有重大資料。',
+  explanationEn: 'Correct answer is A. Agents owe a fiduciary duty and duty of care to disclose all material facts to their principal.'
+};
+
 export default function LessonDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const lessonId = resolvedParams.id.toLowerCase();
   const { locale, language } = useLanguage();
   const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
 
-  // Lookup lesson directly from master LESSON_REGISTRY
-  const lesson = LESSON_REGISTRY[lessonId] || LESSON_REGISTRY['m1-l1'];
+  const lesson: FullLesson = LESSON_REGISTRY[lessonId] || LESSON_REGISTRY['m1-l1'];
+
+  // Safely extract guaranteed non-null fallbacks
+  const currentQuiz: QuizData = lesson.quiz || FALLBACK_QUIZ;
+  const currentTrapsZh = lesson.trapsZh || ['⚠ 陷阱：混淆法定天數與監管局懲處權力界限。'];
+  const currentTrapsEn = lesson.trapsEn || ['⚠ Trap: Confusing statutory timeframes with EAA disciplinary powers.'];
+  const currentRetrievalZh = lesson.retrievalQuestionsZh || ['□ 請不看講義默寫本單元之核心法例條文。'];
+  const currentRetrievalEn = lesson.retrievalQuestionsEn || ['□ Name the core statutory requirements from memory.'];
+  const currentNotesZh = lesson.verifiedNotesZh || lesson.keyTakeawaysZh || [];
+  const currentNotesEn = lesson.verifiedNotesEn || lesson.keyTakeawaysEn || [];
 
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const isCorrect = selectedOption === currentQuiz.correctIndex;
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
@@ -63,23 +94,23 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
           </h1>
         </div>
 
-        {/* 1. MEMORY HOOK (Dual Coding Image & Mnemonics) */}
+        {/* 1. MEMORY HOOK */}
         <div className="p-6 rounded-2xl bg-gradient-to-r from-amber-950/40 via-slate-900 to-slate-900 border border-amber-500/40 space-y-3">
-  <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
-    <BrainCircuit className="h-5 w-5 text-amber-400" />
-    <span>{isZh ? lesson.memoryHookZh.title : lesson.memoryHookEn.title}</span>
-  </div>
-  
-  {(isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept) && (
-    <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs text-amber-300/90 italic">
-      💡 {isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept}
-    </div>
-  )}
+          <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+            <BrainCircuit className="h-5 w-5 text-amber-400" />
+            <span>{isZh ? lesson.memoryHookZh.title : lesson.memoryHookEn.title}</span>
+          </div>
+          
+          {(isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept) && (
+            <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/20 text-xs text-amber-300/90 italic">
+              💡 {isZh ? lesson.memoryHookZh.imageConcept : lesson.memoryHookEn.imageConcept}
+            </div>
+          )}
 
-  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
-    {isZh ? lesson.memoryHookZh.desc : lesson.memoryHookEn.desc}
-  </p>
-</div>
+          <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
+            {isZh ? lesson.memoryHookZh.desc : lesson.memoryHookEn.desc}
+          </p>
+        </div>
 
         {/* 2. CASE SCENARIO */}
         <div className="p-6 rounded-2xl bg-gradient-to-br from-indigo-950/40 via-slate-900 to-slate-900 border border-indigo-500/30 space-y-3">
@@ -94,23 +125,23 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
         {/* 3. VERIFIED SYLLABUS NOTES (✓) */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
-  <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
-    <ShieldCheck className="h-5 w-5 text-emerald-400" />
-    <span>{isZh ? '試題庫核實考點 (Syllabus Verified Notes ✓)' : 'Syllabus Verified Notes ✓'}</span>
-  </h2>
-  <ul className="space-y-3">
-    {((isZh ? (lesson.verifiedNotesZh || lesson.keyTakeawaysZh) : (lesson.verifiedNotesEn || lesson.keyTakeawaysEn)) || []).map((note, idx) => (
-      <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
-        <span className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-          ✓
-        </span>
-        <span>{note}</span>
-      </li>
-    ))}
-  </ul>
-</div>
+          <h2 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2 border-b border-slate-800 pb-3">
+            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            <span>{isZh ? '試題庫核實考點 (Syllabus Verified Notes ✓)' : 'Syllabus Verified Notes ✓'}</span>
+          </h2>
+          <ul className="space-y-3">
+            {(isZh ? currentNotesZh : currentNotesEn).map((note, idx) => (
+              <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300 leading-relaxed">
+                <span className="h-5 w-5 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
+                  ✓
+                </span>
+                <span>{note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-        {/* 4. DEEP LEGAL & STATUTORY COMMENTARY */}
+        {/* 4. DEEP LEGAL COMMENTARY */}
         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
           <h2 className="text-base font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-3">
             <FileText className="h-5 w-5 text-indigo-400" />
@@ -132,7 +163,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             <span>{isZh ? '考官陷阱與干擾項拆解 (Exam Trap Register ⚠)' : 'Exam Trap Register ⚠'}</span>
           </div>
           <ul className="space-y-2">
-            {(isZh ? lesson.trapsZh : lesson.trapsEn).map((trap, idx) => (
+            {(isZh ? currentTrapsZh : currentTrapsEn).map((trap, idx) => (
               <li key={idx} className="text-xs sm:text-sm text-rose-200/90 leading-relaxed">
                 {trap}
               </li>
@@ -147,7 +178,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
             <span>{isZh ? '全真檢索思考提問 (Active Retrieval Prompts)' : 'Active Retrieval Prompts'}</span>
           </h2>
           <div className="space-y-2.5">
-            {(isZh ? lesson.retrievalQuestionsZh : lesson.retrievalQuestionsEn).map((q, idx) => (
+            {(isZh ? currentRetrievalZh : currentRetrievalEn).map((q, idx) => (
               <div key={idx} className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/20 text-xs sm:text-sm text-indigo-200 font-mono">
                 {q}
               </div>
@@ -166,11 +197,11 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
 
           <div className="space-y-4">
             <p className="text-xs sm:text-sm font-semibold text-slate-200 leading-relaxed">
-              {isZh ? lesson.quiz.questionZh : lesson.quiz.questionEn}
+              {isZh ? currentQuiz.questionZh : currentQuiz.questionEn}
             </p>
 
             <div className="space-y-2.5">
-              {(isZh ? lesson.quiz.optionsZh : lesson.quiz.optionsEn).map((opt, idx) => {
+              {(isZh ? currentQuiz.optionsZh : currentQuiz.optionsEn).map((opt, idx) => {
                 let btnStyle = "border-slate-800 bg-slate-800/50 hover:bg-slate-800 text-slate-300";
                 
                 if (selectedOption === idx) {
@@ -178,7 +209,7 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                 }
 
                 if (isSubmitted) {
-                  if (idx === lesson.quiz.correctIndex) {
+                  if (idx === currentQuiz.correctIndex) {
                     btnStyle = "border-emerald-500 bg-emerald-950/50 text-emerald-200 font-bold";
                   } else if (selectedOption === idx) {
                     btnStyle = "border-rose-500 bg-rose-950/50 text-rose-200";
@@ -193,10 +224,10 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                     className={`w-full text-left p-3.5 rounded-xl border text-xs sm:text-sm transition flex items-center justify-between cursor-pointer ${btnStyle}`}
                   >
                     <span>{opt}</span>
-                    {isSubmitted && idx === lesson.quiz.correctIndex && (
+                    {isSubmitted && idx === currentQuiz.correctIndex && (
                       <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 ml-2" />
                     )}
-                    {isSubmitted && selectedOption === idx && idx !== lesson.quiz.correctIndex && (
+                    {isSubmitted && selectedOption === idx && idx !== currentQuiz.correctIndex && (
                       <XCircle className="h-4 w-4 text-rose-400 shrink-0 ml-2" />
                     )}
                   </button>
@@ -214,9 +245,9 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                 <ChevronRight className="h-4 w-4" />
               </button>
             ) : (
-              <div className={`p-4 rounded-xl border space-y-2 ${selectedOption === lesson.quiz.correctIndex ? 'bg-emerald-950/30 border-emerald-500/40' : 'bg-rose-950/30 border-rose-500/40'}`}>
+              <div className={`p-4 rounded-xl border space-y-2 ${isCorrect ? 'bg-emerald-950/30 border-emerald-500/40' : 'bg-rose-950/30 border-rose-500/40'}`}>
                 <div className="flex items-center gap-2 text-xs font-bold">
-                  {selectedOption === lesson.quiz.correctIndex ? (
+                  {isCorrect ? (
                     <span className="text-emerald-400 flex items-center gap-1">
                       <CheckCircle2 className="h-4 w-4" /> {isZh ? '回答正確！' : 'Correct Answer!'}
                     </span>
@@ -227,14 +258,14 @@ export default function LessonDetailPage({ params }: { params: Promise<{ id: str
                   )}
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  {isZh ? lesson.quiz.explanationZh : lesson.quiz.explanationEn}
+                  {isZh ? currentQuiz.explanationZh : currentQuiz.explanationEn}
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Footer Navigation Links */}
+        {/* Footer Links */}
         <div className="flex items-center justify-between pt-4">
           <Link
             href="/course"
