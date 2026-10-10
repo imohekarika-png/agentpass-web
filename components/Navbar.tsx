@@ -3,8 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
+import logoImg from '../logo.png.png';
 import { 
   Home,
   BookOpen, 
@@ -16,8 +18,7 @@ import {
   LogOut,
   Globe, 
   Menu, 
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -91,12 +92,16 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
-              <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="h-5 w-5 text-indigo-400" />
-              </div>
+          {/* Brand Logo with Image Asset */}
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+            <div className="relative h-9 w-9 rounded-xl overflow-hidden group-hover:scale-105 transition">
+              <Image
+                src={logoImg}
+                alt="AgentPass Logo"
+                fill
+                className="object-contain"
+                priority
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-base font-black tracking-tight text-white group-hover:text-indigo-300 transition">
