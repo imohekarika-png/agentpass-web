@@ -16,8 +16,7 @@ import {
   LogOut,
   Globe, 
   Menu, 
-  X,
-  Sparkles
+  X
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -91,15 +90,27 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo (Matching Footer: AgentPass™ with Sparkles Icon) */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="relative h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-amber-400 p-0.5 shadow-md shadow-indigo-500/20 group-hover:scale-105 transition">
-              <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-indigo-400" />
-              </div>
-            </div>
+          {/* Brand Logo (Exact match with Footer) */}
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <svg 
+              className="h-6 w-6 transform group-hover:scale-105 transition" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path 
+                d="M12 2L3 19L12 15L21 19L12 2Z" 
+                fill="url(#agentpass-nav-grad)" 
+              />
+              <defs>
+                <linearGradient id="agentpass-nav-grad" x1="3" y1="2" x2="21" y2="19" gradientUnits="userSpaceOnUse">
+                  <stop stopColor="#EF4444" />
+                  <stop offset="1" stopColor="#F59E0B" />
+                </linearGradient>
+              </defs>
+            </svg>
             <span className="text-lg font-black tracking-tight text-white group-hover:text-indigo-300 transition">
-              AgentPass<span className="text-xs align-top font-normal text-indigo-400">™</span>
+              AgentPass<span className="text-xs align-top font-normal text-slate-300">™</span>
             </span>
           </Link>
 
