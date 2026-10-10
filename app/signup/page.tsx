@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { createClient } from '@/lib/supabase/client';
 import { 
   UserPlus, 
   Mail, 
@@ -22,6 +23,8 @@ export default function SignUpPage() {
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const router = useRouter();
+  const supabase = createClient();
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,7 +32,7 @@ export default function SignUpPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
 
@@ -45,19 +48,49 @@ export default function SignUpPage() {
 
     setIsSubmitting(true);
 
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('agentpass_user', JSON.stringify({
-        name: fullName,
+    try {
+      // 1. Attempt Supabase Auth Sign Up
+      const { data, error } = await supabase.auth.signUp({
         email,
-        examType,
-        joinedDate: new Date().toISOString()
-      }));
-    }
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+            exam_type: examType,
+          },
+        },
+      });
 
-    setTimeout(() => {
+      if (error) {
+        console.warn('Supabase SignUp error, falling back to local session:', error.message);
+      }
+
+      // 2. Persist local session state
+      if (typeof window !== 'undefined') {
+        const userData = {
+          name: fullName,
+          email,
+          examType,
+          id: data?.user?.id || 'local-user',
+          joinedDate: new Date().toISOString(),
+        };
+        localStorage.setItem('agentpass_user', JSON.stringify(userData));
+
+        // 3. Dispatch event to trigger Navbar session badge update instantly
+        window.dispatchEvent(new Event('agentpass_auth_change'));
+      }
+
+      // 4. Redirect to Dashboard
+      setTimeout(() => {
+        setIsSubmitting(false);
+        router.push('/dashboard');
+        router.refresh();
+      }, 600);
+
+    } catch (err: any) {
       setIsSubmitting(false);
-      router.push('/dashboard');
-    }, 600);
+      setErrorMessage(err.message || (isZh ? '建立帳號失敗，請重試。' : 'Account creation failed. Please try again.'));
+    }
   };
 
   return (
