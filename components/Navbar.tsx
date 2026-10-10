@@ -1,21 +1,23 @@
 // components/Navbar.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
+  Home,
   BookOpen, 
   HelpCircle, 
   Layers, 
   LayoutDashboard, 
   PartyPopper, 
   LogIn, 
+  LogOut,
+  User,
   Globe, 
   Menu, 
   X,
-  Compass,
   Sparkles
 } from 'lucide-react';
 
@@ -24,7 +26,36 @@ export default function Navbar() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // User session state
+  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+
+  // Sync user state from localStorage on mount and route change
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('agentpass_user');
+      if (stored) {
+        try {
+          setUser(JSON.parse(stored));
+        } catch (e) {
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    }
+  }, [pathname]);
+
+  const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('agentpass_user');
+    }
+    setUser(null);
+    router.push('/login');
+  };
 
   const toggleLanguage = () => {
     if (setLanguage) {
@@ -33,7 +64,7 @@ export default function Navbar() {
   };
 
   const navLinks = [
-    { href: '/', labelZh: '首頁', labelEn: 'Home' },
+    { href: '/', labelZh: '首頁', labelEn: 'Home', icon: Home },
     { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
     { href: '/quiz', labelZh: '試題庫', labelEn: 'Quiz Bank', icon: HelpCircle },
     { href: '/flashcards', labelZh: '速記卡', labelEn: 'Flashcards', icon: Layers },
@@ -46,8 +77,8 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center gap-2.5 group">
+          {/* Brand Logo */}
+          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="relative h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
               <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-indigo-400" />
@@ -63,26 +94,32 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-2">
+          {/* Desktop Navigation Links (Includes Home) */}
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
+              const isActive = pathname === link.href;
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="px-3 py-2 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition flex items-center gap-1.5"
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                    isActive 
+                      ? 'bg-indigo-950/80 text-white border border-indigo-500/40' 
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
+                  }`}
                 >
-                  {Icon && <Icon className="h-3.5 w-3.5 text-indigo-400" />}
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                   <span>{isZh ? link.labelZh : link.labelEn}</span>
                 </Link>
               );
             })}
           </div>
 
-          {/* Right Action Cluster (Language Switcher & Login) */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Language Toggle Button */}
+          {/* Right Action Cluster (Language Switcher + Dynamic User Account Status) */}
+          <div className="hidden md:flex items-center gap-3 shrink-0">
+            
+            {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
               className="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5 cursor-pointer"
@@ -91,17 +128,43 @@ export default function Navbar() {
               <span>{isZh ? 'EN' : '繁體中文'}</span>
             </button>
 
-            {/* Login Button */}
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              <span>{isZh ? '學員登入' : 'Login'}</span>
-            </Link>
+            {/* Account Status Badge / Actions */}
+            {user ? (
+              <div className="flex items-center gap-2 border-l border-slate-800 pl-3">
+                <Link 
+                  href="/dashboard" 
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/30 hover:border-emerald-500/60 transition group"
+                >
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span className="text-xs font-bold text-emerald-300 max-w-[100px] truncate">
+                    {user.name || user.email?.split('@')[0] || (isZh ? '已登入' : 'Logged In')}
+                  </span>
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  title={isZh ? '登出帳號' : 'Sign Out'}
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition cursor-pointer"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+              >
+                <LogIn className="h-3.5 w-3.5" />
+                <span>{isZh ? '學員登入' : 'Login'}</span>
+              </Link>
+            )}
+
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile Controls */}
           <div className="flex items-center gap-2 md:hidden">
             <button
               onClick={toggleLanguage}
@@ -126,28 +189,54 @@ export default function Navbar() {
         <div className="md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-2">
           {navLinks.map((link) => {
             const Icon = link.icon;
+            const isActive = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-900 flex items-center gap-2"
+                className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
+                  isActive 
+                    ? 'bg-indigo-950 text-white border border-indigo-500/40' 
+                    : 'text-slate-300 hover:bg-slate-900'
+                }`}
               >
-                {Icon && <Icon className="h-4 w-4 text-indigo-400" />}
+                <Icon className={`h-4 w-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                 <span>{isZh ? link.labelZh : link.labelEn}</span>
               </Link>
             );
           })}
 
-          <div className="pt-2 border-t border-slate-800">
-            <Link
-              href="/login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-indigo-600 text-xs font-bold text-white"
-            >
-              <LogIn className="h-4 w-4" />
-              <span>{isZh ? '學員登入 / 註冊' : 'Member Login / Register'}</span>
-            </Link>
+          <div className="pt-3 border-t border-slate-800 space-y-2">
+            {user ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="text-xs font-bold text-slate-200">
+                    {user.name || user.email}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-rose-400 flex items-center gap-1"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>{isZh ? '登出' : 'Logout'}</span>
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-indigo-600 text-xs font-bold text-white"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>{isZh ? '學員登入 / 註冊' : 'Member Login / Register'}</span>
+              </Link>
+            )}
           </div>
         </div>
       )}
