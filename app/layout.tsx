@@ -2,7 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LanguageProvider } from '@/app/context/LanguageContext';
-import Navbar from '@/app/components/Navbar';
+import Navbar from '@/components/Navbar';
 import Footer from '@/app/components/Footer';
 import AiTutorWidget from '@/app/components/AiTutorWidget';
 
