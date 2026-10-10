@@ -1,4 +1,4 @@
-// app/components/Navbar.tsx
+// Navbar.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
-import logoImg from '../logo.png.png';
+import logoImg from '@/components/logo.png.png';
 import { 
   Home,
   BookOpen, 
@@ -92,7 +92,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo with Image Asset */}
+          {/* Brand Logo with Absolute Root Alias */}
           <Link href="/" className="flex items-center gap-2.5 group shrink-0">
             <div className="relative h-9 w-9 rounded-xl overflow-hidden group-hover:scale-105 transition">
               <Image
@@ -135,7 +135,7 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right Actions (Language Switcher + Dynamic User Badge) */}
+          {/* Right Actions */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
             <button
               onClick={toggleLanguage}
