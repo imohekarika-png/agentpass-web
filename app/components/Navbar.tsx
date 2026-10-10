@@ -3,8 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
+import logoImg from '@/components/logo.png';
 import { 
   Home,
   BookOpen, 
@@ -90,25 +92,17 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
-          {/* Brand Logo (Exact match with Footer) */}
+          {/* Brand Logo directly referencing components/logo.png */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <svg 
-              className="h-6 w-6 transform group-hover:scale-105 transition" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path 
-                d="M12 2L3 19L12 15L21 19L12 2Z" 
-                fill="url(#agentpass-nav-grad)" 
+            <div className="relative h-7 w-7 sm:h-8 sm:w-8 group-hover:scale-105 transition">
+              <Image
+                src={logoImg}
+                alt="AgentPass Logo"
+                fill
+                className="object-contain"
+                priority
               />
-              <defs>
-                <linearGradient id="agentpass-nav-grad" x1="3" y1="2" x2="21" y2="19" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#EF4444" />
-                  <stop offset="1" stopColor="#F59E0B" />
-                </linearGradient>
-              </defs>
-            </svg>
+            </div>
             <span className="text-lg font-black tracking-tight text-white group-hover:text-indigo-300 transition">
               AgentPass<span className="text-xs align-top font-normal text-slate-300">™</span>
             </span>
