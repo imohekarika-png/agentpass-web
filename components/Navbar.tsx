@@ -90,11 +90,11 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           
-          {/* Brand Logo with Larger Image Dimensions */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="relative h-10 w-10 sm:h-12 sm:w-12 group-hover:scale-105 transition">
+          {/* Brand Logo with Prominent Dimensions */}
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
+            <div className="relative h-14 w-14 sm:h-16 sm:w-16 group-hover:scale-105 transition">
               <Image
                 src={logoImg}
                 alt="AgentPass Logo"
@@ -103,7 +103,7 @@ export default function Navbar() {
                 priority
               />
             </div>
-            <span className="text-xl sm:text-2xl font-black tracking-tight text-white group-hover:text-indigo-300 transition">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-white group-hover:text-indigo-300 transition">
               AgentPass<span className="text-xs align-top font-normal text-slate-300">™</span>
             </span>
           </Link>
