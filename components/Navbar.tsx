@@ -14,7 +14,6 @@ import {
   PartyPopper, 
   LogIn, 
   LogOut,
-  User,
   Globe, 
   Menu, 
   X,
@@ -29,29 +28,44 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   
-  // User session state
+  // Session state
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
 
-  // Sync user state from localStorage on mount and route change
-  useEffect(() => {
+  const syncUser = () => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem('agentpass_user');
       if (stored) {
         try {
           setUser(JSON.parse(stored));
-        } catch (e) {
+        } catch {
           setUser(null);
         }
       } else {
         setUser(null);
       }
     }
+  };
+
+  useEffect(() => {
+    setIsMounted(true);
+    syncUser();
+
+    const handleStorage = () => syncUser();
+    window.addEventListener('storage', handleStorage);
+    window.addEventListener('agentpass_auth_change', handleStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      window.removeEventListener('agentpass_auth_change', handleStorage);
+    };
   }, [pathname]);
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('agentpass_user');
+      window.dispatchEvent(new Event('agentpass_auth_change'));
     }
     setUser(null);
     router.push('/login');
@@ -73,13 +87,13 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-40 w-full border-b border-slate-800 bg-slate-950/90 backdrop-blur-md">
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-            <div className="relative h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 p-0.5 shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
               <div className="h-full w-full bg-slate-950 rounded-[10px] flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-indigo-400" />
               </div>
@@ -94,8 +108,8 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links (Includes Home) */}
-          <div className="hidden lg:flex items-center gap-1">
+          {/* Desktop Navigation Links */}
+          <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -116,10 +130,8 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right Action Cluster (Language Switcher + Dynamic User Account Status) */}
+          {/* Right Actions (Language Switcher + Dynamic User Badge) */}
           <div className="hidden md:flex items-center gap-3 shrink-0">
-            
-            {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
               className="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5 cursor-pointer"
@@ -128,18 +140,17 @@ export default function Navbar() {
               <span>{isZh ? 'EN' : '繁體中文'}</span>
             </button>
 
-            {/* Account Status Badge / Actions */}
-            {user ? (
+            {isMounted && user ? (
               <div className="flex items-center gap-2 border-l border-slate-800 pl-3">
                 <Link 
                   href="/dashboard" 
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/30 hover:border-emerald-500/60 transition group"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 hover:border-emerald-500 transition"
                 >
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
-                  <span className="text-xs font-bold text-emerald-300 max-w-[100px] truncate">
+                  <span className="text-xs font-bold text-emerald-300 max-w-[110px] truncate">
                     {user.name || user.email?.split('@')[0] || (isZh ? '已登入' : 'Logged In')}
                   </span>
                 </Link>
@@ -152,7 +163,7 @@ export default function Navbar() {
                   <LogOut className="h-3.5 w-3.5" />
                 </button>
               </div>
-            ) : (
+            ) : isMounted ? (
               <Link
                 href="/login"
                 className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
@@ -160,11 +171,10 @@ export default function Navbar() {
                 <LogIn className="h-3.5 w-3.5" />
                 <span>{isZh ? '學員登入' : 'Login'}</span>
               </Link>
-            )}
-
+            ) : null}
           </div>
 
-          {/* Mobile Controls */}
+          {/* Mobile Menu Toggle Button */}
           <div className="flex items-center gap-2 md:hidden">
             <button
               onClick={toggleLanguage}
@@ -184,7 +194,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown Menu */}
+      {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-2">
           {navLinks.map((link) => {
@@ -208,7 +218,7 @@ export default function Navbar() {
           })}
 
           <div className="pt-3 border-t border-slate-800 space-y-2">
-            {user ? (
+            {isMounted && user ? (
               <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-emerald-500" />
@@ -227,7 +237,7 @@ export default function Navbar() {
                   <span>{isZh ? '登出' : 'Logout'}</span>
                 </button>
               </div>
-            ) : (
+            ) : isMounted ? (
               <Link
                 href="/login"
                 onClick={() => setMobileMenuOpen(false)}
@@ -236,7 +246,7 @@ export default function Navbar() {
                 <LogIn className="h-4 w-4" />
                 <span>{isZh ? '學員登入 / 註冊' : 'Member Login / Register'}</span>
               </Link>
-            )}
+            ) : null}
           </div>
         </div>
       )}
