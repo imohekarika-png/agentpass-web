@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { count = 10, language = 'ZH' } = await req.json();
+    const { count = 5, language = 'ZH' } = await req.json();
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 
     if (!openRouterApiKey) {
@@ -13,13 +13,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const systemPrompt = `You are the official AgentPass™ Exam Engine. Generate a structured JSON array containing exactly ${count} realistic EAQE/SQE exam questions based on official Hong Kong EAA past paper patterns.
+    const systemPrompt = `You are the official AgentPass™ Exam Generator. Generate a valid JSON array of exactly ${count} realistic EAQE/SQE exam questions based on HK EAA past paper standards.
 
-Requirements:
-1. Divide questions into Part 1 (Multiple Choice, Cap. 511, POIM Land Search, Cap. 7) and Part 2 (Case Studies, Forms 1-6, Conveyancing, Demolition Orders).
-2. Format MUST strictly return a valid raw JSON array of objects with no surrounding markdown or explanation.
+CRITICAL PERFORMANCE RULES:
+1. Keep explanations concise (max 1-2 sentences).
+2. Output ONLY raw valid JSON (no markdown backticks, no introduction).
 
-JSON Schema per item:
+JSON Schema:
 [
   {
     "id": number,
@@ -29,7 +29,7 @@ JSON Schema per item:
     "questionEn": "string",
     "optionsZh": ["string", "string", "string", "string"],
     "optionsEn": ["string", "string", "string", "string"],
-    "correctIndex": number (0-3),
+    "correctIndex": number,
     "explanationZh": "string",
     "explanationEn": "string"
   }
@@ -45,22 +45,21 @@ JSON Schema per item:
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-3.3-70b-instruct',
-        temperature: 0.5,
+        temperature: 0.4,
+        max_tokens: 1800,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate ${count} EAQE exam questions now.` }
+          { role: 'user', content: `Generate ${count} EAQE questions in JSON.` }
         ]
       })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenRouter returned status ${response.status}`);
+      throw new Error(`OpenRouter error status: ${response.status}`);
     }
 
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || '[]';
-    
-    // Clean any markdown backticks from model output
     const cleanJsonString = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
     const questions = JSON.parse(cleanJsonString);
 
