@@ -90,56 +90,27 @@ export default function AiTutorWidget() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          query: userText,
           locale,
         }),
       });
 
-      if (!response.ok || !response.body) {
-        throw new Error('Failed to fetch AI response');
+      if (!response.ok) {
+        throw new Error('API request failed');
       }
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
+      const data = await response.json();
+      const botReply = data.reply || data.answer || data.text || (isZh ? '回覆完成。' : 'Response completed.');
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split('\n');
-
-        for (const line of lines) {
-          if (line.startsWith('0:')) {
-            try {
-              const textToken = JSON.parse(line.slice(2));
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: m.content + textToken } : m
-                )
-              );
-            } catch {
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === assistantId ? { ...m, content: m.content + line.slice(2) } : m
-                )
-              );
-            }
-          } else if (line.trim() && !line.startsWith('{')) {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId ? { ...m, content: m.content + line } : m
-              )
-            );
-          }
-        }
-      }
+      setMessages((prev) =>
+        prev.map((m) => (m.id === assistantId ? { ...m, content: botReply } : m))
+      );
     } catch (err) {
-      console.error('Streaming error:', err);
+      console.error('AI Tutor Fetch Error:', err);
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
-            ? { ...m, content: isZh ? '發生錯誤，請重試。' : 'An error occurred. Please try again.' }
+            ? { ...m, content: isZh ? '連線失敗，請再試一次。' : 'Connection error. Please try again.' }
             : m
         )
       );
@@ -204,11 +175,10 @@ export default function AiTutorWidget() {
             </div>
 
             <div className="flex items-center gap-1.5">
-              {/* Language Switcher Button in Header */}
               <button
                 onClick={toggleLocale}
                 title={isZh ? '切換語言' : 'Switch Language'}
-                className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:border-indigo-500 transition"
+                className="flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:border-indigo-500 transition cursor-pointer"
               >
                 <Globe className="h-3 w-3 text-indigo-400" />
                 <span>{isZh ? 'EN' : '繁'}</span>
@@ -218,7 +188,7 @@ export default function AiTutorWidget() {
                 <button
                   onClick={clearHistory}
                   title={isZh ? '清除紀錄' : 'Clear History'}
-                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-rose-400 transition"
+                  className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-rose-400 transition cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -226,7 +196,7 @@ export default function AiTutorWidget() {
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-700 hover:text-white transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -332,7 +302,7 @@ export default function AiTutorWidget() {
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition"
+                className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition cursor-pointer"
               >
                 <Send className="h-4 w-4" />
               </button>
