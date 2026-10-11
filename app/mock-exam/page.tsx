@@ -13,7 +13,8 @@ import {
   BarChart3,
   ArrowRight,
   BookOpen,
-  LayoutDashboard
+  LayoutDashboard,
+  Sparkles
 } from 'lucide-react';
 
 interface Question {
@@ -207,9 +208,11 @@ export default function MockExamPage() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  const [questions, setQuestions] = useState<Question[]>(MOCK_QUESTIONS);
   const [answers, setAnswers] = useState<{ [key: number]: number }>({});
   const [timeLeft, setTimeLeft] = useState<number>(1800);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -245,14 +248,36 @@ export default function MockExamPage() {
     }, 100);
   };
 
-  const part1Questions = MOCK_QUESTIONS.filter((q) => q.part === 1);
-  const part2Questions = MOCK_QUESTIONS.filter((q) => q.part === 2);
+  const handleGenerateAiPaper = async () => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/generate-exam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ count: 10, language: currentLang })
+      });
+      const data = await res.json();
+      if (data.questions && data.questions.length > 0) {
+        setQuestions(data.questions);
+        setAnswers({});
+        setTimeLeft(1800);
+        setIsSubmitted(false);
+      }
+    } catch (err) {
+      console.error('AI Paper Generation Error:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const part1Questions = questions.filter((q) => q.part === 1);
+  const part2Questions = questions.filter((q) => q.part === 2);
 
   const part1Correct = part1Questions.filter((q) => answers[q.id] === q.correctIndex).length;
   const part2Correct = part2Questions.filter((q) => answers[q.id] === q.correctIndex).length;
 
-  const part1ScorePct = Math.round((part1Correct / part1Questions.length) * 100) || 0;
-  const part2ScorePct = Math.round((part2Correct / part2Questions.length) * 100) || 0;
+  const part1ScorePct = Math.round((part1Correct / (part1Questions.length || 1)) * 100);
+  const part2ScorePct = Math.round((part2Correct / (part2Questions.length || 1)) * 100);
   
   const overallPassed = part1ScorePct >= 60 && part2ScorePct >= 60;
 
@@ -272,11 +297,22 @@ export default function MockExamPage() {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 shrink-0">
-            <Timer className={`h-5 w-5 ${timeLeft < 300 ? 'text-rose-400 animate-pulse' : 'text-indigo-400'}`} />
-            <span className="font-mono text-lg font-black text-white">
-              {formatTime(timeLeft)}
-            </span>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={handleGenerateAiPaper}
+              disabled={isGenerating}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 font-bold text-xs text-white transition flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+            >
+              <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+              <span>{isGenerating ? (isZh ? 'AI 生成試卷中...' : 'Generating...') : (isZh ? '生成最新 AI 真題試卷' : 'Generate AI Paper')}</span>
+            </button>
+
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800">
+              <Timer className={`h-5 w-5 ${timeLeft < 300 ? 'text-rose-400 animate-pulse' : 'text-indigo-400'}`} />
+              <span className="font-mono text-base font-black text-white">
+                {formatTime(timeLeft)}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -351,7 +387,7 @@ export default function MockExamPage() {
 
         {/* Questions List */}
         <div className="space-y-6">
-          {MOCK_QUESTIONS.map((q, idx) => {
+          {questions.map((q, idx) => {
             const selectedIdx = answers[q.id];
             const isCorrect = selectedIdx === q.correctIndex;
 
