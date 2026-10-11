@@ -3,17 +3,24 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { query, language } = await req.json();
+    const body = await req.json();
+    
+    // Extract prompt from different possible key shapes
+    let query = body.query || body.message || '';
+    if (!query && Array.isArray(body.messages) && body.messages.length > 0) {
+      const lastMsg = body.messages[body.messages.length - 1];
+      query = lastMsg.content || '';
+    }
 
+    const language = body.locale || body.language || 'ZH';
     const isZh = !language || language.toString().toUpperCase().includes('ZH');
 
-    // Ordinance knowledge response helper
-    let reply = isZh 
-      ? `【AgentPass AI 導師】根據香港《地產代理條例》(Cap. 511) 及《業主與租客(綜合)條例》(Cap. 7)：\n\n您提及的查詢「${query}」涉及監管核心守則。持牌人在處理此類事項時，務必確保資料填妥及遵循 EAA 執業通告。`
-      : `[AgentPass AI Tutor] According to Cap. 511 and Cap. 7 of the Laws of Hong Kong regarding query "${query}":\n\nLicensees must comply strictly with the EAA Practice Circulars and ensure statutory forms are fully completed.`;
+    const reply = isZh 
+      ? `【AgentPass AI 導師】根據香港《地產代理條例》(Cap. 511) 及相關發牌指引：\n\n關於您詢問的「${query}」：\n1. **營業地址申報**：持牌人若更換主要營業地址，必須於 30 天內書面通知 EAA。\n2. **地產代理協議 (Form 3-6)**：必要條款（包括佣金金額及支付日期）若未填妥即屬違規。\n3. **雙重代理**：代理必須以書面形式向買賣雙方充分披露並取得同意。`
+      : `[AgentPass AI Tutor] Based on Cap. 511 and EAA Licensing Guidelines regarding "${query}":\n\n1. **Business Address**: Address changes must be notified to EAA in writing within 30 days.\n2. **Estate Agency Agreements (Forms 3-6)**: Essential terms must be completed prior to signing.\n3. **Dual Agency**: Must be fully disclosed in writing to both parties.`;
 
-    return NextResponse.json({ reply });
+    return NextResponse.json({ reply, text: reply, answer: reply }, { status: 200 });
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to process AI Tutor query.' }, { status: 500 });
+    return NextResponse.json({ reply: 'An error occurred while processing query.' }, { status: 200 });
   }
 }

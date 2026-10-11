@@ -6,16 +6,11 @@ import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   BrainCircuit, 
-  Calendar, 
   CheckCircle2, 
   Clock, 
-  AlertTriangle, 
-  BookOpen, 
-  HelpCircle, 
-  Layers, 
-  ArrowRight,
   TrendingUp,
-  Award
+  Award,
+  RotateCcw
 } from 'lucide-react';
 
 interface ReviewItem {
@@ -27,48 +22,83 @@ interface ReviewItem {
   status: 'due' | 'upcoming' | 'completed';
 }
 
+const INITIAL_REVIEWS: ReviewItem[] = [
+  {
+    id: 'r1',
+    topicZh: 'Cap. 511 牌照條例與營業地址申報 (30天規則)',
+    topicEn: 'Cap. 511 Licensing & Business Address Rules',
+    intervalDay: 1,
+    dueDate: 'Today',
+    status: 'due'
+  },
+  {
+    id: 'r2',
+    topicZh: '屋宇署 s.24 違例建築物清拆令 (UBW)',
+    topicEn: 'Buildings Ordinance s.24 Demolition Orders',
+    intervalDay: 3,
+    dueDate: 'Tomorrow',
+    status: 'upcoming'
+  },
+  {
+    id: 'r3',
+    topicZh: 'Cap. 7 租務條例與無保障租務解約程序',
+    topicEn: 'Cap. 7 Landlord & Tenant Ordinance Terminations',
+    intervalDay: 7,
+    dueDate: 'In 4 Days',
+    status: 'upcoming'
+  },
+  {
+    id: 'r4',
+    topicZh: '表格 3 至 表格 6 (Form 3-6) 必填佣金條款',
+    topicEn: 'Form 3-6 Mandatory Commission Terms',
+    intervalDay: 16,
+    dueDate: 'In 12 Days',
+    status: 'upcoming'
+  },
+  {
+    id: 'r5',
+    topicZh: 'Cap. 511C 地產代理協議規例與聲明書備存',
+    topicEn: 'Cap. 511C Estate Agency Agreements & Record Keeping',
+    intervalDay: 35,
+    dueDate: 'In 28 Days',
+    status: 'upcoming'
+  }
+];
+
 export default function DashboardPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const [reviews, setReviews] = useState<ReviewItem[]>([
-    {
-      id: 'r1',
-      topicZh: 'Cap. 511 牌照條例與營業地址申報 (30天規則)',
-      topicEn: 'Cap. 511 Licensing & Business Address Rules',
-      intervalDay: 1,
-      dueDate: 'Today',
-      status: 'due'
-    },
-    {
-      id: 'r2',
-      topicZh: '屋宇署 s.24 違例建築物清拆令 (UBW)',
-      topicEn: 'Buildings Ordinance s.24 Demolition Orders',
-      intervalDay: 3,
-      dueDate: 'Tomorrow',
-      status: 'upcoming'
-    },
-    {
-      id: 'r3',
-      topicZh: 'Cap. 7 租務條例與無保障租務解約程序',
-      topicEn: 'Cap. 7 Landlord & Tenant Ordinance Terminations',
-      intervalDay: 7,
-      dueDate: 'In 4 Days',
-      status: 'upcoming'
-    },
-    {
-      id: 'r4',
-      topicZh: '表格 3 至 表格 6 (Form 3-6) 必填佣金條款',
-      topicEn: 'Form 3-6 Mandatory Commission Terms',
-      intervalDay: 16,
-      dueDate: 'In 12 Days',
-      status: 'upcoming'
+  const [reviews, setReviews] = useState<ReviewItem[]>(INITIAL_REVIEWS);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('agentpass_spaced_reviews');
+      if (saved) {
+        try {
+          setReviews(JSON.parse(saved));
+        } catch {
+          setReviews(INITIAL_REVIEWS);
+        }
+      }
     }
-  ]);
+  }, []);
+
+  const saveReviews = (updated: ReviewItem[]) => {
+    setReviews(updated);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('agentpass_spaced_reviews', JSON.stringify(updated));
+    }
+  };
 
   const markComplete = (id: string) => {
-    setReviews(prev => prev.map(item => item.id === id ? { ...item, status: 'completed' } : item));
+    const updated = reviews.map(item => item.id === id ? { ...item, status: 'completed' as const } : item);
+    saveReviews(updated);
+  };
+
+  const resetQueue = () => {
+    saveReviews(INITIAL_REVIEWS);
   };
 
   return (
@@ -87,13 +117,23 @@ export default function DashboardPage() {
             </h1>
           </div>
 
-          <Link
-            href="/mock-exam"
-            className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center gap-2 shadow-lg shadow-indigo-600/20"
-          >
-            <Award className="h-4 w-4" />
-            <span>{isZh ? '進入全真模擬考場' : 'Take Timed Mock Exam'}</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={resetQueue}
+              className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+              title={isZh ? '重置溫習進度' : 'Reset Progress'}
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+
+            <Link
+              href="/mock-exam"
+              className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+            >
+              <Award className="h-4 w-4" />
+              <span>{isZh ? '進入全真模擬考場' : 'Take Timed Mock Exam'}</span>
+            </Link>
+          </div>
         </div>
 
         {/* Ebbinghaus Review Queue */}
@@ -101,14 +141,14 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <BrainCircuit className="h-5 w-5 text-indigo-400" />
-              <span>{isZh ? '今日待複習記憶卡片 (Spaced Review Queue)' : 'Today\'s Spaced Review Queue'}</span>
+              <span>{isZh ? '1-3-7-16-35 記憶卡片 (Spaced Review Queue)' : 'Spaced Review Queue'}</span>
             </h2>
             <span className="text-xs font-mono text-slate-400">
-              {reviews.filter(r => r.status === 'due').length} {isZh ? '項待複習' : 'Pending'}
+              {reviews.filter(r => r.status === 'completed').length} / {reviews.length} {isZh ? '已複習' : 'Completed'}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {reviews.map((item) => (
               <div 
                 key={item.id}
@@ -121,7 +161,7 @@ export default function DashboardPage() {
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-indigo-300">
+                  <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-slate-800 text-indigo-300">
                     Day {item.intervalDay} Review
                   </span>
                   <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
@@ -130,7 +170,7 @@ export default function DashboardPage() {
                   </span>
                 </div>
 
-                <h3 className="text-sm font-bold text-white">
+                <h3 className="text-xs font-bold text-white leading-relaxed">
                   {isZh ? item.topicZh : item.topicEn}
                 </h3>
 
