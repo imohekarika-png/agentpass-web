@@ -2,6 +2,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LanguageProvider } from '@/app/context/LanguageContext';
+import { ThemeProvider } from '@/app/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/app/components/Footer';
 import AiTutorWidget from '@/app/components/AiTutorWidget';
@@ -18,12 +19,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-HK" translate="no" className="notranslate" suppressHydrationWarning>
-      <body className="bg-slate-950 text-slate-100 antialiased font-sans min-h-screen flex flex-col" suppressHydrationWarning>
+      <body className="antialiased font-sans min-h-screen flex flex-col" suppressHydrationWarning>
         <LanguageProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
-          <AiTutorWidget />
+          <ThemeProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+            <AiTutorWidget />
+          </ThemeProvider>
         </LanguageProvider>
       </body>
     </html>
