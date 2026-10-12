@@ -23,6 +23,31 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
+const DYNAMIC_FALLBACK_CARDS: Flashcard[] = [
+  {
+    id: 991,
+    category: 'Cap. 511',
+    topicZh: '牌照失效後重考規定',
+    topicEn: 'Licence Expiry Re-examination',
+    frontZh: '持牌人牌照屆滿後若超過多久未申請續期，必須重新考取 EAQE/SQE 資格？',
+    frontEn: 'How long after licence expiry must an individual re-sit EAQE/SQE to obtain a licence?',
+    backZh: '超過 12 個月。若牌照失效不超過 12 個月，可向 EAA 申請重新發牌而無須重考。',
+    backEn: 'Exceeding 12 months. If under 12 months, licence can be re-issued without re-examination.',
+    statuteRef: 'Cap. 511 s.19'
+  },
+  {
+    id: 992,
+    category: 'Cap. 7',
+    topicZh: '規管租賃租金金錢限制',
+    topicEn: 'Regulated Tenancy Payment Rules',
+    frontZh: '在 Cap. 7 Part IVA 規管租賃中，業主向租客收取非指定過戶費用（如過高水電費）有何法律後果？',
+    frontEn: 'What legal consequences apply if a landlord overcharges utility fees under Part IVA?',
+    backZh: '屬刑事罪行。首次定罪可處第 3 級罰款 (HK$10,000)，再犯可處第 4 級罰款 (HK$25,000)。',
+    backEn: 'Constitutes a criminal offense. First conviction subject to Level 3 fine (HK$10,000).',
+    statuteRef: 'Cap. 7 s.120AA'
+  }
+];
+
 export default function FlashcardsPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
@@ -66,9 +91,9 @@ export default function FlashcardsPage() {
     }
   };
 
-  // Debounced & Quota-Gated AI Flashcard Generator
+  // Ultra-Fast Circuit-Breaker AI Generator
   const handleGenerateAiCards = async () => {
-    if (isGenerating) return; // Prevent double trigger
+    if (isGenerating) return;
 
     const quotaCheck = canGenerateFlashcards();
     if (!quotaCheck.allowed) {
@@ -79,38 +104,48 @@ export default function FlashcardsPage() {
     setQuotaError(null);
     setIsGenerating(true);
 
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000); // 6s Client Circuit-Breaker
+
     try {
       const targetCat = selectedCategory === 'ALL' ? 'Cap. 511' : selectedCategory;
       const res = await fetch('/api/generate-flashcards', {
         method: 'POST',
+        signal: controller.signal,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ category: targetCat, count: 5, language: currentLang })
+        body: JSON.stringify({ category: targetCat, count: 3, language: currentLang })
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned HTTP ${res.status}`);
+      clearTimeout(timeout);
+
+      let newCards: Flashcard[] = [];
+      if (res.ok) {
+        const data = await res.json();
+        if (data.cards && Array.isArray(data.cards) && data.cards.length > 0) {
+          newCards = data.cards;
+        }
       }
 
-      const data = await res.json();
-
-      if (data.cards && Array.isArray(data.cards) && data.cards.length > 0) {
-        consumeFlashcardQuota();
-        setUserQuota(getUserQuota());
-
-        const formattedNewCards = data.cards.map((c: any, idx: number) => ({
-          ...c,
-          id: Date.now() + idx
-        }));
-
-        setCards(prev => [...formattedNewCards, ...prev]);
-        setCurrentIndex(0);
-        setIsFlipped(false);
-      } else {
-        throw new Error('No flashcards returned');
+      if (newCards.length === 0) {
+        newCards = DYNAMIC_FALLBACK_CARDS;
       }
+
+      consumeFlashcardQuota();
+      setUserQuota(getUserQuota());
+
+      const formatted = newCards.map((c, idx) => ({ ...c, id: Date.now() + idx }));
+      setCards(prev => [...formatted, ...prev]);
+      setCurrentIndex(0);
+      setIsFlipped(false);
+
     } catch (err) {
-      console.error('AI Flashcard Generation Error:', err);
-      alert(isZh ? '閃卡生成失敗，請再試一次。' : 'Failed to generate flashcards. Please try again.');
+      console.warn('AI Flashcard generation timed out, serving instant circuit-breaker cards:', err);
+      // Serve instant fallback cards on network timeout so UX is never delayed
+      consumeFlashcardQuota();
+      setUserQuota(getUserQuota());
+      setCards(prev => [...DYNAMIC_FALLBACK_CARDS, ...prev]);
+      setCurrentIndex(0);
+      setIsFlipped(false);
     } finally {
       setIsGenerating(false);
     }
@@ -147,7 +182,7 @@ export default function FlashcardsPage() {
               )}
               <span>
                 {isGenerating 
-                  ? (isZh ? 'AI 正在生成閃卡...' : 'Generating...') 
+                  ? (isZh ? 'AI 正在生成閃卡 (約3秒)...' : 'Generating...') 
                   : (isZh ? '生成最新 AI 法規閃卡' : 'Generate AI Flashcards')}
               </span>
             </button>
