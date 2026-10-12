@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 
     if (!openRouterApiKey) {
-      return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured.' }, { status: 500 });
+      return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured in Vercel environment variables.' }, { status: 500 });
     }
 
     const langStr = (language || 'ZH').toString().toUpperCase();
@@ -23,7 +23,7 @@ LANGUAGE FOCUS: ${isZh ? 'Traditional Chinese (HK Real Estate Terminology)' : 'E
 CRITICAL RULES:
 1. Return ONLY a valid raw JSON array. NO markdown backticks, NO intro/outro text.
 2. Explanations MUST be 1 concise sentence citing Cap. section (e.g. Cap. 511 s.40 or Cap. 7).
-3. Populate BOTH Zh and En fields (you can duplicate the active text into both fields for speed).
+3. Populate BOTH Zh and En fields.
 
 JSON Schema per item:
 [
@@ -52,11 +52,7 @@ JSON Schema per item:
       body: JSON.stringify({
         model: 'meta-llama/llama-3.3-70b-instruct',
         temperature: 0.2,
-        max_tokens: 1600,
-        provider: {
-          order: ['Fireworks', 'Together', 'DeepInfra'],
-          allow_fallbacks: true
-        },
+        max_tokens: 1400,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: `Generate 5 questions for batch ${batchIndex + 1} in JSON.` }
@@ -66,28 +62,22 @@ JSON Schema per item:
 
     if (!response.ok) {
       const errTxt = await response.text();
-      console.error('OpenRouter Error:', errTxt);
-      return NextResponse.json({ error: `OpenRouter error: ${response.status}` }, { status: response.status });
+      console.error('OpenRouter API Error:', errTxt);
+      return NextResponse.json({ error: `OpenRouter returned status ${response.status}` }, { status: response.status });
     }
 
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || '[]';
-    
-    // Clean codeblock wrappers
-    const cleanJson = rawContent
-      .replace(/```json/gi, '')
-      .replace(/```/g, '')
-      .trim();
+    const cleanJson = rawContent.replace(/```json/gi, '').replace(/```/g, '').trim();
 
     let questions = [];
     try {
       questions = JSON.parse(cleanJson);
     } catch (parseErr) {
-      console.error('JSON Parse error on content:', rawContent);
+      console.error('JSON Parse Error:', rawContent);
       return NextResponse.json({ error: 'Failed to parse JSON response from LLM' }, { status: 500 });
     }
 
-    // Sanitize and fallback-fill missing bilingual fields
     const sanitized = questions.map((q: any, idx: number) => ({
       id: q.id || idx + 1,
       part: q.part || (isCaseStudyBatch ? 2 : 1),

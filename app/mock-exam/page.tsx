@@ -36,7 +36,7 @@ interface Question {
 type ExamMode = 'express' | 'sqe' | 'eaqe';
 
 const MODE_CONFIGS = {
-  express: { nameZh: 'Express 速刷診斷診所', nameEn: 'Express Drill', questionsCount: 10, timeMinutes: 30, batches: 1 },
+  express: { nameZh: 'Express 快速診斷卡', nameEn: 'Express Drill', questionsCount: 10, timeMinutes: 30, batches: 1 },
   sqe: { nameZh: 'SQE 營業員 50 題全真考場', nameEn: 'Full SQE Simulation', questionsCount: 50, timeMinutes: 150, batches: 5 },
   eaqe: { nameZh: 'EAQE 地產代理 50 題主管考場', nameEn: 'Full EAQE Master Sim', questionsCount: 50, timeMinutes: 180, batches: 5 },
 };
@@ -98,42 +98,33 @@ export default function MockExamPage() {
 
     setQuotaError(null);
     setIsGenerating(true);
-    setGenerationProgress(15);
+    setGenerationProgress(10);
     setSelectedMode(mode);
 
     const config = MODE_CONFIGS[mode];
+    let combined: Question[] = [];
 
     try {
-      let completedBatches = 0;
-
-      const fetchBatchWithProgress = async (batchIdx: number) => {
+      // Sequential Execution to avoid Vercel Function Timeouts & Rate Limits
+      for (let i = 0; i < config.batches; i++) {
         const res = await fetch('/api/generate-exam', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mode, batchIndex: batchIdx, language: currentLang })
+          body: JSON.stringify({ mode, batchIndex: i, language: currentLang })
         });
 
         if (!res.ok) {
-          throw new Error(`API returned HTTP ${res.status}`);
+          throw new Error(`Batch ${i + 1} failed with status ${res.status}`);
         }
 
         const data = await res.json();
-        completedBatches += 1;
-        const progressPct = Math.min(95, Math.round(15 + (completedBatches / config.batches) * 80));
-        setGenerationProgress(progressPct);
-
-        return data;
-      };
-
-      const batchPromises = Array.from({ length: config.batches }).map((_, idx) => fetchBatchWithProgress(idx));
-      const results = await Promise.all(batchPromises);
-
-      let combined: Question[] = [];
-      results.forEach((data) => {
         if (data.questions && Array.isArray(data.questions)) {
           combined = [...combined, ...data.questions];
         }
-      });
+
+        const progressPct = Math.min(98, Math.round(((i + 1) / config.batches) * 100));
+        setGenerationProgress(progressPct);
+      }
 
       const reindexed = combined.map((q, idx) => ({ ...q, id: idx + 1 }));
 
@@ -149,7 +140,7 @@ export default function MockExamPage() {
           setIsSubmitted(false);
           setIsGenerating(false);
           setGenerationProgress(0);
-        }, 300);
+        }, 200);
       } else {
         throw new Error('No valid questions generated');
       }
@@ -224,7 +215,7 @@ export default function MockExamPage() {
 
                 <p className="text-xs text-slate-400">
                   {isZh 
-                    ? `正在並行生成 ${MODE_CONFIGS[selectedMode].questionsCount} 題雙語試題及法規解析 (${generationProgress}%)`
+                    ? `正在即時生成 ${MODE_CONFIGS[selectedMode].questionsCount} 題雙語試題及法規解析 (${generationProgress}%)`
                     : `Generating ${MODE_CONFIGS[selectedMode].questionsCount} questions & explanations (${generationProgress}%)`}
                 </p>
 
@@ -237,7 +228,7 @@ export default function MockExamPage() {
                 </div>
 
                 <div className="flex items-center justify-between text-[11px] font-mono font-bold text-slate-400 pt-1">
-                  <span>Part I / Part II Batches</span>
+                  <span>Progress</span>
                   <span className="text-indigo-400">{generationProgress}%</span>
                 </div>
               </div>
