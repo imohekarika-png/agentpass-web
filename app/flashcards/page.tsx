@@ -8,14 +8,13 @@ import { FLASHCARDS_DATA, Flashcard } from '@/app/data/flashcardsData';
 import { 
   RotateCw, 
   CheckCircle2, 
-  XCircle, 
   BookOpen, 
   Sparkles, 
   ChevronLeft, 
   ChevronRight,
   Layers,
   Award,
-  LayoutDashboard
+  Loader2
 } from 'lucide-react';
 
 export default function FlashcardsPage() {
@@ -23,14 +22,16 @@ export default function FlashcardsPage() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  const [cards, setCards] = useState<Flashcard[]>(FLASHCARDS_DATA);
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [masteredIds, setMasteredIds] = useState<number[]>([]);
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
 
   const filteredCards = selectedCategory === 'ALL' 
-    ? FLASHCARDS_DATA 
-    : FLASHCARDS_DATA.filter(c => c.category === selectedCategory);
+    ? cards 
+    : cards.filter(c => c.category === selectedCategory);
 
   const currentCard: Flashcard | undefined = filteredCards[currentIndex] || filteredCards[0];
 
@@ -53,6 +54,36 @@ export default function FlashcardsPage() {
     }
   };
 
+  // AI Generator Function
+  const handleGenerateAiCards = async () => {
+    setIsGenerating(true);
+    try {
+      const targetCat = selectedCategory === 'ALL' ? 'Cap. 511' : selectedCategory;
+      const res = await fetch('/api/generate-flashcards', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: targetCat, count: 5, language: currentLang })
+      });
+
+      const data = await res.json();
+      if (data.cards && Array.isArray(data.cards) && data.cards.length > 0) {
+        // Re-index generated cards and append to active state
+        const formattedNewCards = data.cards.map((c: any, idx: number) => ({
+          ...c,
+          id: Date.now() + idx
+        }));
+        
+        setCards(prev => [...formattedNewCards, ...prev]);
+        setCurrentIndex(0);
+        setIsFlipped(false);
+      }
+    } catch (err) {
+      console.error('AI Flashcard Generation Error:', err);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const categories = ['ALL', 'Cap. 511', 'Forms 1-6', 'Cap. 7', 'Land Search', 'Code of Ethics'];
 
   return (
@@ -71,13 +102,32 @@ export default function FlashcardsPage() {
             </h1>
           </div>
 
-          <Link
-            href="/mock-exam"
-            className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center gap-2 shrink-0 shadow-lg shadow-indigo-600/20"
-          >
-            <Award className="h-4 w-4" />
-            <span>{isZh ? '前往模擬試題考場' : 'Go to Mock Exam'}</span>
-          </Link>
+          <div className="flex items-center gap-3 shrink-0">
+            <button
+              onClick={handleGenerateAiCards}
+              disabled={isGenerating}
+              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 font-bold text-xs text-white transition flex items-center gap-2 cursor-pointer shadow-md disabled:opacity-50"
+            >
+              {isGenerating ? (
+                <Loader2 className="h-4 w-4 animate-spin text-white" />
+              ) : (
+                <Sparkles className="h-4 w-4 text-amber-300" />
+              )}
+              <span>
+                {isGenerating 
+                  ? (isZh ? 'AI 正在生成閃卡...' : 'Generating...') 
+                  : (isZh ? '生成最新 AI 法規閃卡' : 'Generate AI Flashcards')}
+              </span>
+            </button>
+
+            <Link
+              href="/mock-exam"
+              className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition flex items-center gap-2"
+            >
+              <Award className="h-4 w-4 text-indigo-400" />
+              <span>{isZh ? '考場' : 'Exam'}</span>
+            </Link>
+          </div>
         </div>
 
         {/* Category Filter Pills */}
@@ -216,20 +266,11 @@ export default function FlashcardsPage() {
           )}
         </div>
 
-        {/* CSS 3D Utility Classes */}
         <style jsx global>{`
-          .perspective-1000 {
-            perspective: 1000px;
-          }
-          .transform-style-3d {
-            transform-style: preserve-3d;
-          }
-          .backface-hidden {
-            backface-visibility: hidden;
-          }
-          .rotate-y-180 {
-            transform: rotateY(180deg);
-          }
+          .perspective-1000 { perspective: 1000px; }
+          .transform-style-3d { transform-style: preserve-3d; }
+          .backface-hidden { backface-visibility: hidden; }
+          .rotate-y-180 { transform: rotateY(180deg); }
         `}</style>
 
       </div>
