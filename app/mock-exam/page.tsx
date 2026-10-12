@@ -17,8 +17,7 @@ import {
   LayoutDashboard,
   Sparkles,
   Zap,
-  ShieldAlert,
-  Loader2
+  ShieldAlert
 } from 'lucide-react';
 
 interface Question {
@@ -54,7 +53,6 @@ export default function MockExamPage() {
   const [isExamActive, setIsExamActive] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   
-  // Progress bar states
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [generationProgress, setGenerationProgress] = useState<number>(0);
 
@@ -100,7 +98,7 @@ export default function MockExamPage() {
 
     setQuotaError(null);
     setIsGenerating(true);
-    setGenerationProgress(10); // Initialized progress
+    setGenerationProgress(15);
     setSelectedMode(mode);
 
     const config = MODE_CONFIGS[mode];
@@ -108,19 +106,22 @@ export default function MockExamPage() {
     try {
       let completedBatches = 0;
 
-      // Track individual batch completions to update progress bar dynamically
       const fetchBatchWithProgress = async (batchIdx: number) => {
         const res = await fetch('/api/generate-exam', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ mode, batchIndex: batchIdx, language: currentLang })
         });
+
+        if (!res.ok) {
+          throw new Error(`API returned HTTP ${res.status}`);
+        }
+
         const data = await res.json();
-        
         completedBatches += 1;
-        const progressPct = Math.min(95, Math.round(10 + (completedBatches / config.batches) * 85));
+        const progressPct = Math.min(95, Math.round(15 + (completedBatches / config.batches) * 80));
         setGenerationProgress(progressPct);
-        
+
         return data;
       };
 
@@ -129,7 +130,9 @@ export default function MockExamPage() {
 
       let combined: Question[] = [];
       results.forEach((data) => {
-        if (data.questions) combined = [...combined, ...data.questions];
+        if (data.questions && Array.isArray(data.questions)) {
+          combined = [...combined, ...data.questions];
+        }
       });
 
       const reindexed = combined.map((q, idx) => ({ ...q, id: idx + 1 }));
@@ -148,11 +151,11 @@ export default function MockExamPage() {
           setGenerationProgress(0);
         }, 300);
       } else {
-        throw new Error('Zero questions returned');
+        throw new Error('No valid questions generated');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Exam Generation Error:', err);
-      alert(isZh ? '組卷過程發生連線問題，請重試。' : 'Failed to generate exam paper. Please try again.');
+      alert(isZh ? '試卷生成失敗，請再試一次。' : 'Exam generation failed. Please try again.');
       setIsGenerating(false);
       setGenerationProgress(0);
     }
@@ -184,7 +187,7 @@ export default function MockExamPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Mode Selector & Generation Progress Overlay Area */}
+        {/* Mode Selector & Generation Progress Area */}
         {!isExamActive && (
           <div className="space-y-6">
             <div className="text-center space-y-2">
@@ -197,7 +200,7 @@ export default function MockExamPage() {
               </h1>
               <p className="text-xs text-slate-400 max-w-xl mx-auto">
                 {isZh 
-                  ? '選擇合適的考場模式，AI 將即時依據地產代理監管局最新出題大綱與歷年真題進行動態組卷。'
+                  ? '選擇合適的考場模式，AI 將即時依據地產代理監管局最新出題大綱進行動態組卷。'
                   : 'Choose an exam mode. AgentPass AI dynamically generates verified questions matching EAA standards.'}
               </p>
             </div>
@@ -222,7 +225,7 @@ export default function MockExamPage() {
                 <p className="text-xs text-slate-400">
                   {isZh 
                     ? `正在並行生成 ${MODE_CONFIGS[selectedMode].questionsCount} 題雙語試題及法規解析 (${generationProgress}%)`
-                    : `Generating ${MODE_CONFIGS[selectedMode].questionsCount} questions & explanations in parallel (${generationProgress}%)`}
+                    : `Generating ${MODE_CONFIGS[selectedMode].questionsCount} questions & explanations (${generationProgress}%)`}
                 </p>
 
                 {/* Progress Bar Component */}
@@ -240,7 +243,7 @@ export default function MockExamPage() {
               </div>
             )}
 
-            {/* Mode Cards Grid (Hidden while generating) */}
+            {/* Mode Cards Grid */}
             {!isGenerating && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                 
