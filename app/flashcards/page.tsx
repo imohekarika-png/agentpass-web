@@ -1,20 +1,26 @@
 // app/flashcards/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { FLASHCARDS_DATA, Flashcard } from '@/app/data/flashcardsData';
 import { 
+  getUserQuota, 
+  canGenerateFlashcards, 
+  consumeFlashcardQuota, 
+  UserQuota 
+} from '@/app/utils/quotaManager';
+import { 
   RotateCw, 
   CheckCircle2, 
-  BookOpen, 
   Sparkles, 
   ChevronLeft, 
   ChevronRight,
   Layers,
   Award,
-  Loader2
+  Loader2,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function FlashcardsPage() {
@@ -28,6 +34,12 @@ export default function FlashcardsPage() {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const [masteredIds, setMasteredIds] = useState<number[]>([]);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [quotaError, setQuotaError] = useState<string | null>(null);
+  const [userQuota, setUserQuota] = useState<UserQuota | null>(null);
+
+  useEffect(() => {
+    setUserQuota(getUserQuota());
+  }, []);
 
   const filteredCards = selectedCategory === 'ALL' 
     ? cards 
@@ -54,9 +66,19 @@ export default function FlashcardsPage() {
     }
   };
 
-  // AI Generator Function
+  // Debounced & Quota-Gated AI Flashcard Generator
   const handleGenerateAiCards = async () => {
+    if (isGenerating) return; // Prevent double trigger
+
+    const quotaCheck = canGenerateFlashcards();
+    if (!quotaCheck.allowed) {
+      setQuotaError(quotaCheck.reason || '配額不足');
+      return;
+    }
+
+    setQuotaError(null);
     setIsGenerating(true);
+
     try {
       const targetCat = selectedCategory === 'ALL' ? 'Cap. 511' : selectedCategory;
       const res = await fetch('/api/generate-flashcards', {
@@ -65,20 +87,30 @@ export default function FlashcardsPage() {
         body: JSON.stringify({ category: targetCat, count: 5, language: currentLang })
       });
 
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
+      }
+
       const data = await res.json();
+
       if (data.cards && Array.isArray(data.cards) && data.cards.length > 0) {
-        // Re-index generated cards and append to active state
+        consumeFlashcardQuota();
+        setUserQuota(getUserQuota());
+
         const formattedNewCards = data.cards.map((c: any, idx: number) => ({
           ...c,
           id: Date.now() + idx
         }));
-        
+
         setCards(prev => [...formattedNewCards, ...prev]);
         setCurrentIndex(0);
         setIsFlipped(false);
+      } else {
+        throw new Error('No flashcards returned');
       }
     } catch (err) {
       console.error('AI Flashcard Generation Error:', err);
+      alert(isZh ? '閃卡生成失敗，請再試一次。' : 'Failed to generate flashcards. Please try again.');
     } finally {
       setIsGenerating(false);
     }
@@ -130,6 +162,22 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
+        {/* Quota Error Notification Banner */}
+        {quotaError && (
+          <div className="p-4 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-bold flex items-center justify-between gap-2 shadow-lg">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 shrink-0 text-rose-400" />
+              <span>{quotaError}</span>
+            </div>
+            <Link 
+              href="/pricing" 
+              className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shrink-0"
+            >
+              {isZh ? '立即升級 Pass' : 'Upgrade Pass'}
+            </Link>
+          </div>
+        )}
+
         {/* Category Filter Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => (
@@ -159,11 +207,19 @@ export default function FlashcardsPage() {
               {isZh ? `卡片進度：${currentIndex + 1} / ${filteredCards.length}` : `Card ${currentIndex + 1} of ${filteredCards.length}`}
             </span>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-            <span>
-              {isZh ? `已熟記：${masteredIds.length} 題` : `Mastered: ${masteredIds.length}`}
-            </span>
+          
+          <div className="flex items-center gap-4">
+            {userQuota && (
+              <span className="text-slate-500 font-mono text-[11px]">
+                AI 閃卡額度: {userQuota.flashcardsGenUsed}/{userQuota.flashcardsGenLimit}
+              </span>
+            )}
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>
+                {isZh ? `已熟記：${masteredIds.length} 題` : `Mastered: ${masteredIds.length}`}
+              </span>
+            </div>
           </div>
         </div>
 

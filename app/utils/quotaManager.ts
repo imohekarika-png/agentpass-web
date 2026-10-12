@@ -8,14 +8,16 @@ export interface UserQuota {
   drillsLimit: number;
   simsUsed: number;
   simsLimit: number;
+  flashcardsGenUsed: number;
+  flashcardsGenLimit: number;
 }
 
 const STORAGE_KEY = 'agentpass_user_quota_v2';
 
 export const DEFAULT_QUOTAS: Record<UserTier, UserQuota> = {
-  free: { tier: 'free', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 30 },
-  sqe: { tier: 'sqe', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 50 },
-  eaqe: { tier: 'eaqe', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 100 },
+  free: { tier: 'free', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 30, flashcardsGenUsed: 0, flashcardsGenLimit: 3 },
+  sqe: { tier: 'sqe', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 50, flashcardsGenUsed: 0, flashcardsGenLimit: 50 },
+  eaqe: { tier: 'eaqe', drillsUsed: 0, drillsLimit: 9999, simsUsed: 0, simsLimit: 100, flashcardsGenUsed: 0, flashcardsGenLimit: 200 },
 };
 
 export function getUserQuota(): UserQuota {
@@ -35,24 +37,34 @@ export function saveUserQuota(quota: UserQuota): void {
   }
 }
 
-export function canRunExam(mode: 'express' | 'sqe' | 'eaqe'): { allowed: boolean; reason?: string } {
-  // Always allow Express Drills for testing and practice
-  if (mode === 'express') {
-    return { allowed: true };
+export function canGenerateFlashcards(): { allowed: boolean; reason?: string } {
+  const quota = getUserQuota();
+  if (quota.flashcardsGenUsed >= quota.flashcardsGenLimit) {
+    return {
+      allowed: false,
+      reason: `已達到免費 AI 閃卡生成上限 (${quota.flashcardsGenLimit} 次)。請升級學員 Pass 解鎖更多 AI 生成配額！`
+    };
   }
+  return { allowed: true };
+}
+
+export function consumeFlashcardQuota(): UserQuota {
+  const quota = getUserQuota();
+  quota.flashcardsGenUsed += 1;
+  saveUserQuota(quota);
+  return quota;
+}
+
+export function canRunExam(mode: 'express' | 'sqe' | 'eaqe'): { allowed: boolean; reason?: string } {
+  if (mode === 'express') return { allowed: true };
 
   const quota = getUserQuota();
-
-  if (mode === 'sqe' || mode === 'eaqe') {
-    if (quota.simsUsed >= quota.simsLimit && quota.tier === 'free') {
-      return { 
-        allowed: false, 
-        reason: '全真 50 題考場已達免費試用上限。請升級學員 Pass 解鎖無限次練習！' 
-      };
-    }
-    return { allowed: true };
+  if ((mode === 'sqe' || mode === 'eaqe') && quota.simsUsed >= quota.simsLimit && quota.tier === 'free') {
+    return { 
+      allowed: false, 
+      reason: '全真 50 題考場已達免費試用上限。請升級學員 Pass 解鎖無限次練習！' 
+    };
   }
-
   return { allowed: true };
 }
 
