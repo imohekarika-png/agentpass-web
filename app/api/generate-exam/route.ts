@@ -3,27 +3,32 @@ import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { count = 5, language = 'ZH' } = await req.json();
+    const { mode = 'express', batchIndex = 0, language = 'ZH' } = await req.json();
     const openRouterApiKey = process.env.OPENROUTER_API_KEY;
 
     if (!openRouterApiKey) {
-      return NextResponse.json(
-        { error: 'OPENROUTER_API_KEY is not configured.' },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured.' }, { status: 500 });
     }
 
-    const systemPrompt = `You are the official AgentPass™ Exam Generator. Generate a valid JSON array of exactly ${count} realistic EAQE/SQE exam questions based on HK EAA past paper standards.
+    const isZh = !language || language.toString().toUpperCase().includes('ZH');
+    
+    // Determine batch configuration (each batch yields 10 high-quality Qs)
+    const count = 10;
+    const isCaseStudyBatch = batchIndex >= 3; // Batches 0-2 = Part I (MC), Batches 3-4 = Part II (Case Study)
 
-CRITICAL PERFORMANCE RULES:
-1. Keep explanations concise (max 1-2 sentences).
-2. Output ONLY raw valid JSON (no markdown backticks, no introduction).
+    const systemPrompt = `You are the official AgentPass™ Exam Engine. Generate exactly ${count} realistic HK EAA exam questions based on official past papers.
+Target Mode: ${mode.toUpperCase()} (${mode === 'sqe' ? 'Salesperson SQE' : mode === 'eaqe' ? 'Estate Agent EAQE' : 'Express Drill'}).
+Target Section: ${isCaseStudyBatch ? 'Part II (Case Studies: Form 1-6, Conveyancing, Demolition Orders)' : 'Part I (Multiple Choice: Cap. 511, POIM Land Search, Cap. 7)'}.
 
-JSON Schema:
+CRITICAL REQUIREMENTS:
+1. Return ONLY raw valid JSON array. No markdown wrap, no markdown backticks.
+2. Explanations must cite exact Cap. sections (e.g., Cap. 511 s.40, Cap. 7 Part IVA, Buildings Ordinance s.24).
+
+JSON Schema per item:
 [
   {
     "id": number,
-    "part": 1 or 2,
+    "part": ${isCaseStudyBatch ? 2 : 1},
     "topic": "string",
     "questionZh": "string",
     "questionEn": "string",
@@ -40,36 +45,33 @@ JSON Schema:
       headers: {
         'Authorization': `Bearer ${openRouterApiKey}`,
         'HTTP-Referer': 'https://agentpass-web-eight.vercel.app',
-        'X-Title': 'AgentPass HK EAA Dynamic Exam Generator',
+        'X-Title': 'AgentPass Dynamic Exam Generator',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-3.3-70b-instruct',
         temperature: 0.4,
-        max_tokens: 1800,
+        max_tokens: 2800,
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate ${count} EAQE questions in JSON.` }
+          { role: 'user', content: `Generate batch ${batchIndex + 1} of ${count} questions in JSON.` }
         ]
       })
     });
 
     if (!response.ok) {
-      throw new Error(`OpenRouter error status: ${response.status}`);
+      throw new Error(`OpenRouter status ${response.status}`);
     }
 
     const data = await response.json();
     const rawContent = data.choices?.[0]?.message?.content || '[]';
-    const cleanJsonString = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
-    const questions = JSON.parse(cleanJsonString);
+    const cleanJson = rawContent.replace(/```json/g, '').replace(/```/g, '').trim();
+    const questions = JSON.parse(cleanJson);
 
     return NextResponse.json({ questions }, { status: 200 });
 
   } catch (error: any) {
-    console.error('Exam Generation Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate dynamic exam suite.' },
-      { status: 500 }
-    );
+    console.error('Generate Exam Error:', error);
+    return NextResponse.json({ error: 'Failed to generate dynamic exam batch.' }, { status: 500 });
   }
 }
