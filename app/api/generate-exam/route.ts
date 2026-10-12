@@ -10,21 +10,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured.' }, { status: 500 });
     }
 
-    const isZh = !language || language.toString().toUpperCase().includes('ZH');
-    
-    // Determine batch configuration (each batch yields 10 high-quality Qs)
-    const count = 10;
-    const isCaseStudyBatch = batchIndex >= 3; // Batches 0-2 = Part I (MC), Batches 3-4 = Part II (Case Study)
+    const isCaseStudyBatch = batchIndex >= 3;
 
-    const systemPrompt = `You are the official AgentPass™ Exam Engine. Generate exactly ${count} realistic HK EAA exam questions based on official past papers.
-Target Mode: ${mode.toUpperCase()} (${mode === 'sqe' ? 'Salesperson SQE' : mode === 'eaqe' ? 'Estate Agent EAQE' : 'Express Drill'}).
-Target Section: ${isCaseStudyBatch ? 'Part II (Case Studies: Form 1-6, Conveyancing, Demolition Orders)' : 'Part I (Multiple Choice: Cap. 511, POIM Land Search, Cap. 7)'}.
+    const systemPrompt = `You are the AgentPass™ Fast Exam Engine. Output EXACTLY 5 realistic HK EAA exam questions in raw valid JSON.
 
-CRITICAL REQUIREMENTS:
-1. Return ONLY raw valid JSON array. No markdown wrap, no markdown backticks.
-2. Explanations must cite exact Cap. sections (e.g., Cap. 511 s.40, Cap. 7 Part IVA, Buildings Ordinance s.24).
+MODE: ${mode.toUpperCase()}
+PART: ${isCaseStudyBatch ? 'Part II (Case Studies)' : 'Part I (Multiple Choice)'}
 
-JSON Schema per item:
+CRITICAL FAST GENERATION RULES:
+1. Output ONLY a valid raw JSON array. NO markdown formatting, NO backticks.
+2. Keep explanations EXTREMELY CONCISE (max 1-2 sentences citing Cap. sections like Cap. 511 s.40 or Buildings Ordinance s.24).
+
+JSON Format per item:
 [
   {
     "id": number,
@@ -45,16 +42,16 @@ JSON Schema per item:
       headers: {
         'Authorization': `Bearer ${openRouterApiKey}`,
         'HTTP-Referer': 'https://agentpass-web-eight.vercel.app',
-        'X-Title': 'AgentPass Dynamic Exam Generator',
+        'X-Title': 'AgentPass Dynamic Fast Generator',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-3.3-70b-instruct',
-        temperature: 0.4,
-        max_tokens: 2800,
+        temperature: 0.3,
+        max_tokens: 1500, // Capped to guarantee fast token throughput
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate batch ${batchIndex + 1} of ${count} questions in JSON.` }
+          { role: 'user', content: `Generate 5 questions for batch ${batchIndex + 1} now.` }
         ]
       })
     });
