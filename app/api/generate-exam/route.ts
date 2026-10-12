@@ -10,30 +10,37 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'OPENROUTER_API_KEY is not configured.' }, { status: 500 });
     }
 
+    const isZh = !language || language.toString().toUpperCase().includes('ZH');
     const isCaseStudyBatch = batchIndex >= 3;
 
-    const systemPrompt = `You are the AgentPass™ Fast Exam Engine. Output EXACTLY 5 realistic HK EAA exam questions in raw valid JSON.
+    // Targeted single-language prompt cuts output tokens in half!
+    const langInstructions = isZh
+      ? 'Output question, options, and explanation ONLY in Traditional Chinese (HK Real Estate Terminology).'
+      : 'Output question, options, and explanation ONLY in English.';
+
+    const systemPrompt = `You are the AgentPass™ Ultra-Fast Exam Engine. Output EXACTLY 5 realistic HK EAA exam questions in raw valid JSON.
 
 MODE: ${mode.toUpperCase()}
 PART: ${isCaseStudyBatch ? 'Part II (Case Studies)' : 'Part I (Multiple Choice)'}
+LANGUAGE: ${langInstructions}
 
-CRITICAL FAST GENERATION RULES:
-1. Output ONLY a valid raw JSON array. NO markdown formatting, NO backticks.
-2. Keep explanations EXTREMELY CONCISE (max 1-2 sentences citing Cap. sections like Cap. 511 s.40 or Buildings Ordinance s.24).
+CRITICAL RULES:
+1. Return ONLY raw valid JSON array. NO markdown codeblocks.
+2. Explanations must be 1 sentence citing Cap. section (e.g., Cap. 511 s.40).
 
-JSON Format per item:
+JSON Format:
 [
   {
     "id": number,
     "part": ${isCaseStudyBatch ? 2 : 1},
     "topic": "string",
-    "questionZh": "string",
-    "questionEn": "string",
-    "optionsZh": ["string", "string", "string", "string"],
-    "optionsEn": ["string", "string", "string", "string"],
+    "questionZh": "${isZh ? '中文題目' : ''}",
+    "questionEn": "${!isZh ? 'English Question' : ''}",
+    "optionsZh": ${isZh ? '["選項A", "選項B", "選項C", "選項D"]' : '[]'},
+    "optionsEn": ${!isZh ? '["Opt A", "Opt B", "Opt C", "Opt D"]' : '[]'},
     "correctIndex": number,
-    "explanationZh": "string",
-    "explanationEn": "string"
+    "explanationZh": "${isZh ? '中文解析' : ''}",
+    "explanationEn": "${!isZh ? 'English Explanation' : ''}"
   }
 ]`;
 
@@ -42,16 +49,21 @@ JSON Format per item:
       headers: {
         'Authorization': `Bearer ${openRouterApiKey}`,
         'HTTP-Referer': 'https://agentpass-web-eight.vercel.app',
-        'X-Title': 'AgentPass Dynamic Fast Generator',
+        'X-Title': 'AgentPass Ultra-Fast Generator',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'meta-llama/llama-3.3-70b-instruct',
-        temperature: 0.3,
-        max_tokens: 1500, // Capped to guarantee fast token throughput
+        temperature: 0.2,
+        max_tokens: 1000,
+        // Route to highest-throughput fast providers on OpenRouter
+        provider: {
+          order: ['Fireworks', 'Together', 'DeepInfra'],
+          allow_fallbacks: true
+        },
         messages: [
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Generate 5 questions for batch ${batchIndex + 1} now.` }
+          { role: 'user', content: `Generate 5 fast questions now.` }
         ]
       })
     });
