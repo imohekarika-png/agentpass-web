@@ -1,11 +1,12 @@
-// Navbar.tsx
+// components/Navbar.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { useTheme, ThemeVariant } from '@/app/context/ThemeContext';
 import logoImg from '@/components/logo.png';
 import { 
   Home,
@@ -18,7 +19,14 @@ import {
   LogOut,
   Globe, 
   Menu, 
-  X
+  X,
+  Palette,
+  Check,
+  Zap,
+  Sun,
+  Moon,
+  Eye,
+  Award
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -26,12 +34,15 @@ export default function Navbar() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const router = useRouter();
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   
-  // Session state
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
 
   const syncUser = () => {
@@ -57,9 +68,17 @@ export default function Navbar() {
     window.addEventListener('storage', handleStorage);
     window.addEventListener('agentpass_auth_change', handleStorage);
 
+    function handleClickOutside(event: MouseEvent) {
+      if (themeDropdownRef.current && !themeDropdownRef.current.contains(event.target as Node)) {
+        setThemeDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+
     return () => {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('agentpass_auth_change', handleStorage);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [pathname]);
 
@@ -82,9 +101,17 @@ export default function Navbar() {
     { href: '/', labelZh: '首頁', labelEn: 'Home', icon: Home },
     { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
     { href: '/quiz', labelZh: '試題庫', labelEn: 'Quiz Bank', icon: HelpCircle },
+    { href: '/mock-exam', labelZh: '模擬考場', labelEn: 'Mock Exam', icon: Award },
     { href: '/flashcards', labelZh: '速記卡', labelEn: 'Flashcards', icon: Layers },
     { href: '/dashboard', labelZh: '溫習儀表板', labelEn: 'Dashboard', icon: LayoutDashboard },
     { href: '/welcome', labelZh: '迎新指引', labelEn: 'Welcome', icon: PartyPopper },
+  ];
+
+  const themeOptions: { id: ThemeVariant; labelZh: string; labelEn: string; icon: any; colorDot: string }[] = [
+    { id: 'slate', labelZh: 'Slate Midnight (預設)', labelEn: 'Slate Midnight (Default)', icon: Moon, colorDot: 'bg-indigo-500' },
+    { id: 'oled', labelZh: 'OLED 純黑省電', labelEn: 'OLED Pure Black', icon: Zap, colorDot: 'bg-zinc-100' },
+    { id: 'sepia', labelZh: '暖陽護眼 (低藍光)', labelEn: 'Warm Sepia Eye Care', icon: Eye, colorDot: 'bg-amber-500' },
+    { id: 'light', labelZh: '日照日間模式', labelEn: 'Clean Daylight Mode', icon: Sun, colorDot: 'bg-sky-400' },
   ];
 
   return (
@@ -92,9 +119,9 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
-          {/* Brand Logo with Prominent Dimensions */}
-          <Link href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="relative h-14 w-14 sm:h-16 sm:w-16 group-hover:scale-105 transition">
+          {/* Brand Logo with Image Support & Reduced Gap */}
+          <Link href="/" className="flex items-center gap-1.5 group shrink-0">
+            <div className="relative h-12 w-12 sm:h-14 sm:w-14 group-hover:scale-105 transition">
               <Image
                 src={logoImg}
                 alt="AgentPass Logo"
@@ -109,7 +136,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = pathname === link.href;
@@ -130,8 +157,56 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Right Actions */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
+          {/* Right Action Bar (Theme + Language + Auth) */}
+          <div className="hidden md:flex items-center gap-2.5 shrink-0">
+            
+            {/* Theme Selector Button */}
+            <div className="relative" ref={themeDropdownRef}>
+              <button
+                onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
+                className="p-2 rounded-xl border border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center justify-center cursor-pointer"
+                title={isZh ? '切換介面主題' : 'Switch Theme'}
+              >
+                <Palette className="h-4 w-4 text-amber-400" />
+              </button>
+
+              {themeDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 rounded-2xl bg-slate-900 border border-slate-800 shadow-2xl p-2 space-y-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-1.5 text-[10px] font-mono font-bold text-slate-500 uppercase border-b border-slate-800 mb-1">
+                    {isZh ? '選擇介面主題' : 'Select Theme'}
+                  </div>
+
+                  {themeOptions.map((t) => {
+                    const IconComponent = t.icon;
+                    const isSelected = theme === t.id;
+
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => {
+                          setTheme(t.id);
+                          setThemeDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                          isSelected 
+                            ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30' 
+                            : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className={`h-2 w-2 rounded-full ${t.colorDot}`} />
+                          <IconComponent className="h-3.5 w-3.5 text-slate-400" />
+                          <span>{isZh ? t.labelZh : t.labelEn}</span>
+                        </div>
+                        {isSelected && <Check className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
               className="px-3 py-1.5 rounded-xl border border-slate-700 bg-slate-900 text-xs font-bold text-slate-300 hover:text-white hover:border-slate-600 transition flex items-center gap-1.5 cursor-pointer"
@@ -140,8 +215,9 @@ export default function Navbar() {
               <span>{isZh ? 'EN' : '繁體中文'}</span>
             </button>
 
+            {/* Auth Session */}
             {isMounted && user ? (
-              <div className="flex items-center gap-2 border-l border-slate-800 pl-3">
+              <div className="flex items-center gap-2 border-l border-slate-800 pl-2.5">
                 <Link 
                   href="/dashboard" 
                   className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 hover:border-emerald-500 transition"
@@ -150,7 +226,7 @@ export default function Navbar() {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
-                  <span className="text-xs font-bold text-emerald-300 max-w-[110px] truncate">
+                  <span className="text-xs font-bold text-emerald-300 max-w-[100px] truncate">
                     {user.name || user.email?.split('@')[0] || (isZh ? '已登入' : 'Logged In')}
                   </span>
                 </Link>
@@ -174,8 +250,8 @@ export default function Navbar() {
             ) : null}
           </div>
 
-          {/* Mobile Menu Toggle Button */}
-          <div className="flex items-center gap-2 md:hidden">
+          {/* Mobile Toggle */}
+          <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={toggleLanguage}
               className="p-2 rounded-xl border border-slate-800 bg-slate-900 text-xs font-bold text-indigo-400"
@@ -194,9 +270,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-2">
+        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-2">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -218,35 +294,28 @@ export default function Navbar() {
           })}
 
           <div className="pt-3 border-t border-slate-800 space-y-2">
-            {isMounted && user ? (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-900 border border-slate-800">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-bold text-slate-200">
-                    {user.name || user.email}
-                  </span>
-                </div>
+            <div className="text-[10px] font-mono font-bold text-slate-500 uppercase px-1">
+              {isZh ? '選擇主題風格' : 'Select Theme'}
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {themeOptions.map((t) => (
                 <button
+                  key={t.id}
                   onClick={() => {
-                    handleLogout();
+                    setTheme(t.id);
                     setMobileMenuOpen(false);
                   }}
-                  className="text-xs font-bold text-rose-400 flex items-center gap-1"
+                  className={`p-2 rounded-xl border text-[11px] font-bold flex items-center gap-2 ${
+                    theme === t.id 
+                      ? 'bg-indigo-950 border-indigo-500 text-white' 
+                      : 'bg-slate-900 border-slate-800 text-slate-400'
+                  }`}
                 >
-                  <LogOut className="h-3.5 w-3.5" />
-                  <span>{isZh ? '登出' : 'Logout'}</span>
+                  <span className={`h-2 w-2 rounded-full ${t.colorDot}`} />
+                  <span className="truncate">{t.id.toUpperCase()}</span>
                 </button>
-              </div>
-            ) : isMounted ? (
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-indigo-600 text-xs font-bold text-white"
-              >
-                <LogIn className="h-4 w-4" />
-                <span>{isZh ? '學員登入 / 註冊' : 'Member Login / Register'}</span>
-              </Link>
-            ) : null}
+              ))}
+            </div>
           </div>
         </div>
       )}
