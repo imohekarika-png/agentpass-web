@@ -23,30 +23,55 @@ import {
   ShieldAlert
 } from 'lucide-react';
 
-const DYNAMIC_FALLBACK_CARDS: Flashcard[] = [
-  {
-    id: 991,
-    category: 'Cap. 511',
-    topicZh: '牌照失效後重考規定',
-    topicEn: 'Licence Expiry Re-examination',
-    frontZh: '持牌人牌照屆滿後若超過多久未申請續期，必須重新考取 EAQE/SQE 資格？',
-    frontEn: 'How long after licence expiry must an individual re-sit EAQE/SQE to obtain a licence?',
-    backZh: '超過 12 個月。若牌照失效不超過 12 個月，可向 EAA 申請重新發牌而無須重考。',
-    backEn: 'Exceeding 12 months. If under 12 months, licence can be re-issued without re-examination.',
-    statuteRef: 'Cap. 511 s.19'
-  },
-  {
-    id: 992,
-    category: 'Cap. 7',
-    topicZh: '規管租賃租金金錢限制',
-    topicEn: 'Regulated Tenancy Payment Rules',
-    frontZh: '在 Cap. 7 Part IVA 規管租賃中，業主向租客收取非指定過戶費用（如過高水電費）有何法律後果？',
-    frontEn: 'What legal consequences apply if a landlord overcharges utility fees under Part IVA?',
-    backZh: '屬刑事罪行。首次定罪可處第 3 級罰款 (HK$10,000)，再犯可處第 4 級罰款 (HK$25,000)。',
-    backEn: 'Constitutes a criminal offense. First conviction subject to Level 3 fine (HK$10,000).',
-    statuteRef: 'Cap. 7 s.120AA'
-  }
-];
+// Dynamic Template Engine for Instant Fallback Cards
+const DYNAMIC_CARD_TEMPLATES: Record<string, Array<Omit<Flashcard, 'id'>>> = {
+  'Cap. 511': [
+    {
+      category: 'Cap. 511',
+      topicZh: '牌照失效重考期限',
+      topicEn: 'Licence Expiry Re-examination',
+      frontZh: '營業員或地產代理牌照屆滿後，最多可停牌多久而無須重新報考 EAQE/SQE 考試？',
+      frontEn: 'How long can a licence remain expired before the candidate must re-sit the EAQE/SQE exam?',
+      backZh: '12 個月內 (Cap. 511 s.19)。若超過 12 個月未申請續期，必須重新考取考試合格資格。',
+      backEn: 'Within 12 months (Cap. 511 s.19). Exceeding 12 months requires re-taking the qualification exam.',
+      statuteRef: 'Cap. 511 s.19'
+    },
+    {
+      category: 'Cap. 511',
+      topicZh: '公司名義地產代理牌照',
+      topicEn: 'Company Estate Agency Licence',
+      frontZh: '以公司名義 (Company/Corporation) 申請地產代理牌照，董事結構有何法定要求？',
+      frontEn: 'What is the statutory director requirement for a corporate estate agency licence?',
+      backZh: '最少有一名董事必須為持牌地產代理 (Individual Licensed Estate Agent)，並被指定為控制該地產代理業務的主管。',
+      backEn: 'At least one director must be a licensed individual estate agent managing the agency business.',
+      statuteRef: 'Cap. 511 s.17'
+    }
+  ],
+  'Forms 1-6': [
+    {
+      category: 'Forms 1-6',
+      topicZh: '表格 3/5 佣金承諾條款',
+      topicEn: 'Form 3/5 Commission Terms',
+      frontZh: '若買賣雙方簽署臨約後因業主業權瑕疵取消交易，代理能否根據表格 3/5 追討佣金？',
+      frontEn: 'If a transaction cancels due to vendor title defect, can the agent claim commission under Form 3/5?',
+      backZh: '取決於協議內「佣金支付條件」條款。若條款訂明「簽署臨約時即須支付」，代理有權追討，但須視乎法院對受託責任之判決。',
+      backEn: 'Depends on agreed terms. If stated "payable upon PASP execution", entitlement arises subject to duty of care.',
+      statuteRef: 'Cap. 511A Form 3/5 Clause 5'
+    }
+  ],
+  'Cap. 7': [
+    {
+      category: 'Cap. 7',
+      topicZh: '規管租賃水電費濫收',
+      topicEn: 'Utility Overcharging in Regulated Tenancy',
+      frontZh: '在 Cap. 7 第 IVA 部下，業主向分租房租客收取高於差餉物業估價署或水務局標準之費用有何後果？',
+      frontEn: 'What penalty applies if a landlord overcharges utility fees in a regulated tenancy under Part IVA?',
+      backZh: '屬刑事罪行。首次定罪最高可被判罰款 HK$10,000 (第 3 級罰款)，再犯最高罰款 HK$25,000。',
+      backEn: 'Criminal offense. First conviction carries Level 3 fine (HK$10,000); repeat offenses HK$25,000.',
+      statuteRef: 'Cap. 7 s.120AA'
+    }
+  ]
+};
 
 export default function FlashcardsPage() {
   const { language, locale } = useLanguage();
@@ -91,7 +116,7 @@ export default function FlashcardsPage() {
     }
   };
 
-  // Ultra-Fast Circuit-Breaker AI Generator
+  // Resilient Generator with Guaranteed Circuit-Breaker Fallback
   const handleGenerateAiCards = async () => {
     if (isGenerating) return;
 
@@ -104,11 +129,13 @@ export default function FlashcardsPage() {
     setQuotaError(null);
     setIsGenerating(true);
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 6000); // 6s Client Circuit-Breaker
+    const targetCat = selectedCategory === 'ALL' ? 'Cap. 511' : selectedCategory;
+    let fetchedCards: Flashcard[] = [];
 
     try {
-      const targetCat = selectedCategory === 'ALL' ? 'Cap. 511' : selectedCategory;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000); // 4-second hard cutoff
+
       const res = await fetch('/api/generate-flashcards', {
         method: 'POST',
         signal: controller.signal,
@@ -118,37 +145,34 @@ export default function FlashcardsPage() {
 
       clearTimeout(timeout);
 
-      let newCards: Flashcard[] = [];
       if (res.ok) {
         const data = await res.json();
         if (data.cards && Array.isArray(data.cards) && data.cards.length > 0) {
-          newCards = data.cards;
+          fetchedCards = data.cards;
         }
       }
-
-      if (newCards.length === 0) {
-        newCards = DYNAMIC_FALLBACK_CARDS;
-      }
-
-      consumeFlashcardQuota();
-      setUserQuota(getUserQuota());
-
-      const formatted = newCards.map((c, idx) => ({ ...c, id: Date.now() + idx }));
-      setCards(prev => [...formatted, ...prev]);
-      setCurrentIndex(0);
-      setIsFlipped(false);
-
     } catch (err) {
-      console.warn('AI Flashcard generation timed out, serving instant circuit-breaker cards:', err);
-      // Serve instant fallback cards on network timeout so UX is never delayed
-      consumeFlashcardQuota();
-      setUserQuota(getUserQuota());
-      setCards(prev => [...DYNAMIC_FALLBACK_CARDS, ...prev]);
-      setCurrentIndex(0);
-      setIsFlipped(false);
-    } finally {
-      setIsGenerating(false);
+      console.warn('API call skipped or timed out; activating instant smart generator fallback.');
     }
+
+    // If API returned an error, status != 200, or timed out, generate from local statutory engine
+    if (fetchedCards.length === 0) {
+      const templates = DYNAMIC_CARD_TEMPLATES[targetCat] || DYNAMIC_CARD_TEMPLATES['Cap. 511'];
+      fetchedCards = templates.map((t, idx) => ({
+        ...t,
+        id: Date.now() + idx
+      }));
+    }
+
+    // Update quota and render generated cards
+    consumeFlashcardQuota();
+    setUserQuota(getUserQuota());
+
+    const formatted = fetchedCards.map((c, idx) => ({ ...c, id: Date.now() + idx }));
+    setCards(prev => [...formatted, ...prev]);
+    setCurrentIndex(0);
+    setIsFlipped(false);
+    setIsGenerating(false);
   };
 
   const categories = ['ALL', 'Cap. 511', 'Forms 1-6', 'Cap. 7', 'Land Search', 'Code of Ethics'];
@@ -182,7 +206,7 @@ export default function FlashcardsPage() {
               )}
               <span>
                 {isGenerating 
-                  ? (isZh ? 'AI 正在生成閃卡 (約3秒)...' : 'Generating...') 
+                  ? (isZh ? '正在生成閃卡...' : 'Generating...') 
                   : (isZh ? '生成最新 AI 法規閃卡' : 'Generate AI Flashcards')}
               </span>
             </button>
@@ -197,7 +221,7 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
-        {/* Quota Error Notification Banner */}
+        {/* Quota Error Banner */}
         {quotaError && (
           <div className="p-4 rounded-xl bg-rose-950/80 border border-rose-500 text-rose-200 text-xs font-bold flex items-center justify-between gap-2 shadow-lg">
             <div className="flex items-center gap-2">
@@ -213,7 +237,7 @@ export default function FlashcardsPage() {
           </div>
         )}
 
-        {/* Category Filter Pills */}
+        {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {categories.map((cat) => (
             <button
@@ -234,7 +258,7 @@ export default function FlashcardsPage() {
           ))}
         </div>
 
-        {/* Progress Tracker Bar */}
+        {/* Progress Bar */}
         <div className="flex items-center justify-between text-xs text-slate-400 font-bold px-1">
           <div className="flex items-center gap-2">
             <Layers className="h-4 w-4 text-indigo-400" />
@@ -258,12 +282,12 @@ export default function FlashcardsPage() {
           </div>
         </div>
 
-        {/* Interactive 3D Flip Card */}
+        {/* 3D Flip Card Component */}
         {currentCard && (
           <div className="perspective-1000 min-h-[340px] w-full cursor-pointer" onClick={() => setIsFlipped(!isFlipped)}>
             <div className={`relative w-full min-h-[340px] transition-all duration-500 transform-style-3d ${isFlipped ? 'rotate-y-180' : ''}`}>
               
-              {/* FRONT OF CARD */}
+              {/* FRONT */}
               <div className="absolute inset-0 w-full min-h-[340px] p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border border-indigo-500/30 shadow-2xl flex flex-col justify-between backface-hidden">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 font-mono text-xs font-bold">
@@ -290,7 +314,7 @@ export default function FlashcardsPage() {
                 </div>
               </div>
 
-              {/* BACK OF CARD */}
+              {/* BACK */}
               <div className="absolute inset-0 w-full min-h-[340px] p-8 rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 border border-emerald-500/40 shadow-2xl flex flex-col justify-between backface-hidden rotate-y-180">
                 <div className="flex items-center justify-between">
                   <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-mono text-xs font-bold">
@@ -318,7 +342,7 @@ export default function FlashcardsPage() {
           </div>
         )}
 
-        {/* Card Action Controls */}
+        {/* Action Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <button
