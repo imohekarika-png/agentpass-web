@@ -18,7 +18,7 @@ import {
   Sparkles,
   Zap,
   ShieldAlert,
-  Lock
+  Loader2
 } from 'lucide-react';
 
 interface Question {
@@ -39,7 +39,7 @@ type ExamMode = 'express' | 'sqe' | 'eaqe';
 const MODE_CONFIGS = {
   express: { nameZh: 'Express 速刷診斷診所', nameEn: 'Express Drill', questionsCount: 10, timeMinutes: 30, batches: 1 },
   sqe: { nameZh: 'SQE 營業員 50 題全真考場', nameEn: 'Full SQE Simulation', questionsCount: 50, timeMinutes: 150, batches: 5 },
-  eaqe: { nameZh: 'EAQE 地產代理 50 題主管考場', nameEn: 'Full EAQE Simulation', questionsCount: 50, timeMinutes: 180, batches: 5 },
+  eaqe: { nameZh: 'EAQE 地產代理 50 題主管考場', nameEn: 'Full EAQE Master Sim', questionsCount: 50, timeMinutes: 180, batches: 5 },
 };
 
 export default function MockExamPage() {
@@ -53,7 +53,11 @@ export default function MockExamPage() {
   const [timeLeft, setTimeLeft] = useState<number>(1800);
   const [isExamActive, setIsExamActive] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  
+  // Progress bar states
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [generationProgress, setGenerationProgress] = useState<number>(0);
+
   const [quotaError, setQuotaError] = useState<string | null>(null);
   const [userQuota, setUserQuota] = useState<UserQuota | null>(null);
 
@@ -96,46 +100,61 @@ export default function MockExamPage() {
 
     setQuotaError(null);
     setIsGenerating(true);
+    setGenerationProgress(10); // Initialized progress
     setSelectedMode(mode);
 
     const config = MODE_CONFIGS[mode];
 
     try {
-      // Parallel batch generation (1 batch for express, 5 parallel batches for full 50 Qs)
-      const batchPromises = Array.from({ length: config.batches }).map((_, batchIdx) =>
-        fetch('/api/generate-exam', {
+      let completedBatches = 0;
+
+      // Track individual batch completions to update progress bar dynamically
+      const fetchBatchWithProgress = async (batchIdx: number) => {
+        const res = await fetch('/api/generate-exam', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ mode, batchIndex: batchIdx, language: currentLang })
-        }).then(res => res.json())
-      );
+        });
+        const data = await res.json();
+        
+        completedBatches += 1;
+        const progressPct = Math.min(95, Math.round(10 + (completedBatches / config.batches) * 85));
+        setGenerationProgress(progressPct);
+        
+        return data;
+      };
 
+      const batchPromises = Array.from({ length: config.batches }).map((_, idx) => fetchBatchWithProgress(idx));
       const results = await Promise.all(batchPromises);
-      let combined: Question[] = [];
 
+      let combined: Question[] = [];
       results.forEach((data) => {
         if (data.questions) combined = [...combined, ...data.questions];
       });
 
-      // Index and sanitize
       const reindexed = combined.map((q, idx) => ({ ...q, id: idx + 1 }));
 
       if (reindexed.length > 0) {
-        consumeQuota(mode);
-        setUserQuota(getUserQuota());
-        setQuestions(reindexed);
-        setAnswers({});
-        setTimeLeft(config.timeMinutes * 60);
-        setIsExamActive(true);
-        setIsSubmitted(false);
+        setGenerationProgress(100);
+        setTimeout(() => {
+          consumeQuota(mode);
+          setUserQuota(getUserQuota());
+          setQuestions(reindexed);
+          setAnswers({});
+          setTimeLeft(config.timeMinutes * 60);
+          setIsExamActive(true);
+          setIsSubmitted(false);
+          setIsGenerating(false);
+          setGenerationProgress(0);
+        }, 300);
       } else {
-        throw new Error('Zero questions generated');
+        throw new Error('Zero questions returned');
       }
     } catch (err) {
       console.error('Exam Generation Error:', err);
       alert(isZh ? '組卷過程發生連線問題，請重試。' : 'Failed to generate exam paper. Please try again.');
-    } finally {
       setIsGenerating(false);
+      setGenerationProgress(0);
     }
   };
 
@@ -165,7 +184,7 @@ export default function MockExamPage() {
     <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
       <div className="max-w-5xl mx-auto space-y-8">
         
-        {/* Mode Selector Card Area (Show when exam is not active) */}
+        {/* Mode Selector & Generation Progress Overlay Area */}
         {!isExamActive && (
           <div className="space-y-6">
             <div className="text-center space-y-2">
@@ -190,86 +209,116 @@ export default function MockExamPage() {
               </div>
             )}
 
-            {/* Mode Cards Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-              
-              {/* Mode 1: Express */}
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 transition flex flex-col justify-between space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold">10 Qs / 30 Mins</span>
-                    <Zap className="h-5 w-5 text-indigo-400" />
-                  </div>
-                  <h3 className="text-lg font-black text-white">{isZh ? 'Express 快速診斷卡' : 'Express Drill'}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    {isZh ? '適合通勤與零碎時間刷題。包含 5 題單選 + 5 題個案速刷。' : 'Quick 10-question drill for rapid knowledge checks.'}
-                  </p>
+            {/* AI Generation Progress Bar Modal */}
+            {isGenerating && (
+              <div className="p-6 sm:p-8 rounded-2xl bg-slate-900/90 border border-indigo-500/40 shadow-2xl backdrop-blur-md max-w-2xl mx-auto space-y-4 text-center animate-in fade-in zoom-in-95 duration-200">
+                <div className="flex items-center justify-center gap-3">
+                  <Sparkles className="h-6 w-6 text-amber-400 animate-pulse" />
+                  <h3 className="text-lg font-black text-white">
+                    {isZh ? 'Llama 3.3 70B 全真試卷生成中...' : 'Generating AI Paper via Llama 3.3 70B...'}
+                  </h3>
                 </div>
 
-                <button
-                  onClick={() => startExamWithAiGeneration('express')}
-                  disabled={isGenerating}
-                  className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  <Sparkles className="h-4 w-4 text-amber-300" />
-                  <span>{isGenerating && selectedMode === 'express' ? (isZh ? 'AI 智能組卷中...' : 'Generating...') : (isZh ? '開啟 Express 測驗' : 'Start Express Drill')}</span>
-                </button>
-              </div>
+                <p className="text-xs text-slate-400">
+                  {isZh 
+                    ? `正在並行生成 ${MODE_CONFIGS[selectedMode].questionsCount} 題雙語試題及法規解析 (${generationProgress}%)`
+                    : `Generating ${MODE_CONFIGS[selectedMode].questionsCount} questions & explanations in parallel (${generationProgress}%)`}
+                </p>
 
-              {/* Mode 2: SQE 50 Qs */}
-              <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition flex flex-col justify-between space-y-4 relative overflow-hidden">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold">50 Qs / 150 Mins</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Salesperson</span>
-                  </div>
-                  <h3 className="text-lg font-black text-white">{isZh ? 'SQE 營業員全真考場' : 'Full SQE Simulation'}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    {isZh ? '150 分鐘完整時限，30 題 Part I 單選 + 20 題 Part II 個案題。' : 'Full 2.5-hour official simulation for Salesperson licence candidates.'}
-                  </p>
+                {/* Progress Bar Component */}
+                <div className="w-full bg-slate-950 rounded-full h-3.5 p-0.5 border border-slate-800 overflow-hidden">
+                  <div 
+                    className="bg-gradient-to-r from-indigo-500 via-purple-500 to-amber-400 h-full rounded-full transition-all duration-300 ease-out shadow-lg shadow-indigo-500/50"
+                    style={{ width: `${generationProgress}%` }}
+                  />
                 </div>
 
-                <button
-                  onClick={() => startExamWithAiGeneration('sqe')}
-                  disabled={isGenerating}
-                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  <Sparkles className="h-4 w-4 text-amber-300" />
-                  <span>{isGenerating && selectedMode === 'sqe' ? (isZh ? 'AI 併發組卷中 (約15秒)...' : 'Generating...') : (isZh ? '開啟 SQE 全真考場' : 'Start SQE Sim')}</span>
-                </button>
+                <div className="flex items-center justify-between text-[11px] font-mono font-bold text-slate-400 pt-1">
+                  <span>Part I / Part II Batches</span>
+                  <span className="text-indigo-400">{generationProgress}%</span>
+                </div>
               </div>
+            )}
 
-              {/* Mode 3: EAQE 50 Qs */}
-              <div className="p-6 rounded-2xl bg-slate-900 border border-indigo-500/40 hover:border-indigo-400 transition flex flex-col justify-between space-y-4 relative shadow-xl shadow-indigo-950/50">
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-xl bg-amber-500/10 text-amber-400 font-mono text-xs font-bold">50 Qs / 180 Mins</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Master Agent</span>
+            {/* Mode Cards Grid (Hidden while generating) */}
+            {!isGenerating && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                
+                {/* Mode 1: Express */}
+                <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-indigo-500/50 transition flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400 font-mono text-xs font-bold">10 Qs / 30 Mins</span>
+                      <Zap className="h-5 w-5 text-indigo-400" />
+                    </div>
+                    <h3 className="text-lg font-black text-white">{isZh ? 'Express 快速診斷卡' : 'Express Drill'}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {isZh ? '適合通勤與零碎時間刷題。包含 5 題單選 + 5 題個案速刷。' : 'Quick 10-question drill for rapid knowledge checks.'}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-black text-white">{isZh ? 'EAQE 地產代理主管考場' : 'Full EAQE Master Sim'}</h3>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    {isZh ? '3 小時耐力極限模擬，完整模擬地產代理牌照雙過線核算機制。' : 'Full 3-hour official simulation for Estate Agent licence candidates.'}
-                  </p>
+
+                  <button
+                    onClick={() => startExamWithAiGeneration('express')}
+                    className="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-600/20"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-300" />
+                    <span>{isZh ? '開啟 Express 測驗' : 'Start Express Drill'}</span>
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => startExamWithAiGeneration('eaqe')}
-                  disabled={isGenerating}
-                  className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-md"
-                >
-                  <Sparkles className="h-4 w-4 text-amber-200 animate-spin" />
-                  <span>{isGenerating && selectedMode === 'eaqe' ? (isZh ? 'AI 併發組卷中 (約15秒)...' : 'Generating...') : (isZh ? '解鎖 EAQE 主管考場' : 'Start EAQE Master Sim')}</span>
-                </button>
-              </div>
+                {/* Mode 2: SQE 50 Qs */}
+                <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 hover:border-emerald-500/50 transition flex flex-col justify-between space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 font-mono text-xs font-bold">50 Qs / 150 Mins</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Salesperson</span>
+                    </div>
+                    <h3 className="text-lg font-black text-white">{isZh ? 'SQE 營業員全真考場' : 'Full SQE Simulation'}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {isZh ? '150 分鐘完整時限，30 題 Part I 單選 + 20 題 Part II 個案題。' : 'Full 2.5-hour official simulation for Salesperson licence candidates.'}
+                    </p>
+                  </div>
 
-            </div>
+                  <button
+                    onClick={() => startExamWithAiGeneration('sqe')}
+                    className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/20"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-300" />
+                    <span>{isZh ? '開啟 SQE 全真考場' : 'Start SQE Sim'}</span>
+                  </button>
+                </div>
+
+                {/* Mode 3: EAQE 50 Qs */}
+                <div className="p-6 rounded-2xl bg-slate-900 border border-indigo-500/40 hover:border-indigo-400 transition flex flex-col justify-between space-y-4 shadow-xl shadow-indigo-950/50">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="p-2 rounded-xl bg-amber-500/10 text-amber-400 font-mono text-xs font-bold">50 Qs / 180 Mins</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">Master Agent</span>
+                    </div>
+                    <h3 className="text-lg font-black text-white">{isZh ? 'EAQE 地產代理主管考場' : 'Full EAQE Master Sim'}</h3>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {isZh ? '3 小時耐力極限模擬，完整模擬地產代理牌照雙過線核算機制。' : 'Full 3-hour official simulation for Estate Agent licence candidates.'}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => startExamWithAiGeneration('eaqe')}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-indigo-600 hover:opacity-90 font-bold text-xs text-white transition flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-200" />
+                    <span>{isZh ? '解鎖 EAQE 主管考場' : 'Start EAQE Master Sim'}</span>
+                  </button>
+                </div>
+
+              </div>
+            )}
           </div>
         )}
 
         {/* Active Test Area */}
         {isExamActive && (
           <div className="space-y-8">
-            {/* Header */}
+            {/* Header Bar */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-2xl bg-slate-900 border border-slate-800 shadow-xl">
               <div>
                 <span className="text-xs font-mono font-bold text-indigo-400 uppercase block mb-1">
