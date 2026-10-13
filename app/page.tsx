@@ -15,7 +15,8 @@ import {
   ShieldAlert,
   Award,
   Compass,
-  CheckCircle2
+  CheckCircle2,
+  Zap
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -24,66 +25,7 @@ export default function HomePage() {
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const tools = [
-    {
-      titleZh: '20 大主題單元',
-      titleEn: '20 Topic Block Lessons',
-      descZh: '全面涵蓋地產代理條例 Cap. 511、土地查冊 P-O-I-M 及 Cap. 7 租務法例。',
-      descEn: 'Deep coverage of Cap. 511, Land Search P-O-I-M, and Cap. 7 Tenancy.',
-      href: '/course',
-      icon: BookOpen,
-      btnZh: '開始閱讀',
-      btnEn: 'Start Reading'
-    },
-    {
-      titleZh: '試題及模擬考場',
-      titleEn: 'Quiz & Practice Bank',
-      descZh: '130 題最新大綱驗證真題，附設極詳細法規條文解析。',
-      descEn: '130 syllabus-verified mock questions with detailed explanations.',
-      href: '/quiz',
-      icon: HelpCircle,
-      btnZh: '開始練習',
-      btnEn: 'Start Practice'
-    },
-    {
-      titleZh: '10 站記憶宮殿',
-      titleEn: '10-Station Memory Palace',
-      descZh: '將監管職責融入住宅交易實景路線，過目不忘。',
-      descEn: 'Map regulatory duties onto a residential transaction route.',
-      href: '/course',
-      icon: Compass,
-      btnZh: '探索路線',
-      btnEn: 'Explore Route'
-    },
-    {
-      titleZh: '38 個主考官陷阱',
-      titleEn: '38 Master Exam Traps',
-      descZh: '專為破解考官誤導性選項設的「假命題」特訓。',
-      descEn: 'Learn FALSE propositions specifically engineered to trick candidates.',
-      href: '/quiz',
-      icon: ShieldAlert,
-      btnZh: '查看陷阱',
-      btnEn: 'View Traps'
-    },
-    {
-      titleZh: '互動速記閃卡',
-      titleEn: 'Interactive Flashcards',
-      descZh: '針對數字記憶點與 EAA 法定表格的快速翻牌訓練。',
-      descEn: 'Quick interval drills for numeric anchors and form rules.',
-      href: '/flashcards',
-      icon: Layers,
-      btnZh: '翻單字卡',
-      btnEn: 'Flip Cards'
-    },
-    {
-      titleZh: '記憶階梯與儀表板',
-      titleEn: 'Memory Ladder & Dashboard',
-      descZh: '實時追蹤 20 大單元複習進度與熟練度指標。',
-      descEn: 'Track review schedules and mastery levels across all 20 blocks.',
-      href: '/dashboard',
-      icon: LayoutDashboard,
-      btnZh: '查看進度',
-      btnEn: 'View Progress'
-    },
+    // 1. Student Welcome Guide (First)
     {
       titleZh: '學員迎新指引',
       titleEn: 'Student Welcome Guide',
@@ -94,6 +36,7 @@ export default function HomePage() {
       btnZh: '閱讀指引',
       btnEn: 'Read Guide'
     },
+    // 2. Account Login (Second)
     {
       titleZh: '學員帳號登入',
       titleEn: 'Account Login',
@@ -103,6 +46,83 @@ export default function HomePage() {
       icon: LogIn,
       btnZh: '前往登入',
       btnEn: 'Go to Login'
+    },
+    // 3. Interactive Flashcards (General Deck)
+    {
+      titleZh: '高頻法規閃卡',
+      titleEn: 'High-Frequency Flashcards',
+      descZh: '針對數字記憶點與 EAA 法定表格的快速翻牌訓練。',
+      descEn: 'Quick interval drills for numeric anchors and form rules.',
+      href: '/flashcards',
+      icon: Layers,
+      btnZh: '翻單字卡',
+      btnEn: 'Flip Cards'
+    },
+    // 4. Cap. 511 & Form 1-6 Special Flashcard Deck (Added Extra Card)
+    {
+      titleZh: 'Cap. 511 / 表格特訓閃卡',
+      titleEn: 'Cap. 511 & Forms Drill Deck',
+      descZh: '專為地產代理條例 Cap. 511 與 Form 1-6 打造的 AI 智能速記特訓。',
+      descEn: 'Dedicated AI flashcard drills for Cap. 511 and Forms 1-6 statutory rules.',
+      href: '/flashcards',
+      icon: Zap,
+      btnZh: '開始特訓',
+      btnEn: 'Start Drill'
+    },
+    // 5. 20 Topic Block Lessons
+    {
+      titleZh: '20 大主題單元',
+      titleEn: '20 Topic Block Lessons',
+      descZh: '全面涵蓋地產代理條例 Cap. 511、土地查冊 P-O-I-M 及 Cap. 7 租務法例。',
+      descEn: 'Deep coverage of Cap. 511, Land Search P-O-I-M, and Cap. 7 Tenancy.',
+      href: '/course',
+      icon: BookOpen,
+      btnZh: '開始閱讀',
+      btnEn: 'Start Reading'
+    },
+    // 6. Quiz & Practice Bank
+    {
+      titleZh: '試題及模擬考場',
+      titleEn: 'Quiz & Practice Bank',
+      descZh: '130 題最新大綱驗證真題，附設極詳細法規條文解析。',
+      descEn: '130 syllabus-verified mock questions with detailed explanations.',
+      href: '/quiz',
+      icon: HelpCircle,
+      btnZh: '開始練習',
+      btnEn: 'Start Practice'
+    },
+    // 7. 10-Station Memory Palace
+    {
+      titleZh: '10 站記憶宮殿',
+      titleEn: '10-Station Memory Palace',
+      descZh: '將監管職責融入住宅交易實景路線，過目不忘。',
+      descEn: 'Map regulatory duties onto a residential transaction route.',
+      href: '/course',
+      icon: Compass,
+      btnZh: '探索路線',
+      btnEn: 'Explore Route'
+    },
+    // 8. 38 Master Exam Traps
+    {
+      titleZh: '38 個主考官陷阱',
+      titleEn: '38 Master Exam Traps',
+      descZh: '專為破解考官誤導性選項設的「假命題」特訓。',
+      descEn: 'Learn FALSE propositions specifically engineered to trick candidates.',
+      href: '/quiz',
+      icon: ShieldAlert,
+      btnZh: '查看陷阱',
+      btnEn: 'View Traps'
+    },
+    // 9. Memory Ladder & Dashboard
+    {
+      titleZh: '記憶階梯與儀表板',
+      titleEn: 'Memory Ladder & Dashboard',
+      descZh: '實時追蹤 20 大單元複習進度與熟練度指標。',
+      descEn: 'Track review schedules and mastery levels across all 20 blocks.',
+      href: '/dashboard',
+      icon: LayoutDashboard,
+      btnZh: '查看進度',
+      btnEn: 'View Progress'
     }
   ];
 
@@ -168,7 +188,7 @@ export default function HomePage() {
           </h2>
         </div>
 
-        {/* Feature Tool Grid */}
+        {/* Feature Tool Grid (Balanced 3x3 Grid) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool, idx) => {
             const Icon = tool.icon;
