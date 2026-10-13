@@ -38,7 +38,7 @@ html[data-theme="light"] {
   --text-muted: #334155;
 }
 
-/* Force Light/Dark Theme Specificity Across Containers */
+/* Container & Background Overrides */
 html[data-theme] body,
 html[data-theme] main,
 html[data-theme] nav,
@@ -72,4 +72,15 @@ html[data-theme] .text-white {
 html[data-theme] .text-slate-400,
 html[data-theme] .text-slate-500 {
   color: var(--text-muted) !important;
+}
+
+/* Brand Text Theme Specificity */
+html[data-theme="slate"] .text-slate-900,
+html[data-theme="oled"] .text-slate-900,
+html[data-theme="sepia"] .text-slate-900 {
+  color: #ffffff !important;
+}
+
+html[data-theme="light"] .text-slate-900 {
+  color: #0f172a !important;
 }

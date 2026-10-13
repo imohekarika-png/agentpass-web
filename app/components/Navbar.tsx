@@ -131,7 +131,7 @@ export default function Navbar() {
     />
   </div>
   <div className="flex items-baseline">
-    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 dark:text-white group-hover:text-indigo-500 leading-none">
+    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
       AgentPass
     </span>
     <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
@@ -139,6 +139,28 @@ export default function Navbar() {
     </span>
   </div>
 </Link>
+
+          {/* Desktop Navigation Tabs (Theme-Aware Contrast) */}
+          <div className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                    isActive 
+                      ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
+                      : 'opacity-80 hover:opacity-100 hover:text-indigo-500'
+                  }`}
+                >
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-500' : 'opacity-70'}`} />
+                  <span>{isZh ? link.labelZh : link.labelEn}</span>
+                </Link>
+              );
+            })}
+          </div>
 
           {/* Right Action Controls */}
           <div className="hidden md:flex items-center gap-2.5 shrink-0">

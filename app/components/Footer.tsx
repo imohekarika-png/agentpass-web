@@ -19,31 +19,31 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
           {/* Brand Logo & Mission */}
-<div className="space-y-4">
-  <Link href="/" className="flex items-center gap-0 group shrink-0">
-    <div className="relative h-8 w-8 sm:h-9 sm:w-9 group-hover:scale-105 transition flex items-center justify-center -mr-1">
-      <Image
-        src={logoImg}
-        alt="AgentPass Logo"
-        fill
-        className="object-contain scale-110"
-      />
-    </div>
-    <div className="flex items-baseline">
-      <span className="text-xl sm:text-2xl font-black tracking-tighter transition text-slate-900 dark:text-white group-hover:text-indigo-500 leading-none">
-        AgentPass
-      </span>
-      <span className="text-[9px] sm:text-[10px] font-bold text-amber-500 ml-0.5 leading-none self-start">
-        TM
-      </span>
-    </div>
-  </Link>
-  <p className="text-xs font-semibold leading-relaxed opacity-90">
-    {isZh 
-      ? '專為香港地產代理 (EAQE) 及營業員 (SQE) 牌照考生成查研發的 AI 智能備考平台。' 
-      : 'AI-powered prep platform engineered specifically for HK EAQE & SQE licensing candidates.'}
-  </p>
-</div>
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center gap-0 group shrink-0">
+              <div className="relative h-8 w-8 sm:h-9 sm:w-9 group-hover:scale-105 transition flex items-center justify-center -mr-1">
+                <Image
+                  src={logoImg}
+                  alt="AgentPass Logo"
+                  fill
+                  className="object-contain scale-110"
+                />
+              </div>
+              <div className="flex items-baseline">
+                <span className="text-xl sm:text-2xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
+                  AgentPass
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-amber-500 ml-0.5 leading-none self-start">
+                  TM
+                </span>
+              </div>
+            </Link>
+            <p className="text-xs font-semibold leading-relaxed opacity-90">
+              {isZh 
+                ? '專為香港地產代理 (EAQE) 及營業員 (SQE) 牌照考生成查研發的 AI 智能備考平台。' 
+                : 'AI-powered prep platform engineered specifically for HK EAQE & SQE licensing candidates.'}
+            </p>
+          </div>
 
           {/* Navigation Quick Links */}
           <div className="space-y-3">

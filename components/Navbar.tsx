@@ -131,7 +131,7 @@ export default function Navbar() {
     />
   </div>
   <div className="flex items-baseline">
-    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 dark:text-white group-hover:text-indigo-500 leading-none">
+    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
       AgentPass
     </span>
     <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
