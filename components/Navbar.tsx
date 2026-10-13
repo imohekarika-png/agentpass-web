@@ -1,4 +1,4 @@
-// components/Navbar.tsx
+// components/Navbar.tsx & app/components/Navbar.tsx
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -97,13 +97,13 @@ export default function Navbar() {
     }
   };
 
-  // Nav links aligned directly with the 4-Step AgentPass Mastery Workflow
+  // Nav links cleanly formatted without numbers
   const navLinks = [
-    { href: '/course', labelZh: '1. 課程大綱', labelEn: '1. Syllabus', icon: BookOpen },
-    { href: '/course#memory-palace', labelZh: '2. 記憶宮殿', labelEn: '2. Memory Palace', icon: Compass },
-    { href: '/quiz', labelZh: '3. 考官陷阱', labelEn: '3. Exam Traps', icon: HelpCircle },
+    { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
+    { href: '/course#memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
+    { href: '/quiz', labelZh: '考官陷阱', labelEn: 'Exam Traps', icon: HelpCircle },
     { href: '/flashcards', labelZh: '速記閃卡', labelEn: 'Flashcards', icon: Layers },
-    { href: '/mock-exam', labelZh: '4. 模擬考場', labelEn: '4. Mock Exam', icon: Award },
+    { href: '/mock-exam', labelZh: '模擬考場', labelEn: 'Mock Exam', icon: Award },
     { href: '/dashboard', labelZh: '溫習儀表板', labelEn: 'Dashboard', icon: LayoutDashboard },
     { href: '/welcome', labelZh: '迎新指引', labelEn: 'Welcome', icon: PartyPopper },
   ];
@@ -120,14 +120,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Brand Logo & Tight Height-Matched Brand Text */}
+          {/* Prominent Logo & Tight Height-Matched Brand Text */}
           <Link href="/" className="flex items-center gap-0 group shrink-0">
-            <div className="relative h-9 w-9 sm:h-10 sm:w-10 group-hover:scale-105 transition flex items-center justify-center -mr-1">
+            <div className="relative h-11 w-11 sm:h-12 sm:w-12 group-hover:scale-105 transition flex items-center justify-center -mr-1">
               <Image
                 src={logoImg}
                 alt="AgentPass Logo"
                 fill
-                className="object-contain scale-110"
+                className="object-contain scale-125"
                 priority
               />
             </div>
@@ -141,7 +141,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Tabs (Workflow Aligned) */}
+          {/* Desktop Navigation Tabs (Unnumbered Clean Labels) */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -150,7 +150,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
                       : 'opacity-80 hover:opacity-100 hover:text-indigo-500'
