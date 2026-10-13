@@ -1,68 +1,99 @@
 @import "tailwindcss";
 
-/* Base CSS Variables per Theme */
+/* ==========================================================================
+   AgentPass™ Multi-Theme Color Variable Engine
+   Supports: Slate Midnight, OLED Pure Black, Warm Sepia, Clean Daylight Mode
+   ========================================================================== */
+
+/* 1. Slate Midnight (Default Theme) */
 :root,
 html[data-theme="slate"] {
-  --color-bg-main: #020617;
-  --color-bg-card: #0f172a;
-  --color-bg-card-sub: #1e293b;
-  --color-border: #1e293b;
-  --color-text-main: #f8fafc;
-  --color-text-sub: #94a3b8;
+  --bg-main: #020617;
+  --bg-card: #0f172a;
+  --bg-card-sub: #1e293b;
+  --border-color: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
 }
 
+/* 2. OLED Pure Black (High Contrast & Battery Saver) */
 html[data-theme="oled"] {
-  --color-bg-main: #000000;
-  --color-bg-card: #09090b;
-  --color-bg-card-sub: #18181b;
-  --color-border: #27272a;
-  --color-text-main: #ffffff;
-  --color-text-sub: #a1a1aa;
+  --bg-main: #000000;
+  --bg-card: #09090b;
+  --bg-card-sub: #18181b;
+  --border-color: #27272a;
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
 }
 
+/* 3. Warm Sepia / Low Blue-Light Eye Care Mode */
 html[data-theme="sepia"] {
-  --color-bg-main: #120e0c;
-  --color-bg-card: #1c1714;
-  --color-bg-card-sub: #2a221d;
-  --color-border: #382c26;
-  --color-text-main: #fef3c7;
-  --color-text-sub: #d97706;
+  --bg-main: #120e0c;
+  --bg-card: #1c1714;
+  --bg-card-sub: #2a221d;
+  --border-color: #382c26;
+  --text-main: #fef3c7;
+  --text-muted: #d97706;
 }
 
+/* 4. Clean Daylight Light Mode */
 html[data-theme="light"] {
-  --color-bg-main: #f8fafc;
-  --color-bg-card: #ffffff;
-  --color-bg-card-sub: #f1f5f9;
-  --color-border: #cbd5e1;
-  --color-text-main: #0f172a;
-  --color-text-sub: #475569;
+  --bg-main: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-card-sub: #f1f5f9;
+  --border-color: #cbd5e1;
+  --text-main: #0f172a;
+  --text-muted: #475569;
 }
 
-/* Force Tailwind classes to react dynamically when data-theme changes */
+/* ==========================================================================
+   High-Specificity Utility Class Overrides
+   Forces Tailwind classes across all components to respond dynamically when
+   the data-theme attribute on <html> changes.
+   ========================================================================== */
+
+/* Main Page Container & Body Overrides */
 html[data-theme] body,
+html[data-theme] main,
 html[data-theme] .bg-slate-950 {
-  background-color: var(--color-bg-main) !important;
+  background-color: var(--bg-main) !important;
+  color: var(--text-main) !important;
 }
 
-html[data-theme] .bg-slate-900 {
-  background-color: var(--color-bg-card) !important;
+/* Card Surface & Panel Overrides */
+html[data-theme] .bg-slate-900,
+html[data-theme] .bg-slate-900\/95,
+html[data-theme] .bg-slate-900\/80,
+html[data-theme] .bg-slate-900\/60,
+html[data-theme] .bg-slate-900\/40 {
+  background-color: var(--bg-card) !important;
 }
 
-html[data-theme] .bg-slate-800 {
-  background-color: var(--color-bg-card-sub) !important;
+/* Sub-card & Secondary Background Overrides */
+html[data-theme] .bg-slate-800,
+html[data-theme] .bg-slate-800\/80,
+html[data-theme] .bg-slate-800\/40 {
+  background-color: var(--bg-card-sub) !important;
 }
 
+/* Border Overrides */
 html[data-theme] .border-slate-800,
-html[data-theme] .border-slate-700 {
-  border-color: var(--color-border) !important;
+html[data-theme] .border-slate-700,
+html[data-theme] .border-slate-800\/80,
+html[data-theme] .border-slate-800\/40 {
+  border-color: var(--border-color) !important;
 }
 
+/* Primary Typography Overrides */
 html[data-theme] .text-slate-100,
+html[data-theme] .text-slate-200,
+html[data-theme] .text-slate-300,
 html[data-theme] .text-white {
-  color: var(--color-text-main) !important;
+  color: var(--text-main) !important;
 }
 
+/* Muted / Secondary Typography Overrides */
 html[data-theme] .text-slate-400,
-html[data-theme] .text-slate-300 {
-  color: var(--color-text-sub) !important;
+html[data-theme] .text-slate-500 {
+  color: var(--text-muted) !important;
 }
