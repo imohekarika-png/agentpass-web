@@ -4,99 +4,113 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
+import logoImg from '@/components/logo.png';
+import { Mail, MessageSquare, Clock, ShieldCheck } from 'lucide-react';
 
 export default function Footer() {
-  const { locale } = useLanguage();
-  const isZh = locale === 'zh-HK';
+  const { language, locale } = useLanguage();
+  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
+  const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   return (
-    <footer className="bg-slate-100/80 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-10 px-4 mt-auto">
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        {/* Top Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-200 dark:border-slate-800">
+    <footer className="border-t border-slate-800/80 bg-slate-950/95 py-12 px-4 sm:px-6 lg:px-8 text-xs transition-colors duration-300">
+      <div className="max-w-7xl mx-auto space-y-10">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           
-          {/* Column 1: Brand Info */}
-          <div className="space-y-3">
-            <Link href="/" className="flex items-center space-x-2.5 group">
-              <Image
-                src="/logo.svg"
-                alt="AgentPass Logo"
-                width={28}
-                height={28}
-                unoptimized
-                className="w-7 h-7 group-hover:scale-105 transition-transform"
-              />
-              <span className="font-extrabold text-slate-800 dark:text-slate-100 text-base">
-                AgentPass™
-              </span>
+          {/* Brand Logo & Mission */}
+          <div className="space-y-4">
+            <Link href="/" className="flex items-center gap-0 group shrink-0">
+              <div className="relative h-8 w-8 sm:h-9 sm:w-9 group-hover:scale-105 transition flex items-center justify-center -mr-1">
+                <Image
+                  src={logoImg}
+                  alt="AgentPass Logo"
+                  fill
+                  className="object-contain scale-110"
+                />
+              </div>
+              <div className="flex items-baseline">
+                <span className="text-xl sm:text-2xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
+                  AgentPass
+                </span>
+                <span className="text-[9px] sm:text-[10px] font-bold text-amber-500 ml-0.5 leading-none self-start">
+                  TM
+                </span>
+              </div>
             </Link>
-            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-              {isZh
-                ? '香港地產代理 (EAQE) 及營業員 (SQE) 資格考試 AI 智能雙語通關平台。'
-                : 'AI-powered bilingual prep platform for HK EAQE & SQE qualifying exams.'}
+            <p className="text-xs font-semibold leading-relaxed opacity-90">
+              {isZh 
+                ? '專為香港地產代理 (EAQE) 及營業員 (SQE) 牌照考生成查研發的 AI 智能備考平台。' 
+                : 'AI-powered prep platform engineered specifically for HK EAQE & SQE licensing candidates.'}
             </p>
           </div>
 
-          {/* Column 2: Navigation Links */}
+          {/* Navigation Quick Links */}
           <div className="space-y-3">
-  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-    {isZh ? '快速連結' : 'Navigation'}
-  </h4>
-  <div className="flex flex-col space-y-2 text-xs text-slate-600 dark:text-slate-400 font-semibold">
-    <Link href="/course" className="hover:text-indigo-600 transition">
-      {isZh ? '📚 課程大綱' : '📚 Course Syllabus'}
-    </Link>
-    <Link href="/quiz" className="hover:text-indigo-600 transition">
-      {isZh ? '📝 雙語模擬題庫' : '📝 Practice Quiz'}
-    </Link>
-    <Link href="/dashboard" className="hover:text-indigo-600 transition">
-      {isZh ? '📊 個人弱點分析' : '📊 Analytics Dashboard'}
-    </Link>
-    <Link href="/contact" className="hover:text-indigo-600 transition">
-      {isZh ? '✉️ 聯絡我們' : '✉️ Contact Us'}
-    </Link>
-  </div>
-</div>
+            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
+              {isZh ? '快捷導航' : 'Navigation'}
+            </span>
+            <ul className="space-y-2 font-bold">
+              <li>
+                <Link href="/course" className="hover:text-indigo-400 transition">
+                  {isZh ? '📚 課程大綱 (Cap. 511 / Cap. 7)' : 'Course Syllabus'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/quiz" className="hover:text-indigo-400 transition">
+                  {isZh ? '📝 試題庫與 38 考官陷阱' : 'Practice Quiz Bank'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/mock-exam" className="hover:text-indigo-400 transition">
+                  {isZh ? '🏆 全真 50 題模擬考場' : 'Full Mock Exam Suite'}
+                </Link>
+              </li>
+              <li>
+                <Link href="/flashcards" className="hover:text-indigo-400 transition">
+                  {isZh ? '⚡ AI 法規速記閃卡' : 'Legal Flashcards'}
+                </Link>
+              </li>
+            </ul>
+          </div>
 
-          {/* Column 3: Customer Care & Support */}
+          {/* Customer Care & Contact Channels */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
-              {isZh ? '客戶服務與支援' : 'Customer Care & Support'}
-            </h4>
-            <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-400">
-              <p className="flex items-center space-x-2">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">📧 Email:</span>
-                <a href="mailto:support@agentpass.hk" className="hover:text-indigo-600 underline">
-                  support@agentpass.hk
-                </a>
-              </p>
-              <p className="flex items-center space-x-2">
-                <span className="font-semibold text-slate-700 dark:text-slate-300">💬 WhatsApp:</span>
-                <a href="https://wa.me/85254327572" target="_blank" rel="noopener noreferrer" className="hover:text-indigo-600 underline">
-                  +852 54327572
-                </a>
-              </p>
-              <p className="text-[11px] text-slate-500 pt-1">
-                {isZh
-                  ? '🕒 服務時間：星期一至五 09:00 - 18:00 (HKT)'
-                  : '🕒 Hours: Mon - Fri, 09:00 - 18:00 HKT'}
-              </p>
+            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
+              {isZh ? '客戶支援與聯絡' : 'Customer Care'}
+            </span>
+            <div className="space-y-2 font-bold">
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-amber-400 shrink-0" />
+                <span>support@agentpass.hk</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-emerald-400 shrink-0" />
+                <span>WhatsApp: +852 5432 7572</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-indigo-400 shrink-0" />
+                <span>{isZh ? '服務時間：週一至週五 09:00 - 18:00 HKT' : 'Hours: Mon-Fri 09:00 - 18:00 HKT'}</span>
+              </div>
             </div>
           </div>
 
         </div>
 
-        {/* Bottom Legal & Disclaimers */}
-        <div className="text-center text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-3xl mx-auto space-y-2">
-          <p className="text-[11px] text-slate-500 dark:text-slate-400">
-            {isZh
-              ? '本平台之試題及 AI 分析均基於《地產代理條例》(第511章)、《發牌規例》(第511A章) 及地產代理監管局 (EAA) 之最新考試大綱設計。AgentPass™ 為獨立第三方備考學習系統，與地產代理監管局無直接附屬關係。'
-              : 'Study materials and statutory explanations are grounded in the Estate Agents Ordinance (Cap. 511), Licensing Regulation (Cap. 511A), and EAA syllabus standards. AgentPass™ is an independent prep provider and is not directly affiliated with the EAA.'}
+        {/* Disclaimer & Copyright Bar */}
+        <div className="border-t border-slate-800/60 pt-6 text-center space-y-2 text-[11px] font-semibold">
+          <div className="flex items-center justify-center gap-1.5 text-amber-500">
+            <ShieldCheck className="h-4 w-4" />
+            <span>Official EAA Syllabus Aligned • Cap. 511 / Cap. 7 / Forms 1-6</span>
+          </div>
+          <p className="max-w-3xl mx-auto leading-relaxed opacity-80">
+            {isZh 
+              ? '本平台學習資料及法例解析依據香港地產代理條例 (Cap. 511)、業主與租客條例 (Cap. 7) 及監管局最新大綱編撰。AgentPass™ 為獨立備考品牌，與地產代理監管局 (EAA) 無直接附屬關係。' 
+              : 'Study materials and statutory explanations are compiled under Cap. 511, Cap. 7, and official EAA syllabi. AgentPass™ is an independent prep platform.'}
           </p>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 pt-1 font-medium">
-            © 2026 Vektor Spatial Limited. All rights reserved. Hong Kong SAR.
-          </p>
+          <div className="pt-2 font-mono opacity-60">
+            © 2026 AgentPass™ Limited. All rights reserved. Hong Kong SAR.
+          </div>
         </div>
 
       </div>
