@@ -20,8 +20,8 @@ export default function Footer() {
           
           {/* Brand & Mission */}
           <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-1.5 group shrink-0">
-              <div className="relative h-8 w-8 group-hover:scale-105 transition">
+            <Link href="/" className="flex items-center gap-1 group shrink-0">
+              <div className="relative h-7 w-7 sm:h-8 sm:w-8 group-hover:scale-105 transition flex items-center">
                 <Image
                   src={logoImg}
                   alt="AgentPass Logo"
@@ -29,11 +29,11 @@ export default function Footer() {
                   className="object-contain"
                 />
               </div>
-              <span className="text-xl font-black tracking-tight text-slate-100 transition">
-                AgentPass<span className="text-xs align-top font-bold text-amber-500">™</span>
+              <span className="text-xl font-black tracking-tight leading-none transition">
+                AgentPass<span className="text-[10px] align-top font-bold text-amber-500 ml-0.5">™</span>
               </span>
             </Link>
-            <p className="text-xs font-semibold leading-relaxed text-slate-300">
+            <p className="text-xs font-semibold leading-relaxed opacity-90">
               {isZh 
                 ? '專為香港地產代理 (EAQE) 及營業員 (SQE) 牌照考生成查研發的 AI 智能備考平台。' 
                 : 'AI-powered prep platform engineered specifically for HK EAQE & SQE licensing candidates.'}
@@ -45,7 +45,7 @@ export default function Footer() {
             <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
               {isZh ? '快捷導航' : 'Navigation'}
             </span>
-            <ul className="space-y-2 font-bold text-slate-200">
+            <ul className="space-y-2 font-bold">
               <li>
                 <Link href="/course" className="hover:text-indigo-400 transition">
                   {isZh ? '📚 課程大綱 (Cap. 511 / Cap. 7)' : 'Course Syllabus'}
@@ -69,12 +69,12 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Customer Care & Legal Notice */}
+          {/* Customer Care & Contact Channels */}
           <div className="space-y-3">
             <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider block">
               {isZh ? '客戶支援與聯絡' : 'Customer Care'}
             </span>
-            <div className="space-y-2 font-bold text-slate-200">
+            <div className="space-y-2 font-bold">
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-amber-400 shrink-0" />
                 <span>support@agentpass.hk</span>
@@ -93,17 +93,17 @@ export default function Footer() {
         </div>
 
         {/* Disclaimer & Copyright Bar */}
-        <div className="border-t border-slate-800/60 pt-6 text-center space-y-2 text-[11px] font-semibold text-slate-300">
+        <div className="border-t border-slate-800/60 pt-6 text-center space-y-2 text-[11px] font-semibold">
           <div className="flex items-center justify-center gap-1.5 text-amber-500">
             <ShieldCheck className="h-4 w-4" />
             <span>Official EAA Syllabus Aligned • Cap. 511 / Cap. 7 / Forms 1-6</span>
           </div>
-          <p className="max-w-3xl mx-auto leading-relaxed">
+          <p className="max-w-3xl mx-auto leading-relaxed opacity-80">
             {isZh 
               ? '本平台學習資料及法例解析依據香港地產代理條例 (Cap. 511)、業主與租客條例 (Cap. 7) 及監管局最新大綱編撰。AgentPass™ 為獨立備考品牌，與地產代理監管局 (EAA) 無直接附屬關係。' 
               : 'Study materials and statutory explanations are compiled under Cap. 511, Cap. 7, and official EAA syllabi. AgentPass™ is an independent prep platform.'}
           </p>
-          <div className="pt-2 text-slate-400 font-mono">
+          <div className="pt-2 font-mono opacity-60">
             © 2026 AgentPass™ Limited. All rights reserved. Hong Kong SAR.
           </div>
         </div>

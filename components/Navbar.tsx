@@ -117,11 +117,11 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Brand Logo & Tight-Gapped High-Contrast Text */}
-          <Link href="/" className="flex items-center gap-1.5 group shrink-0">
-            <div className="relative h-10 w-10 sm:h-12 sm:w-12 group-hover:scale-105 transition">
+          {/* Brand Logo & Tight Height-Matched Brand Text */}
+          <Link href="/" className="flex items-center gap-1 group shrink-0">
+            <div className="relative h-8 w-8 sm:h-9 sm:w-9 group-hover:scale-105 transition flex items-center">
               <Image
                 src={logoImg}
                 alt="AgentPass Logo"
@@ -130,12 +130,12 @@ export default function Navbar() {
                 priority
               />
             </div>
-            <span className="text-2xl sm:text-3xl font-black tracking-tight transition text-slate-100 dark:text-white group-hover:text-indigo-500">
-              AgentPass<span className="text-xs align-top font-extrabold text-amber-500">™</span>
+            <span className="text-xl sm:text-2xl font-black tracking-tight leading-none transition group-hover:text-indigo-500">
+              AgentPass<span className="text-[10px] align-top font-bold text-amber-500 ml-0.5">™</span>
             </span>
           </Link>
 
-          {/* Desktop Navigation Links (Clean Active State - No Dark Blue Box) */}
+          {/* Desktop Navigation Tabs (Theme-Aware Contrast) */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -147,10 +147,10 @@ export default function Navbar() {
                   className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
-                      : 'text-slate-300 hover:text-indigo-400'
+                      : 'opacity-80 hover:opacity-100 hover:text-indigo-500'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-500' : 'text-slate-400'}`} />
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-500' : 'opacity-70'}`} />
                   <span>{isZh ? link.labelZh : link.labelEn}</span>
                 </Link>
               );
@@ -160,11 +160,11 @@ export default function Navbar() {
           {/* Right Action Controls */}
           <div className="hidden md:flex items-center gap-2.5 shrink-0">
             
-            {/* Theme Selector */}
+            {/* Theme Selector Dropdown */}
             <div className="relative" ref={themeDropdownRef}>
               <button
                 onClick={() => setThemeDropdownOpen(!themeDropdownOpen)}
-                className="p-2 rounded-xl border border-slate-700/80 bg-slate-900/80 text-slate-300 hover:text-indigo-400 hover:border-slate-600 transition flex items-center justify-center cursor-pointer"
+                className="p-2 rounded-xl border border-slate-700/80 bg-slate-900/80 hover:border-slate-600 transition flex items-center justify-center cursor-pointer"
                 title={isZh ? '切換介面主題' : 'Switch Theme'}
               >
                 <Palette className="h-4 w-4 text-amber-400" />
@@ -190,12 +190,12 @@ export default function Navbar() {
                         className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${
                           isSelected 
                             ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30' 
-                            : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
+                            : 'opacity-80 hover:opacity-100'
                         }`}
                       >
                         <div className="flex items-center gap-2">
                           <span className={`h-2 w-2 rounded-full ${t.colorDot}`} />
-                          <IconComponent className="h-3.5 w-3.5 text-slate-400" />
+                          <IconComponent className="h-3.5 w-3.5 opacity-70" />
                           <span>{isZh ? t.labelZh : t.labelEn}</span>
                         </div>
                         {isSelected && <Check className="h-3.5 w-3.5 text-amber-400 shrink-0" />}
@@ -209,7 +209,7 @@ export default function Navbar() {
             {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-900/80 text-xs font-bold text-slate-300 hover:text-indigo-400 hover:border-slate-600 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 rounded-xl border border-slate-700/80 bg-slate-900/80 text-xs font-bold hover:border-slate-600 transition flex items-center gap-1.5 cursor-pointer"
             >
               <Globe className="h-3.5 w-3.5 text-indigo-400" />
               <span>{isZh ? 'EN' : '繁體中文'}</span>
@@ -284,17 +284,17 @@ export default function Navbar() {
                 className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
                   isActive 
                     ? 'text-indigo-400 font-bold border-l-2 border-indigo-500 pl-4' 
-                    : 'text-slate-300 hover:bg-slate-900'
+                    : 'hover:bg-slate-900'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-indigo-400' : 'opacity-70'}`} />
                 <span>{isZh ? link.labelZh : link.labelEn}</span>
               </Link>
             );
           })}
 
           <div className="pt-3 border-t border-slate-800 space-y-2">
-            <div className="text-[10px] font-mono font-bold text-slate-500 uppercase px-1">
+            <div className="text-[10px] font-mono font-bold uppercase px-1 opacity-60">
               {isZh ? '選擇主題風格' : 'Select Theme'}
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -308,7 +308,7 @@ export default function Navbar() {
                   className={`p-2 rounded-xl border text-[11px] font-bold flex items-center gap-2 ${
                     theme === t.id 
                       ? 'bg-indigo-950 border-indigo-500 text-white' 
-                      : 'bg-slate-900 border-slate-800 text-slate-400'
+                      : 'bg-slate-900 border-slate-800'
                   }`}
                 >
                   <span className={`h-2 w-2 rounded-full ${t.colorDot}`} />
