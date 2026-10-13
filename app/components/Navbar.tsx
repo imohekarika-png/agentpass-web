@@ -97,7 +97,21 @@ export default function Navbar() {
     }
   };
 
-  // Nav links cleanly formatted without numbers
+  // Smooth hash navigation for anchor links (e.g., /course#memory-palace)
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    if (href.includes('#')) {
+      const [targetPath, hash] = href.split('#');
+      if (pathname === targetPath) {
+        e.preventDefault();
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    }
+  };
+
+  // Unnumbered navigation tabs
   const navLinks = [
     { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
     { href: '/course#memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
@@ -120,7 +134,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
-          {/* Prominent Logo & Tight Height-Matched Brand Text */}
+          {/* Prominent Logo & Height-Matched Brand Text */}
           <Link href="/" className="flex items-center gap-0 group shrink-0">
             <div className="relative h-11 w-11 sm:h-12 sm:w-12 group-hover:scale-105 transition flex items-center justify-center -mr-1">
               <Image
@@ -141,15 +155,18 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Tabs (Unnumbered Clean Labels) */}
+          {/* Desktop Navigation Tabs (Unnumbered Clean Labels + Hash Handler) */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              const isActive = pathname === link.href;
+              const isMemoryPalaceActive = pathname === '/course' && link.href.includes('memory-palace');
+              const isActive = isMemoryPalaceActive || pathname === link.href;
+
               return (
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => handleNavClick(e, link.href)}
                   className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
@@ -286,7 +303,10 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
+                onClick={(e) => {
+                  handleNavClick(e, link.href);
+                  setMobileMenuOpen(false);
+                }}
                 className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
                   isActive 
                     ? 'text-indigo-400 font-bold border-l-2 border-indigo-500 pl-4' 

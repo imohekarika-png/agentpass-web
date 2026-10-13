@@ -25,100 +25,109 @@ export default function HomePage() {
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const tools = [
-    // 1. Student Welcome Guide (First)
+    // 1. Welcome Guide
     {
+      step: '00',
       titleZh: '學員迎新指引',
       titleEn: 'Student Welcome Guide',
-      descZh: '新手入門指南、合格分數線與備考策略分析。',
-      descEn: 'Getting started guide, score thresholds, and pass-rate strategy.',
+      descZh: '新手入門指南、合格分數線與 4 步精通備考策略。',
+      descEn: 'Getting started guide, score thresholds, and 4-step mastery strategy.',
       href: '/welcome',
       icon: PartyPopper,
       btnZh: '閱讀指引',
       btnEn: 'Read Guide'
     },
-    // 2. Account Login (Second)
+    // 2. Account Login
     {
+      step: '00',
       titleZh: '學員帳號登入',
       titleEn: 'Account Login',
-      descZh: '跨裝置同步溫習進度與全真模擬考成績紀錄。',
-      descEn: 'Sync learning progress and saved test results across devices.',
+      descZh: '跨裝置同步溫習進度、錯題紀錄與全真模擬考成績。',
+      descEn: 'Sync learning progress, error notebooks, and exam scores.',
       href: '/login',
       icon: LogIn,
       btnZh: '前往登入',
       btnEn: 'Go to Login'
     },
-    // 3. Interactive Flashcards (General Deck)
+    // 3. Step 1: Read 20 Topic Blocks
     {
-      titleZh: '高頻法規閃卡',
-      titleEn: 'High-Frequency Flashcards',
-      descZh: '針對數字記憶點與 EAA 法定表格的快速翻牌訓練。',
-      descEn: 'Quick interval drills for numeric anchors and form rules.',
-      href: '/flashcards',
-      icon: Layers,
-      btnZh: '翻單字卡',
-      btnEn: 'Flip Cards'
-    },
-    // 4. Cap. 511 & Form 1-6 Special Flashcard Deck (Added Extra Card)
-    {
-      titleZh: 'Cap. 511 / 表格特訓閃卡',
-      titleEn: 'Cap. 511 & Forms Drill Deck',
-      descZh: '專為地產代理條例 Cap. 511 與 Form 1-6 打造的 AI 智能速記特訓。',
-      descEn: 'Dedicated AI flashcard drills for Cap. 511 and Forms 1-6 statutory rules.',
-      href: '/flashcards',
-      icon: Zap,
-      btnZh: '開始特訓',
-      btnEn: 'Start Drill'
-    },
-    // 5. 20 Topic Block Lessons
-    {
-      titleZh: '20 大主題單元',
-      titleEn: '20 Topic Block Lessons',
-      descZh: '全面涵蓋地產代理條例 Cap. 511、土地查冊 P-O-I-M 及 Cap. 7 租務法例。',
-      descEn: 'Deep coverage of Cap. 511, Land Search P-O-I-M, and Cap. 7 Tenancy.',
+      step: '01',
+      titleZh: '閱讀 20 大主題單元',
+      titleEn: 'Read 20 Topic Blocks',
+      descZh: '系統化筆記全面涵蓋 Cap. 511 地產代理條例、Cap. 7 租務法例及土地查冊。',
+      descEn: 'Systematic notes covering Cap. 511, Cap. 7 Tenancy, and Land Search.',
       href: '/course',
       icon: BookOpen,
       btnZh: '開始閱讀',
       btnEn: 'Start Reading'
     },
-    // 6. Quiz & Practice Bank
+    // 4. Step 2: Walk Memory Palace (FIXED: Route points directly to /course#memory-palace)
     {
-      titleZh: '試題及模擬考場',
-      titleEn: 'Quiz & Practice Bank',
-      descZh: '130 題最新大綱驗證真題，附設極詳細法規條文解析。',
-      descEn: '130 syllabus-verified mock questions with detailed explanations.',
-      href: '/quiz',
-      icon: HelpCircle,
-      btnZh: '開始練習',
-      btnEn: 'Start Practice'
-    },
-    // 7. 10-Station Memory Palace
-    {
-      titleZh: '10 站記憶宮殿',
-      titleEn: '10-Station Memory Palace',
-      descZh: '將監管職責融入住宅交易實景路線，過目不忘。',
-      descEn: 'Map regulatory duties onto a residential transaction route.',
-      href: '/course',
+      step: '02',
+      titleZh: '漫步 10 站記憶宮殿',
+      titleEn: 'Walk Memory Palace',
+      descZh: '將監管法定職責融入住宅交易實景路線，過目不忘。',
+      descEn: '10-Station residential route mapping regulatory duties into sequence.',
+      href: '/course#memory-palace',
       icon: Compass,
       btnZh: '探索路線',
       btnEn: 'Explore Route'
     },
-    // 8. 38 Master Exam Traps
+    // 5. Step 3: Master Exam Traps
     {
-      titleZh: '38 個主考官陷阱',
-      titleEn: '38 Master Exam Traps',
-      descZh: '專為破解考官誤導性選項設的「假命題」特訓。',
-      descEn: 'Learn FALSE propositions specifically engineered to trick candidates.',
+      step: '03',
+      titleZh: '破解 38 考官陷阱',
+      titleEn: 'Master Exam Traps',
+      descZh: '專為破解考官誤導性選項設計的 38 個假命題特訓。',
+      descEn: 'Review 38 FALSE propositions crafted to trick unprepared candidates.',
       href: '/quiz',
       icon: ShieldAlert,
       btnZh: '查看陷阱',
       btnEn: 'View Traps'
     },
+    // 6. Cap. 511 & Form Flashcards
+    {
+      step: '03+',
+      titleZh: 'Cap. 511 / 表格特訓閃卡',
+      titleEn: 'Statutory Flashcards Drill',
+      descZh: '針對數字記憶錨點與 Form 1-6 法定表格的快速翻牌特訓。',
+      descEn: 'Quick interval drills for numeric anchors and Form 1-6 rules.',
+      href: '/flashcards',
+      icon: Zap,
+      btnZh: '翻單字卡',
+      btnEn: 'Flip Cards'
+    },
+    // 7. Step 4: Spaced Practice (Quiz Bank)
+    {
+      step: '04',
+      titleZh: '間隔題庫刷題',
+      titleEn: 'Spaced Practice Quiz Bank',
+      descZh: '130 題最新大綱驗證真題，結合艾賓浩斯記憶階梯梯隊練題。',
+      descEn: 'Practice with 130 mock questions following the Ebbinghaus ladder.',
+      href: '/quiz',
+      icon: HelpCircle,
+      btnZh: '開始練習',
+      btnEn: 'Start Practice'
+    },
+    // 8. Step 4+: Full Mock Exam Suite
+    {
+      step: '04+',
+      titleZh: '全真 50 題模擬考場',
+      titleEn: 'Full Mock Exam Suite',
+      descZh: '提供 2.5 小時 SQE 及 3 小時 EAQE 全真計時考試模擬體驗。',
+      descEn: 'Official timed exam simulation for Salesperson (SQE) & Estate Agent (EAQE).',
+      href: '/mock-exam',
+      icon: Award,
+      btnZh: '進入考場',
+      btnEn: 'Enter Exam'
+    },
     // 9. Memory Ladder & Dashboard
     {
+      step: 'Progress',
       titleZh: '記憶階梯與儀表板',
       titleEn: 'Memory Ladder & Dashboard',
-      descZh: '實時追蹤 20 大單元複習進度與熟練度指標。',
-      descEn: 'Track review schedules and mastery levels across all 20 blocks.',
+      descZh: '實時追蹤 20 大單元複習進度、弱點警報與熟練度指標。',
+      descEn: 'Track review schedules, weakness alerts, and mastery levels.',
       href: '/dashboard',
       icon: LayoutDashboard,
       btnZh: '查看進度',
@@ -153,6 +162,14 @@ export default function HomePage() {
 
           <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
             <Link
+              href="/welcome"
+              className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/20 transition flex items-center gap-2"
+            >
+              <span>{isZh ? '閱讀 4 步精通指南' : 'Read 4-Step Mastery Guide'}</span>
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+
+            <Link
               href="/course"
               className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/25 transition flex items-center gap-2"
             >
@@ -161,19 +178,11 @@ export default function HomePage() {
             </Link>
 
             <Link
-              href="/quiz"
+              href="/mock-exam"
               className="px-6 py-3.5 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-sm transition flex items-center gap-2"
             >
-              <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-              <span>{isZh ? '開始模擬題庫' : 'Practice Question Bank'}</span>
-            </Link>
-
-            <Link
-              href="/mock-exam"
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-bold text-sm shadow-xl shadow-amber-500/20 transition flex items-center gap-2"
-            >
-              <Award className="h-4 w-4 text-amber-200" />
-              <span>{isZh ? '進入全真模擬考場' : 'Full Exam Suite'}</span>
+              <Award className="h-4 w-4 text-amber-400" />
+              <span>{isZh ? '進入全真考場' : 'Full Mock Exam'}</span>
             </Link>
           </div>
         </div>
@@ -181,26 +190,32 @@ export default function HomePage() {
         {/* Feature Grid Header */}
         <div className="text-center space-y-2 pt-6 border-t border-slate-800/40">
           <span className="text-xs font-mono font-bold tracking-widest uppercase text-indigo-500">
-            Platform Features Overview
+            The 4-Step AgentPass Mastery Workflow
           </span>
           <h2 className="text-2xl sm:text-3xl font-black">
-            {isZh ? '選擇您的備考工具' : 'Select Your Prep Tool'}
+            {isZh ? '順序掌握 4 步備考流程' : 'Step-by-Step Learning Pathway'}
           </h2>
         </div>
 
-        {/* Feature Tool Grid (Balanced 3x3 Grid) */}
+        {/* Feature Tool Grid (Aligned with 4-Step Mastery) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool, idx) => {
             const Icon = tool.icon;
             return (
               <div 
                 key={idx}
-                className="p-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl flex flex-col justify-between space-y-6 hover:border-indigo-500/50 transition duration-200"
+                className="p-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl flex flex-col justify-between space-y-6 hover:border-indigo-500/50 transition duration-200 relative group"
               >
                 <div className="space-y-4">
-                  <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                    <Icon className="h-5 w-5" />
+                  <div className="flex items-center justify-between">
+                    <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <span className="px-2.5 py-1 rounded-xl bg-slate-800/80 text-[10px] font-mono font-bold text-amber-400 border border-slate-700/60">
+                      STEP {tool.step}
+                    </span>
                   </div>
+
                   <div>
                     <h3 className="text-lg font-bold">
                       {isZh ? tool.titleZh : tool.titleEn}
@@ -221,26 +236,6 @@ export default function HomePage() {
               </div>
             );
           })}
-        </div>
-
-        {/* Metrics Bar */}
-        <div className="p-8 rounded-3xl border border-slate-800/80 bg-slate-900/40 shadow-2xl grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-          <div>
-            <div className="text-3xl font-black text-indigo-400">20</div>
-            <div className="text-xs font-bold opacity-70 mt-1">{isZh ? '主題單元' : 'Topic Blocks'}</div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-emerald-400">89</div>
-            <div className="text-xs font-bold opacity-70 mt-1">{isZh ? '法規筆記' : 'Verified Notes'}</div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-amber-400">38</div>
-            <div className="text-xs font-bold opacity-70 mt-1">{isZh ? '考試陷阱' : 'Exam Traps'}</div>
-          </div>
-          <div>
-            <div className="text-3xl font-black text-indigo-400">130</div>
-            <div className="text-xs font-bold opacity-70 mt-1">{isZh ? '全真試題' : 'Mock Questions'}</div>
-          </div>
         </div>
 
       </div>

@@ -1,190 +1,157 @@
 // app/course/page.tsx
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   BookOpen, 
-  ChevronRight, 
-  ShieldCheck, 
-  AlertTriangle, 
-  BrainCircuit, 
+  MapPin, 
   Compass, 
-  Scale
+  CheckCircle2, 
+  ArrowRight, 
+  Sparkles,
+  ShieldCheck,
+  Award
 } from 'lucide-react';
 
-const EAA_COURSE_STRUCTURE = [
-  {
-    moduleId: 'module-1',
-    titleZh: 'Module 1：監管核心 (The Regulatory Core)',
-    titleEn: 'Module 1: The Regulatory Core & Licensing',
-    weight: '約 40% 考點 (Highest Return)',
-    descriptionZh: '涵蓋《地產代理條例》(Cap. 511)、發牌條件、法定表格 Forms 1-6、執業規例及操守守則。',
-    descriptionEn: 'Cap. 511, licensing requirements, prescribed Forms 1-6, Practice Regulation, and Code of Ethics.',
-    blocks: [
-      { id: 'm1-l1', titleZh: '1.1 EAO 立法原意與 EAA 職能 (四層監管架構)', titleEn: '1.1 Why EAO Exists & EAA 4-Floor Model' },
-      { id: 'm1-l2', titleZh: '1.2 牌照類別與申請資格 (18-5-12-F&P 及 3到1續期)', titleEn: '1.2 License Types & Eligibility (18-5-12-F&P & 3-to-1 Renewal)' },
-      { id: 'm1-l3', titleZh: '1.3 法定表格 Forms 1 至 6 (單數賣、雙數買)', titleEn: '1.3 Prescribed Forms 1-6 (Odd Sells, Even Buys)' },
-      { id: 'm1-l4', titleZh: '1.4 執業規例與客戶資金託管 (3-2-14-3 法則)', titleEn: '1.4 Practice Regulation & Client Money (3-2-14-3 Rule)' },
-      { id: 'm1-l5', titleZh: '1.5 操守守則 (3H 原則、利益申報與公平對待)', titleEn: '1.5 Code of Ethics (3 H\'s & Disclosure Duties)' },
-      { id: 'm1-l6', titleZh: '1.6 調查、紀律處分 (ARSC)、上訴與佣金爭議', titleEn: '1.6 Investigations, Discipline (ARSC) & Appeals' },
-    ]
-  },
-  {
-    moduleId: 'module-2',
-    titleZh: 'Module 2：法律工具箱 (The Legal Toolkit)',
-    titleEn: 'Module 2: The Legal Toolkit & Conveyancing',
-    weight: '約 10% 考點 (Level 2 基礎概念)',
-    descriptionZh: '普通法、衡平法、合約法、失實陳述、物業轉讓條例、按揭及五大物業相關稅項。',
-    descriptionEn: 'Common Law, Equity, Agency, Contract, Misrepresentation, Mortgages, and Taxes.',
-    blocks: [
-      { id: 'm2-l1', titleZh: '2.1 法律三大來源與代理人權限 (O-A-C-I 合約要件)', titleEn: '2.1 Sources of Law & Contract Formation (O-A-C-I)' },
-      { id: 'm2-l2', titleZh: '2.2 合約、失實陳述與疏忽 (「現狀 As Is」條款真義)', titleEn: '2.2 Misrepresentation & "As Is" Clause Scope' },
-      { id: 'm2-l3', titleZh: '2.3 相關條例三大家族 (交易、房屋及行為守則)', titleEn: '2.3 Ordinance Families (Deal, Home, Behavior)' },
-      { id: 'm2-l4', titleZh: '2.4 業權證明 (15 年業權鏈) 與訂金託管 (NEG-CHG-CONF)', titleEn: '2.4 Title Proof (15-Yr Chain) & Stakeholding (NEG-CHG-CONF)' },
-      { id: 'm2-l5', titleZh: '2.5 物業相關稅項 (印花稅計算與五大稅種)', titleEn: '2.5 Property Taxes & Stamp Duty Calculation' },
-    ]
-  },
-  {
-    moduleId: 'module-3',
-    titleZh: 'Module 3：閱讀物業 (Reading the Property)',
-    titleEn: 'Module 3: Land Search, Buildings & Valuation',
-    weight: '約 18% Part I / 30% Part II 個案題',
-    descriptionZh: '土地查冊四抽屜 (P-O-I-M)、公司賣方雙重查冊、大廈公契 (DMC)、建築物條例及估值四大方法 (CIRP)。',
-    descriptionEn: 'Land search (P-O-I-M), corporate vendor rule, DMC, Buildings Ordinance (Cap. 123), Valuation (CIRP).',
-    blocks: [
-      { id: 'm3-l1', titleZh: '3.1 土地查冊四抽屜 (P-O-I-M) 與公司賣方雙重查冊', titleEn: '3.1 Land Search Structure (P-O-I-M) & Corporate Vendor' },
-      { id: 'm3-l2', titleZh: '3.2 建築物條例、拆改結構牆規範與大廈公契 (DMC)', titleEn: '3.2 Buildings Ordinance, Structural Alterations & DMC' },
-      { id: 'm3-l3', titleZh: '3.3 物業估值四大方法 (CIRP) 與地盤估值 (CRD)', titleEn: '3.3 Property Valuation (CIRP) & Site Methods (CRD)' },
-      { id: 'm3-l4', titleZh: '3.4 統計數據與官方資訊系統 (差餉物業估價署 RVD)', titleEn: '3.4 Housing Statistics & Official RVD Information' },
-    ]
-  },
-  {
-    moduleId: 'module-4',
-    titleZh: 'Module 4：租務實務、機構管理與應試技巧',
-    titleEn: 'Module 4: Tenancy, Management & Exam Mastery',
-    weight: '約 22% 考點 (Level 4 重點考區)',
-    descriptionZh: '租務 2-2-2 鏡像、15 天欠租沒收、CR109 申報、機構管理及交易記憶宮殿。',
-    descriptionEn: 'Tenancy 2-2-2 mirror, 15-day forfeiture, CR109, agency management, Memory Palace.',
-    blocks: [
-      { id: 'm4-l1', titleZh: '4.1 租務 2-2-2 鏡像法则、15 天沒收權與 CR109 申報', titleEn: '4.1 Tenancy 2-2-2 Mirror, 15-Day Forfeiture & CR109' },
-      { id: 'm4-l2', titleZh: '4.2 有效機構管理 (P-M-D 通知、S-C-P-R 反洗錢與信頭規範)', titleEn: '4.2 Agency Management (P-M-D Notice, S-C-P-R AML)' },
-      { id: 'm4-l3', titleZh: '4.3 十站交易記憶宮殿 (Transaction Memory Palace)', titleEn: '4.3 The 10-Station Transaction Memory Palace' },
-      { id: 'm4-l4', titleZh: '4.4 Part II 個案研習技巧與審題「三行法則」', titleEn: '4.4 Part II Case Study Technique & 3-Line Method' },
-      { id: 'm4-l5', titleZh: '4.5 1-3-7-16-35 溫習階梯與大師級考前陷阱冊', titleEn: '4.5 Spaced Repetition Ladder & Master Trap Register' },
-    ]
-  }
-];
-
 export default function CoursePage() {
-  const { locale, language } = useLanguage();
-  const isZh = locale ? locale === 'zh-HK' : language === 'ZH';
+  const { language, locale } = useLanguage();
+  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
+  const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
+
+  // Auto-scroll handler for Memory Palace hash route
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#memory-palace') {
+      setTimeout(() => {
+        const el = document.getElementById('memory-palace');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 150);
+    }
+  }, []);
+
+  const stations = [
+    { num: '01', titleZh: '接待大堂：牌照展示與名片規範', titleEn: 'Lobby: License Display & Business Cards', section: 'Cap. 511 s.36' },
+    { num: '02', titleZh: '會議室：委託協議 Form 3 簽署點', titleEn: 'Conference Room: Form 3 Execution', section: 'Form 3 Rules' },
+    { num: '03', titleZh: '文件櫃：土地查冊 P-O-I-M 審核', titleEn: 'Filing Room: P-O-I-M Land Search', section: 'Land Search' },
+    { num: '04', titleZh: '會客室：物業資料單 Form 1 查核', titleEn: 'Meeting Room: Form 1 Inspection', section: 'Form 1 Details' },
+    { num: '05', titleZh: '露台：違例建築工程 (UBW) 警示', titleEn: 'Balcony: UBW Risk Disclosure', section: 'Cap. 123 Rules' },
+    { num: '06', titleZh: '總經理室：雙重代理與權益披露', titleEn: 'Manager Office: Dual Agency Notice', section: 'Code of Ethics' },
+    { num: '07', titleZh: '財務部：客戶帳戶託管與訂金', titleEn: 'Finance: Client Account Trust', section: 'Cap. 511 s.43' },
+    { num: '08', titleZh: '簽約廳：臨時買賣合約 (PASP) 擬定', titleEn: 'Signing Room: PASP Execution', section: 'PASP Terms' },
+    { num: '09', titleZh: '信件箱：變更營業地點 31 天通知', titleEn: 'Mailbox: 31-Day Address Notice', section: 'Cap. 511 s.40' },
+    { num: '10', titleZh: '交鑰處：租約終止通知期 (Cap. 7)', titleEn: 'Handover: Notice to Quit', section: 'Cap. 7 Tenancy' },
+  ];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-12 px-4 sm:px-6">
-      <div className="max-w-5xl mx-auto space-y-10">
-        
-        {/* Header Banner */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-1.5 text-xs font-semibold text-indigo-300">
-            <ShieldCheck className="h-4 w-4 text-indigo-400" />
-            <span>
-              {isZh ? '香港 EAA 20 大主題單元與記憶工程學' : 'HK EAA 20 Topic Blocks with Memory Engineering'}
-            </span>
+    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+      <div className="max-w-6xl mx-auto space-y-12">
+
+        {/* Course Syllabus Banner */}
+        <div 
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
+          className="p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+        >
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-400">
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>HK EAA EAQE / SQE Official Syllabus</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+              {isZh ? '20 大主題單元與課程大綱' : '20 Topic Blocks & Course Syllabus'}
+            </h1>
+            <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl leading-relaxed">
+              {isZh 
+                ? '涵蓋地產代理條例 (Cap. 511)、業主與租客條例 (Cap. 7)、土地查冊 P-O-I-M 及 EAA 法定表格 Forms 1-6。'
+                : 'Complete statutory coverage of Cap. 511, Cap. 7 Tenancy, Land Search P-O-I-M, and Statutory Forms 1-6.'}
+            </p>
           </div>
-
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {isZh ? 'EAQE / SQE 雙語通關課程大綱' : 'EAQE / SQE Bilingual Course Syllabus'}
-          </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            {isZh
-              ? '依據 EAA 官方大綱與真題答案庫編寫。結合記憶鉤 (Memory Hooks)、全真檢索測試與考官陷阱拆解。'
-              : 'Built on official EAA syllabi and sample exam answer keys. Features Memory Hooks, Active Retrieval, and Trap Registers.'}
-          </p>
-        </div>
-
-        {/* Quick Tools Access Navigation */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link
-            href="/course/m4-l3"
-            className="p-4 rounded-xl bg-indigo-950/40 border border-indigo-500/30 hover:border-indigo-400 transition flex items-center gap-3"
-          >
-            <Compass className="h-6 w-6 text-indigo-400 shrink-0" />
-            <div>
-              <div className="text-xs font-bold text-white">{isZh ? '十站交易記憶宮殿' : '10-Station Memory Palace'}</div>
-              <div className="text-[11px] text-slate-400">{isZh ? '貫串全套交易流程' : 'Transaction lifecycle walk'}</div>
-            </div>
-          </Link>
-
-          <Link
-            href="/course/m4-l5"
-            className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 hover:border-amber-400 transition flex items-center gap-3"
-          >
-            <AlertTriangle className="h-6 w-6 text-amber-400 shrink-0" />
-            <div>
-              <div className="text-xs font-bold text-white">{isZh ? '大師級陷阱冊' : 'Master Trap Register'}</div>
-              <div className="text-[11px] text-slate-400">{isZh ? '38 個官方核實錯項' : '38 verified exam traps'}</div>
-            </div>
-          </Link>
 
           <Link
             href="/quiz"
-            className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center gap-3"
+            className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xl shadow-indigo-600/25 transition flex items-center gap-2 shrink-0"
           >
-            <BrainCircuit className="h-6 w-6 text-emerald-400 shrink-0" />
-            <div>
-              <div className="text-xs font-bold text-white">{isZh ? '1-3-7-16-35 溫習階梯' : 'Spaced Repetition'}</div>
-              <div className="text-[11px] text-slate-400">{isZh ? '進入全真模擬題庫' : 'Practice question bank'}</div>
-            </div>
+            <CheckCircle2 className="h-4 w-4" />
+            <span>{isZh ? '前往試題庫練習' : 'Practice Question Bank'}</span>
           </Link>
         </div>
 
-        {/* Modules Grid (Modules 1 - 4 with 20 Blocks) */}
-        <div className="space-y-8 pt-2">
-          {EAA_COURSE_STRUCTURE.map((module) => (
-            <div
-              key={module.moduleId}
-              className="rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4 shadow-lg"
-            >
-              <div className="flex flex-wrap items-center justify-between border-b border-slate-800 pb-3 gap-2">
-                <div>
-                  <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                    <BookOpen className="h-5 w-5 text-indigo-400 shrink-0" />
-                    <span>{isZh ? module.titleZh : module.titleEn}</span>
-                  </h2>
-                  <p className="text-xs text-slate-400 mt-1">
-                    {isZh ? module.descriptionZh : module.descriptionEn}
-                  </p>
-                </div>
-                <span className="rounded-full bg-indigo-500/10 border border-indigo-500/30 px-3 py-1 text-xs font-mono font-semibold text-indigo-300">
-                  {module.weight}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                {module.blocks.map((block) => (
-                  <Link
-                    key={block.id}
-                    href={`/course/${block.id}`}
-                    className="flex items-center justify-between p-3.5 rounded-xl bg-slate-800/60 border border-slate-700/60 hover:border-indigo-500 hover:bg-slate-800 transition group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3 pr-2">
-                      <Scale className="h-4 w-4 text-indigo-400 group-hover:text-indigo-300 transition shrink-0" />
-                      <span className="text-xs sm:text-sm font-semibold text-slate-200 group-hover:text-white transition leading-snug">
-                        {isZh ? block.titleZh : block.titleEn}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1 text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 shrink-0">
-                      <span>{isZh ? '研讀' : 'Study'}</span>
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
+        {/* Syllabus Overview Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-6 rounded-3xl border space-y-4 shadow-lg"
+          >
+            <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
+              <ShieldCheck className="h-5 w-5" />
+              <span>Part I: Statutory Regulation (Cap. 511)</span>
             </div>
-          ))}
+            <p className="text-xs opacity-75 leading-relaxed">
+              {isZh ? '持牌資格、發牌條件、營業地點變更 31 天通知、客戶帳戶託管及違規紀律處分。' : 'Licensing eligibility, 31-day address notice, client money trust rules, and disciplinary powers.'}
+            </p>
+          </div>
+
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-6 rounded-3xl border space-y-4 shadow-lg"
+          >
+            <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+              <Award className="h-5 w-5" />
+              <span>Part II: Conveyancing Practice & Land Search</span>
+            </div>
+            <p className="text-xs opacity-75 leading-relaxed">
+              {isZh ? '土地查冊 P-O-I-M 查核、物業資料單 Form 1 至 Form 6、違例建築 (UBW) 及 PASP 條款。' : 'P-O-I-M Land Search inspection, Statutory Forms 1-6, UBW risk disclosures, and PASP drafting.'}
+            </p>
+          </div>
         </div>
+
+        {/* 10-Station Memory Palace Section (Target Anchor) */}
+        <section 
+          id="memory-palace" 
+          className="scroll-mt-24 pt-10 border-t space-y-8"
+          style={{ borderColor: 'var(--border-color)' }}
+        >
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
+              <Compass className="h-3.5 w-3.5" />
+              <span>Visual Spatial Anchor</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black">
+              10-Station Memory Palace (10 站記憶宮殿)
+            </h2>
+            <p className="text-xs sm:text-sm opacity-80 max-w-2xl leading-relaxed">
+              {isZh 
+                ? '將監管法定職責融入住宅交易實景路線。順序漫步 10 個記憶站點，快速鎖定考題的核心法條與數字錨點。'
+                : 'Map regulatory duties onto a residential transaction route. Walk through all 10 stations to master Cap. 511 & Cap. 7 statutory rules in visual sequence.'}
+            </p>
+          </div>
+
+          {/* 10 Stations Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {stations.map((st) => (
+              <div 
+                key={st.num}
+                style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
+                className="p-5 rounded-2xl border shadow-md flex items-start justify-between gap-4 hover:border-indigo-500/60 transition"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                      Station {st.num}
+                    </span>
+                    <span className="text-[10px] font-mono opacity-60">{st.section}</span>
+                  </div>
+                  <h3 className="text-sm font-bold">
+                    {isZh ? st.titleZh : st.titleEn}
+                  </h3>
+                </div>
+                <MapPin className="h-5 w-5 text-indigo-400 shrink-0 mt-1" />
+              </div>
+            ))}
+          </div>
+        </section>
 
       </div>
     </div>
