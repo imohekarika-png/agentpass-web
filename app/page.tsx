@@ -25,8 +25,8 @@ export default function HomePage() {
 
   const tools = [
     {
-      titleZh: '20 大主題單元 (/course)',
-      titleEn: '20 Topic Block Lessons (/course)',
+      titleZh: '20 大主題單元',
+      titleEn: '20 Topic Block Lessons',
       descZh: '全面涵蓋地產代理條例 Cap. 511、土地查冊 P-O-I-M 及 Cap. 7 租務法例。',
       descEn: 'Deep coverage of Cap. 511, Land Search P-O-I-M, and Cap. 7 Tenancy.',
       href: '/course',
@@ -35,8 +35,8 @@ export default function HomePage() {
       btnEn: 'Start Reading'
     },
     {
-      titleZh: '試題及模擬考場 (/quiz)',
-      titleEn: 'Quiz & Practice Bank (/quiz)',
+      titleZh: '試題及模擬考場',
+      titleEn: 'Quiz & Practice Bank',
       descZh: '130 題最新大綱驗證真題，附設極詳細法規條文解析。',
       descEn: '130 syllabus-verified mock questions with detailed explanations.',
       href: '/quiz',
@@ -45,7 +45,7 @@ export default function HomePage() {
       btnEn: 'Start Practice'
     },
     {
-      titleZh: '10 站記憶宮殿 (Memory Palace)',
+      titleZh: '10 站記憶宮殿',
       titleEn: '10-Station Memory Palace',
       descZh: '將監管職責融入住宅交易實景路線，過目不忘。',
       descEn: 'Map regulatory duties onto a residential transaction route.',
@@ -55,7 +55,7 @@ export default function HomePage() {
       btnEn: 'Explore Route'
     },
     {
-      titleZh: '38 個主考官迷思陷阱',
+      titleZh: '38 個主考官陷阱',
       titleEn: '38 Master Exam Traps',
       descZh: '專為破解考官誤導性選項設的「假命題」特訓。',
       descEn: 'Learn FALSE propositions specifically engineered to trick candidates.',
@@ -65,8 +65,8 @@ export default function HomePage() {
       btnEn: 'View Traps'
     },
     {
-      titleZh: '互動速記閃卡 (/flashcards)',
-      titleEn: 'Interactive Flashcards (/flashcards)',
+      titleZh: '互動速記閃卡',
+      titleEn: 'Interactive Flashcards',
       descZh: '針對數字記憶點與 EAA 法定表格的快速翻牌訓練。',
       descEn: 'Quick interval drills for numeric anchors and form rules.',
       href: '/flashcards',
@@ -75,8 +75,8 @@ export default function HomePage() {
       btnEn: 'Flip Cards'
     },
     {
-      titleZh: '記憶階梯與儀表板 (/dashboard)',
-      titleEn: 'Memory Ladder & Dashboard (/dashboard)',
+      titleZh: '記憶階梯與儀表板',
+      titleEn: 'Memory Ladder & Dashboard',
       descZh: '實時追蹤 20 大單元複習進度與熟練度指標。',
       descEn: 'Track review schedules and mastery levels across all 20 blocks.',
       href: '/dashboard',
@@ -85,8 +85,8 @@ export default function HomePage() {
       btnEn: 'View Progress'
     },
     {
-      titleZh: '學員迎新指引 (/welcome)',
-      titleEn: 'Student Welcome Page (/welcome)',
+      titleZh: '學員迎新指引',
+      titleEn: 'Student Welcome Guide',
       descZh: '新手入門指南、合格分數線與備考策略分析。',
       descEn: 'Getting started guide, score thresholds, and pass-rate strategy.',
       href: '/welcome',
@@ -95,8 +95,8 @@ export default function HomePage() {
       btnEn: 'Read Guide'
     },
     {
-      titleZh: '學員帳號登入 (/login)',
-      titleEn: 'Account Login (/login)',
+      titleZh: '學員帳號登入',
+      titleEn: 'Account Login',
       descZh: '跨裝置同步溫習進度與全真模擬考成績紀錄。',
       descEn: 'Sync learning progress and saved test results across devices.',
       href: '/login',
