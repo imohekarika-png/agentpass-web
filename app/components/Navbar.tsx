@@ -9,7 +9,6 @@ import { useLanguage } from '@/app/context/LanguageContext';
 import { useTheme, ThemeVariant } from '@/app/context/ThemeContext';
 import logoImg from '@/components/logo.png';
 import { 
-  Home,
   BookOpen, 
   HelpCircle, 
   Layers, 
@@ -26,7 +25,8 @@ import {
   Sun,
   Moon,
   Eye,
-  Award
+  Award,
+  Compass
 } from 'lucide-react';
 
 export default function Navbar() {
@@ -97,12 +97,13 @@ export default function Navbar() {
     }
   };
 
+  // Nav links aligned directly with the 4-Step AgentPass Mastery Workflow
   const navLinks = [
-    { href: '/', labelZh: '首頁', labelEn: 'Home', icon: Home },
-    { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
-    { href: '/quiz', labelZh: '試題庫', labelEn: 'Quiz Bank', icon: HelpCircle },
-    { href: '/mock-exam', labelZh: '模擬考場', labelEn: 'Mock Exam', icon: Award },
-    { href: '/flashcards', labelZh: '速記卡', labelEn: 'Flashcards', icon: Layers },
+    { href: '/course', labelZh: '1. 課程大綱', labelEn: '1. Syllabus', icon: BookOpen },
+    { href: '/course#memory-palace', labelZh: '2. 記憶宮殿', labelEn: '2. Memory Palace', icon: Compass },
+    { href: '/quiz', labelZh: '3. 考官陷阱', labelEn: '3. Exam Traps', icon: HelpCircle },
+    { href: '/flashcards', labelZh: '速記閃卡', labelEn: 'Flashcards', icon: Layers },
+    { href: '/mock-exam', labelZh: '4. 模擬考場', labelEn: '4. Mock Exam', icon: Award },
     { href: '/dashboard', labelZh: '溫習儀表板', labelEn: 'Dashboard', icon: LayoutDashboard },
     { href: '/welcome', labelZh: '迎新指引', labelEn: 'Welcome', icon: PartyPopper },
   ];
@@ -120,27 +121,27 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Brand Logo & Tight Height-Matched Brand Text */}
-<Link href="/" className="flex items-center gap-0 group shrink-0">
-  <div className="relative h-9 w-9 sm:h-10 sm:w-10 group-hover:scale-105 transition flex items-center justify-center -mr-1">
-    <Image
-      src={logoImg}
-      alt="AgentPass Logo"
-      fill
-      className="object-contain scale-110"
-      priority
-    />
-  </div>
-  <div className="flex items-baseline">
-    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
-      AgentPass
-    </span>
-    <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
-      TM
-    </span>
-  </div>
-</Link>
+          <Link href="/" className="flex items-center gap-0 group shrink-0">
+            <div className="relative h-9 w-9 sm:h-10 sm:w-10 group-hover:scale-105 transition flex items-center justify-center -mr-1">
+              <Image
+                src={logoImg}
+                alt="AgentPass Logo"
+                fill
+                className="object-contain scale-110"
+                priority
+              />
+            </div>
+            <div className="flex items-baseline">
+              <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 group-hover:text-indigo-500 leading-none">
+                AgentPass
+              </span>
+              <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
+                TM
+              </span>
+            </div>
+          </Link>
 
-          {/* Desktop Navigation Tabs (Theme-Aware Contrast) */}
+          {/* Desktop Navigation Tabs (Workflow Aligned) */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
@@ -149,7 +150,7 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                  className={`px-2.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
                       : 'opacity-80 hover:opacity-100 hover:text-indigo-500'
