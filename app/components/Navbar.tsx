@@ -120,42 +120,25 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16 sm:h-20">
           
           {/* Brand Logo & Tight Height-Matched Brand Text */}
-          <Link href="/" className="flex items-center gap-1 group shrink-0">
-            <div className="relative h-8 w-8 sm:h-9 sm:w-9 group-hover:scale-105 transition flex items-center">
-              <Image
-                src={logoImg}
-                alt="AgentPass Logo"
-                fill
-                className="object-contain"
-                priority
-              />
-            </div>
-            <span className="text-xl sm:text-2xl font-black tracking-tight leading-none transition group-hover:text-indigo-500">
-              AgentPass<span className="text-[10px] align-top font-bold text-amber-500 ml-0.5">™</span>
-            </span>
-          </Link>
-
-          {/* Desktop Navigation Tabs (Theme-Aware Contrast) */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    isActive 
-                      ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
-                      : 'opacity-80 hover:opacity-100 hover:text-indigo-500'
-                  }`}
-                >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-500' : 'opacity-70'}`} />
-                  <span>{isZh ? link.labelZh : link.labelEn}</span>
-                </Link>
-              );
-            })}
-          </div>
+<Link href="/" className="flex items-center gap-0 group shrink-0">
+  <div className="relative h-9 w-9 sm:h-10 sm:w-10 group-hover:scale-105 transition flex items-center justify-center -mr-1">
+    <Image
+      src={logoImg}
+      alt="AgentPass Logo"
+      fill
+      className="object-contain scale-110"
+      priority
+    />
+  </div>
+  <div className="flex items-baseline">
+    <span className="text-2xl sm:text-3xl font-black tracking-tighter transition text-slate-900 dark:text-white group-hover:text-indigo-500 leading-none">
+      AgentPass
+    </span>
+    <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
+      TM
+    </span>
+  </div>
+</Link>
 
           {/* Right Action Controls */}
           <div className="hidden md:flex items-center gap-2.5 shrink-0">
