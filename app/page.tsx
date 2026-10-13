@@ -15,7 +15,6 @@ import {
   ShieldAlert,
   Award,
   Compass,
-  CheckCircle2,
   Zap
 } from 'lucide-react';
 
@@ -25,7 +24,6 @@ export default function HomePage() {
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const tools = [
-    // 1. Welcome Guide
     {
       step: '00',
       titleZh: '學員迎新指引',
@@ -37,7 +35,6 @@ export default function HomePage() {
       btnZh: '閱讀指引',
       btnEn: 'Read Guide'
     },
-    // 2. Account Login
     {
       step: '00',
       titleZh: '學員帳號登入',
@@ -49,7 +46,6 @@ export default function HomePage() {
       btnZh: '前往登入',
       btnEn: 'Go to Login'
     },
-    // 3. Step 1: Read 20 Topic Blocks
     {
       step: '01',
       titleZh: '閱讀 20 大主題單元',
@@ -61,19 +57,17 @@ export default function HomePage() {
       btnZh: '開始閱讀',
       btnEn: 'Start Reading'
     },
-    // 4. Step 2: Walk Memory Palace (FIXED: Route points directly to /course#memory-palace)
     {
       step: '02',
       titleZh: '漫步 10 站記憶宮殿',
       titleEn: 'Walk Memory Palace',
       descZh: '將監管法定職責融入住宅交易實景路線，過目不忘。',
       descEn: '10-Station residential route mapping regulatory duties into sequence.',
-      href: '/course#memory-palace',
+      href: '/memory-palace', // <-- Dedicated Route
       icon: Compass,
       btnZh: '探索路線',
       btnEn: 'Explore Route'
     },
-    // 5. Step 3: Master Exam Traps
     {
       step: '03',
       titleZh: '破解 38 考官陷阱',
@@ -85,7 +79,6 @@ export default function HomePage() {
       btnZh: '查看陷阱',
       btnEn: 'View Traps'
     },
-    // 6. Cap. 511 & Form Flashcards
     {
       step: '03+',
       titleZh: 'Cap. 511 / 表格特訓閃卡',
@@ -97,7 +90,6 @@ export default function HomePage() {
       btnZh: '翻單字卡',
       btnEn: 'Flip Cards'
     },
-    // 7. Step 4: Spaced Practice (Quiz Bank)
     {
       step: '04',
       titleZh: '間隔題庫刷題',
@@ -109,7 +101,6 @@ export default function HomePage() {
       btnZh: '開始練習',
       btnEn: 'Start Practice'
     },
-    // 8. Step 4+: Full Mock Exam Suite
     {
       step: '04+',
       titleZh: '全真 50 題模擬考場',
@@ -121,7 +112,6 @@ export default function HomePage() {
       btnZh: '進入考場',
       btnEn: 'Enter Exam'
     },
-    // 9. Memory Ladder & Dashboard
     {
       step: 'Progress',
       titleZh: '記憶階梯與儀表板',
@@ -197,7 +187,7 @@ export default function HomePage() {
           </h2>
         </div>
 
-        {/* Feature Tool Grid (Aligned with 4-Step Mastery) */}
+        {/* Feature Tool Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tools.map((tool, idx) => {
             const Icon = tool.icon;

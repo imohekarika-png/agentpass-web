@@ -97,24 +97,10 @@ export default function Navbar() {
     }
   };
 
-  // Smooth hash navigation for anchor links (e.g., /course#memory-palace)
-  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
-    if (href.includes('#')) {
-      const [targetPath, hash] = href.split('#');
-      if (pathname === targetPath) {
-        e.preventDefault();
-        const element = document.getElementById(hash);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-    }
-  };
-
-  // Unnumbered navigation tabs
+  // Nav links pointing to independent dedicated routes
   const navLinks = [
     { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
-    { href: '/course#memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
+    { href: '/memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
     { href: '/quiz', labelZh: '考官陷阱', labelEn: 'Exam Traps', icon: HelpCircle },
     { href: '/flashcards', labelZh: '速記閃卡', labelEn: 'Flashcards', icon: Layers },
     { href: '/mock-exam', labelZh: '模擬考場', labelEn: 'Mock Exam', icon: Award },
@@ -155,18 +141,16 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Tabs (Unnumbered Clean Labels + Hash Handler) */}
+          {/* Desktop Navigation Tabs */}
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => {
               const Icon = link.icon;
-              const isMemoryPalaceActive = pathname === '/course' && link.href.includes('memory-palace');
-              const isActive = isMemoryPalaceActive || pathname === link.href;
+              const isActive = pathname === link.href;
 
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href)}
                   className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
                       ? 'text-indigo-500 font-extrabold border-b-2 border-indigo-500' 
@@ -303,10 +287,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                onClick={(e) => {
-                  handleNavClick(e, link.href);
-                  setMobileMenuOpen(false);
-                }}
+                onClick={() => setMobileMenuOpen(false)}
                 className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
                   isActive 
                     ? 'text-indigo-400 font-bold border-l-2 border-indigo-500 pl-4' 
