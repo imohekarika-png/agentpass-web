@@ -12,7 +12,9 @@ import {
   ArrowRight, 
   Sparkles,
   ShieldCheck,
-  Award
+  Award,
+  ShieldAlert,
+  Layers
 } from 'lucide-react';
 
 export default function CoursePage() {
@@ -107,7 +109,7 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* 10-Station Memory Palace Section (Target Anchor) */}
+        {/* 10-Station Memory Palace Section */}
         <section 
           id="memory-palace" 
           className="scroll-mt-24 pt-10 border-t space-y-8"
@@ -134,7 +136,7 @@ export default function CoursePage() {
               <div 
                 key={st.num}
                 style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-                className="p-5 rounded-2xl border shadow-md flex items-start justify-between gap-4 hover:border-indigo-500/60 transition"
+                className="p-5 rounded-2xl border shadow-md flex items-start justify-between gap-4 hover:border-indigo-500/60 transition group cursor-pointer"
               >
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
@@ -143,13 +145,51 @@ export default function CoursePage() {
                     </span>
                     <span className="text-[10px] font-mono opacity-60">{st.section}</span>
                   </div>
-                  <h3 className="text-sm font-bold">
+                  <h3 className="text-sm font-bold group-hover:text-indigo-400 transition">
                     {isZh ? st.titleZh : st.titleEn}
                   </h3>
                 </div>
-                <MapPin className="h-5 w-5 text-indigo-400 shrink-0 mt-1" />
+                <MapPin className="h-5 w-5 text-indigo-400 shrink-0 mt-1 group-hover:scale-110 transition" />
               </div>
             ))}
+          </div>
+
+          {/* Bottom Conversion CTA Banner (Step 2 -> Step 3 Workflow Transition) */}
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-8 rounded-3xl border shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 mt-8"
+          >
+            <div className="space-y-2 text-center sm:text-left">
+              <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">
+                {isZh ? '【 步驟 2 完成 】下一步：考官陷阱特訓' : '[ Step 2 Complete ] Next: Exam Trap Drills'}
+              </span>
+              <h3 className="text-xl font-extrabold">
+                {isZh ? '準備好驗證您的記憶宮殿了嗎？' : 'Ready to Test Your Memory Palace Anchors?'}
+              </h3>
+              <p className="text-xs opacity-80 max-w-xl">
+                {isZh 
+                  ? '進入 Step 3 破解 38 個主考官假命題陷阱，或開啟速記閃卡特訓。' 
+                  : 'Proceed to Step 3 to review 38 Master Exam Traps or test yourself with AI Legal Flashcards.'}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
+              <Link
+                href="/quiz"
+                className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 hover:opacity-95 transition flex items-center gap-2"
+              >
+                <ShieldAlert className="h-4 w-4" />
+                <span>{isZh ? '破解 38 考官陷阱' : 'Master 38 Traps'}</span>
+              </Link>
+
+              <Link
+                href="/flashcards"
+                className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
+              >
+                <Layers className="h-4 w-4 text-indigo-400" />
+                <span>{isZh ? '開啟速記閃卡' : 'Flip Flashcards'}</span>
+              </Link>
+            </div>
           </div>
         </section>
 
