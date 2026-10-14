@@ -17,9 +17,7 @@ import {
   Lightbulb,
   HelpCircle,
   AlertTriangle,
-  Layers,
-  ChevronRight,
-  Zap
+  ChevronRight
 } from 'lucide-react';
 
 interface TopicBlock {
@@ -36,7 +34,6 @@ interface TopicBlock {
   summaryEn: string;
   keyStatutes: string[];
   suggestedDay30: number;
-  // Full Lesson Content
   lesson: {
     overviewZh: string;
     overviewEn: string;
@@ -222,7 +219,7 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '✓ 單數賣方/業主：Form 3 (住宅出售賣方)、Form 5 (住宅出租業主)。',
         '✓ 雙數買方/租客：Form 4 (住宅購買買方)、Form 6 (住宅承租租客)。',
         '✓ 地產代理協議的最長有效期限為 3 個月 (除非雙方書面同意續期)。',
-         me => '✓ 豁免情況 (無指定法定表格)：店舖 (Shop) 出售、辦公室 (Office) 租賃、非獨立住宅單位 (無獨立廚廁房間) 租賃。',
+        '✓ 豁免情況 (無指定法定表格)：店舖 (Shop) 出售、辦公室 (Office) 租賃、非獨立住宅單位 (無獨立廚廁房間) 租賃。',
         '✓ Form 3 代理法定職能：推廣物業、獲取物業資料、與買家談判。不包括：查核買家背景、買家破產查冊、物業估價。'
       ],
       verifiedNotesEn: [
