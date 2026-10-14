@@ -1,7 +1,8 @@
 // app/flashcards/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
@@ -14,11 +15,13 @@ import {
   X,
   Plus,
   Zap,
-  BookOpen
+  BookOpen,
+  Target
 } from 'lucide-react';
 
 interface Flashcard {
   id: number;
+  blockId: string;
   category: string;
   section: string;
   frontZh: string;
@@ -27,76 +30,116 @@ interface Flashcard {
   backEn: string;
 }
 
-const INITIAL_FLASHCARDS: Flashcard[] = [
+const ALL_FLASHCARDS: Flashcard[] = [
+  // Block 01
   {
     id: 1,
+    blockId: 'b1',
     category: 'Cap. 511',
-    section: 'Cap. 511 s.40',
+    section: 'Block 01 • Cap. 511 s.40',
     frontZh: '變更營業地點 notice 之法定期限為何？',
-    frontEn: 'CHANGE OF BUSINESS ADDRESS',
+    frontEn: 'CHANGE OF BUSINESS ADDRESS NOTICE',
     backZh: '持牌人必須於變更營業地點後 31 天內，以書面通知地產代理監管局 (EAA)。',
     backEn: 'A licensee must notify the Estate Agents Authority (EAA) in writing within 31 days after changing their business address.'
   },
   {
     id: 2,
+    blockId: 'b1',
+    category: 'Cap. 511',
+    section: 'Block 01 • Eligibility Window',
+    frontZh: '考試合格後，申請 EAQE 與 SQE 牌照的有效期限分別為？',
+    frontEn: 'EXAM VALIDITY WINDOW (EAQE VS SQE)',
+    backZh: '代理牌照 (EAQE) 為 12 個月；營業員牌照 (SQE) 為 6 個月。',
+    backEn: '12 months for Estate Agent License (EAQE); 6 months for Salesperson License (SQE).'
+  },
+
+  // Block 02
+  {
+    id: 3,
+    blockId: 'b2',
+    category: 'Cap. 511',
+    section: 'Block 02 • Cap. 511 s.36',
+    frontZh: '分支機構 (SPOB) 設立之分行經理委任申報期限？',
+    frontEn: 'BRANCH MANAGER APPOINTMENT NOTICE',
+    backZh: '新分行成立或委任分行經理後，必須於 31 天內向 EAA 申報該經理之委任。',
+    backEn: 'Must notify EAA of the appointment of a branch manager within 31 days of appointment.'
+  },
+
+  // Block 04
+  {
+    id: 4,
+    blockId: 'b4',
+    category: 'Cap. 511',
+    section: 'Block 04 • Cap. 511 s.43',
+    frontZh: '代客戶收取訂金時之法定戶口與收據期限？',
+    frontEn: 'CLIENT MONEY TRUST ACCOUNT & RECEIPT',
+    backZh: '款項必須即時存入「客戶信託帳戶」，並於 14 天內發出收據，副本保存 3 年。',
+    backEn: 'Must deposit into a Client Trust Account immediately; issue receipt within 14 days; retain copy for 3 years.'
+  },
+
+  // Block 11
+  {
+    id: 5,
+    blockId: 'b11',
     category: 'Forms 1-6',
-    section: 'Form 3 - Section 6',
+    section: 'Block 11 • Form 3 Rules',
     frontZh: '地產代理協議 (Form 3) 的有效期限限制？',
     frontEn: 'FORM 3 VALIDITY PERIOD',
     backZh: '住宅物業出售代理協議不得超過 3 個月，除非雙方另行書面同意續期。',
     backEn: 'Residential vendor agency agreement shall not exceed 3 months unless renewed in writing by both parties.'
   },
+
+  // Block 14
   {
-    id: 3,
-    category: 'Cap. 7',
-    section: 'Cap. 7 Tenancy Notice',
-    frontZh: '根據 Cap. 7，住宅租約終止通知期一般為多久？',
-    frontEn: 'NOTICE TO QUIT (TENANCY)',
-    backZh: '無固定期限租約或月租合約，終止通知期通常為至少 1 個完整曆月。',
-    backEn: 'For periodic or monthly tenancies, the notice to quit must be at least 1 full calendar month.'
-  },
-  {
-    id: 4,
+    id: 6,
+    blockId: 'b14',
     category: 'Land Search',
-    section: 'P-O-I-M Inspection',
-    frontZh: '土地查冊中「M」代表甚麼？如何處理？',
-    frontEn: 'LAND SEARCH "M" - MEMORANDUM',
-    backZh: '「M」代表 Memorandum (備忘錄/押記令)。須核實是否影響業權完整性或涉及未解除法庭押記。',
-    backEn: '"M" stands for Memorandum/Charging Order. Must verify if it encumbers title or involves unreleased charges.'
+    section: 'Block 14 • Company Vendor Search',
+    frontZh: '當賣方為有限公司時，必須進行哪兩項查冊？',
+    frontEn: 'COMPANY VENDOR TWO-SEARCH RULE',
+    backZh: '必須進行土地註冊處物業查冊 + 公司註冊處按揭抵押 (Charges) 查冊。',
+    backEn: 'Must conduct Land Registry search for property + Companies Registry search for charges.'
   },
+
+  // Block 16
   {
-    id: 5,
-    category: 'Code of Ethics',
-    section: 'EAA Code of Ethics s.3(5)',
-    frontZh: '地產代理處理雙重代理 (Dual Agency) 的法定披露義務？',
-    frontEn: 'DUAL AGENCY DISCLOSURE',
-    backZh: '必須向買賣雙方充分披露雙重代理身份及佣金安排，並取得雙方書面同意。',
-    backEn: 'Must fully disclose dual agency status and commission arrangements to both parties and obtain written consent.'
+    id: 7,
+    blockId: 'b16',
+    category: 'Cap. 7',
+    section: 'Block 16 • Cap. 7 Tenancy',
+    frontZh: '無沒收條款下，住宅租客欠租多少天業主可行使沒收權？',
+    frontEn: 'TENANCY FORFEITURE UNPAID RENT THRESHOLD',
+    backZh: '租客拖欠租金達 15 天 (15 Days)，業主即可行使法定沒收租賃權。',
+    backEn: 'Landlord may forfeit tenancy after 15 DAYS of unpaid rent.'
   }
 ];
 
-export default function FlashcardsPage() {
+function FlashcardsContent() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const [cards, setCards] = useState<Flashcard[]>(INITIAL_FLASHCARDS);
+  const searchParams = useSearchParams();
+  const activeBlockId = searchParams.get('block');
+
+  const [cards, setCards] = useState<Flashcard[]>(ALL_FLASHCARDS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [masteredIds, setMasteredIds] = useState<number[]>([]);
 
-  // Generator Modal State
+  // AI Generator Modal State
   const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   const [customPrompt, setCustomPrompt] = useState('');
   const [selectedModule, setSelectedModule] = useState('Cap. 511');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const categories = ['All', 'Cap. 511', 'Forms 1-6', 'Cap. 7', 'Land Search', 'Code of Ethics'];
-
-  const filteredCards = selectedCategory === 'All' 
+  // Filter cards based on block parameter OR category pill
+  const filteredCards = activeBlockId 
+    ? cards.filter((c) => c.blockId === activeBlockId)
+    : selectedCategory === 'All' 
     ? cards 
-    : cards.filter(c => c.category === selectedCategory);
+    : cards.filter((c) => c.category === selectedCategory);
 
   const currentCard = filteredCards[currentIndex] || filteredCards[0] || cards[0];
 
@@ -113,8 +156,8 @@ export default function FlashcardsPage() {
   };
 
   const toggleMastered = (id: number) => {
-    setMasteredIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    setMasteredIds((prev) => 
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
   };
 
@@ -123,6 +166,7 @@ export default function FlashcardsPage() {
     setTimeout(() => {
       const newCard: Flashcard = {
         id: Date.now(),
+        blockId: activeBlockId || 'b1',
         category: selectedModule,
         section: `${selectedModule} AI Spec`,
         frontZh: customPrompt ? `AI 特訓題目：${customPrompt}` : `地產代理監管局 (EAA) 高頻考試核心解析 (AI 模組: ${selectedModule})`,
@@ -141,11 +185,13 @@ export default function FlashcardsPage() {
     }, 800);
   };
 
+  const categories = ['All', 'Cap. 511', 'Forms 1-6', 'Cap. 7', 'Land Search', 'Code of Ethics'];
+
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-4xl mx-auto space-y-8">
 
-        {/* Top Header & AI Generator Banner */}
+        {/* Top Header */}
         <div 
           style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
           className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 transition-colors duration-300"
@@ -173,44 +219,59 @@ export default function FlashcardsPage() {
             </button>
 
             <Link 
-              href="/mock-exam"
+              href="/course"
               style={{ borderColor: 'var(--border-color)' }}
               className="px-4 py-2.5 rounded-2xl border font-bold text-xs transition flex items-center gap-1.5 hover:border-indigo-500"
             >
-              <Award className="h-3.5 w-3.5 text-indigo-400" />
-              <span>Exam</span>
+              <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
+              <span>{isZh ? '單元' : 'Syllabus'}</span>
             </Link>
           </div>
         </div>
 
-        {/* Category Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <button
-                key={cat}
-                onClick={() => {
-                  setSelectedCategory(cat);
-                  setCurrentIndex(0);
-                  setIsFlipped(false);
-                }}
-                style={{ 
-                  backgroundColor: isSelected ? undefined : 'var(--bg-card)', 
-                  borderColor: isSelected ? undefined : 'var(--border-color)',
-                  color: isSelected ? '#ffffff' : 'var(--text-main)' 
-                }}
-                className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer border ${
-                  isSelected
-                    ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20'
-                    : 'hover:border-indigo-500/50'
-                }`}
-              >
-                {cat === 'All' ? (isZh ? '全部卡牌' : 'All Cards') : cat}
-              </button>
-            );
-          })}
-        </div>
+        {/* Active Block Indicator Banner */}
+        {activeBlockId && (
+          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-between text-xs font-bold text-indigo-400">
+            <div className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-amber-400" />
+              <span>{isZh ? `目前正翻閱單元 (${currentCard?.section || activeBlockId}) 專屬閃卡` : `Active Block Flashcards Deck: ${currentCard?.section}`}</span>
+            </div>
+            <Link href="/flashcards" className="underline hover:opacity-80">
+              {isZh ? '查看全部閃卡' : 'View All Decks'}
+            </Link>
+          </div>
+        )}
+
+        {/* Category Filter Pills (When not filtered by query parameter) */}
+        {!activeBlockId && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+            {categories.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <button
+                  key={cat}
+                  onClick={() => {
+                    setSelectedCategory(cat);
+                    setCurrentIndex(0);
+                    setIsFlipped(false);
+                  }}
+                  style={{ 
+                    backgroundColor: isSelected ? undefined : 'var(--bg-card)', 
+                    borderColor: isSelected ? undefined : 'var(--border-color)',
+                    color: isSelected ? '#ffffff' : 'var(--text-main)' 
+                  }}
+                  className={`px-4 py-2 rounded-2xl text-xs font-bold whitespace-nowrap transition cursor-pointer border ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white border-indigo-500 shadow-md shadow-indigo-600/20'
+                      : 'hover:border-indigo-500/50'
+                  }`}
+                >
+                  {cat === 'All' ? (isZh ? '全部卡牌' : 'All Cards') : cat}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Dynamic Flashcard Deck Surface */}
         {currentCard ? (
@@ -437,5 +498,13 @@ export default function FlashcardsPage() {
       )}
 
     </div>
+  );
+}
+
+export default function FlashcardsPage() {
+  return (
+    <Suspense fallback={<div className="p-10 text-center text-xs font-mono font-bold opacity-60">Loading Flashcards Engine...</div>}>
+      <FlashcardsContent />
+    </Suspense>
   );
 }

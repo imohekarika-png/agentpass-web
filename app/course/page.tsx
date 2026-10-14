@@ -18,7 +18,9 @@ import {
   HelpCircle,
   AlertTriangle,
   ChevronRight,
-  Scale
+  Scale,
+  Zap,
+  Layers
 } from 'lucide-react';
 
 interface DoNotConfusePair {
@@ -604,7 +606,7 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* Topic Block Lesson Cards Grid */}
+        {/* Topic Block Lesson Cards Grid with Dual Practice Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {activeBlocks.map((block) => (
             <div
@@ -658,19 +660,28 @@ export default function CoursePage() {
                     className="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1 cursor-pointer"
                   >
                     <BookOpen className="h-3.5 w-3.5" />
-                    <span>{isZh ? '開啟完整課文' : 'Deep-Dive Lesson'}</span>
+                    <span>{isZh ? '精讀課文' : 'Lesson'}</span>
                   </button>
                 </div>
 
-                <Link
-                  href={`/quiz?block=${block.id}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition pt-1 border-t w-full"
-                  style={{ borderColor: 'var(--border-color)' }}
-                >
-                  <Target className="h-3.5 w-3.5" />
-                  <span>{isZh ? `進入 ${block.num} 專屬刷題庫` : `Practice ${block.num} Questions`}</span>
-                  <ArrowRight className="h-3.5 w-3.5 ml-auto" />
-                </Link>
+                {/* Dual Practice Action Bar */}
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                  <Link
+                    href={`/quiz?block=${block.id}`}
+                    className="px-3 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-600/30 transition"
+                  >
+                    <Target className="h-3.5 w-3.5 text-emerald-400" />
+                    <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
+                  </Link>
+
+                  <Link
+                    href={`/flashcards?block=${block.id}`}
+                    className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-indigo-600/30 transition"
+                  >
+                    <Zap className="h-3.5 w-3.5 text-indigo-400" />
+                    <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
@@ -888,16 +899,26 @@ export default function CoursePage() {
             {/* Modal Bottom Control Footer */}
             <div className="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderColor: 'var(--border-color)' }}>
               <span className="text-xs font-mono font-bold opacity-60">
-                {isZh ? '準備好測驗了嗎？進入專屬題庫' : 'Ready to test your memory? Launch block quiz'}
+                {isZh ? '閱讀完成？選擇練習模式：' : 'Lesson complete? Select practice mode:'}
               </span>
 
-              <Link
-                href={`/quiz?block=${activeLessonBlock.id}`}
-                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-bold text-xs shadow-xl transition flex items-center justify-center gap-2"
-              >
-                <Target className="h-4 w-4" />
-                <span>{isZh ? `進入 ${activeLessonBlock.num} 專屬題庫` : `Practice ${activeLessonBlock.num} Quiz`}</span>
-              </Link>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Link
+                  href={`/flashcards?block=${activeLessonBlock.id}`}
+                  className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl border border-indigo-500/40 bg-indigo-600/20 text-indigo-300 font-bold text-xs hover:bg-indigo-600/30 transition flex items-center justify-center gap-2"
+                >
+                  <Zap className="h-4 w-4 text-indigo-400" />
+                  <span>{isZh ? '翻閱專屬閃卡' : 'Flip Flashcards'}</span>
+                </Link>
+
+                <Link
+                  href={`/quiz?block=${activeLessonBlock.id}`}
+                  className="flex-1 sm:flex-initial px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-bold text-xs shadow-xl transition flex items-center justify-center gap-2"
+                >
+                  <Target className="h-4 w-4" />
+                  <span>{isZh ? '進入專屬題庫' : 'Practice Quiz'}</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
