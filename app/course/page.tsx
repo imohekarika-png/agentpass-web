@@ -20,7 +20,7 @@ import {
   ChevronRight,
   Scale,
   Zap,
-  Layers
+  FileText
 } from 'lucide-react';
 
 interface DoNotConfusePair {
@@ -666,21 +666,33 @@ export default function CoursePage() {
 
                 {/* Dual Practice Action Bar */}
                 <div className="grid grid-cols-2 gap-2 pt-2 border-t" style={{ borderColor: 'var(--border-color)' }}>
-                  <Link
-                    href={`/quiz?block=${block.id}`}
-                    className="px-3 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-600/30 transition"
-                  >
-                    <Target className="h-3.5 w-3.5 text-emerald-400" />
-                    <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
-                  </Link>
+                  {block.id === 'b14' ? (
+                    <Link
+                      href="/case-study"
+                      className="px-3 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-amber-500/30 transition col-span-2"
+                    >
+                      <FileText className="h-3.5 w-3.5 text-amber-400" />
+                      <span>{isZh ? '個案實務 & POIM 查冊' : 'Case Study & POIM Viewer'}</span>
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        href={`/quiz?block=${block.id}`}
+                        className="px-3 py-2 rounded-xl bg-emerald-600/20 border border-emerald-500/40 text-emerald-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-emerald-600/30 transition"
+                      >
+                        <Target className="h-3.5 w-3.5 text-emerald-400" />
+                        <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
+                      </Link>
 
-                  <Link
-                    href={`/flashcards?block=${block.id}`}
-                    className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-indigo-600/30 transition"
-                  >
-                    <Zap className="h-3.5 w-3.5 text-indigo-400" />
-                    <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
-                  </Link>
+                      <Link
+                        href={`/flashcards?block=${block.id}`}
+                        className="px-3 py-2 rounded-xl bg-indigo-600/20 border border-indigo-500/40 text-indigo-300 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-indigo-600/30 transition"
+                      >
+                        <Zap className="h-3.5 w-3.5 text-indigo-400" />
+                        <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
