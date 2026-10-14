@@ -506,13 +506,21 @@ export default function CoursePage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
             <Link
-              href="/memory-palace"
+              href="/case-study"
               className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-2"
             >
-              <Compass className="h-4 w-4" />
-              <span>{isZh ? '進入記憶宮殿' : 'Memory Palace'}</span>
+              <FileText className="h-4 w-4" />
+              <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
+            </Link>
+
+            <Link
+              href="/memory-palace"
+              className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
+            >
+              <Compass className="h-4 w-4 text-indigo-400" />
+              <span>{isZh ? '記憶宮殿' : 'Memory Palace'}</span>
             </Link>
 
             <Link
@@ -606,7 +614,7 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* Topic Block Lesson Cards Grid with Dual Practice Buttons */}
+        {/* Topic Block Lesson Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {activeBlocks.map((block) => (
             <div
@@ -938,4 +946,4 @@ export default function CoursePage() {
 
     </div>
   );
-}
+}   
