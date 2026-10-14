@@ -17,8 +17,21 @@ import {
   Lightbulb,
   HelpCircle,
   AlertTriangle,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  Zap,
+  Layers,
+  Scale
 } from 'lucide-react';
+
+interface DoNotConfusePair {
+  topicZh: string;
+  topicEn: string;
+  correctZh: string;
+  correctEn: string;
+  wrongTurnZh: string;
+  wrongTurnEn: string;
+}
 
 interface TopicBlock {
   id: string;
@@ -43,12 +56,14 @@ interface TopicBlock {
     memoryHookEn: string;
     retrievalQuestionsZh: string[];
     retrievalQuestionsEn: string[];
+    doNotConfusePairs: DoNotConfusePair[];
     examTrapsZh: string[];
     examTrapsEn: string[];
   };
 }
 
 const TOPIC_BLOCKS: TopicBlock[] = [
+  // Block 01
   { 
     id: 'b1', 
     num: 'Block 01', 
@@ -71,14 +86,16 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '✓ 法定發牌四大條件：年滿 18 歲、完成中五 (Form 5) 或同等學歷、獲評為「適當人選」(Fit and Proper)、於指定期限內考試合格。',
         '✓ 考試成績有效期限：代理牌照 (EAQE) 為 12 個月；營業員牌照 (SQE) 為 6 個月。',
         '✓ 相關工作經驗 (Work Experience) 絕非法定發牌條件，亦非 EAA 評定「適當人選」之考慮因素。',
-        '✓ 破產未解除、受《精神健康條例》監護、或涉及欺詐/不誠實罪行被判監者，均不合乎 Fit & Proper 資格。'
+        '✓ 破產未解除、受《精神健康條例》監護、或涉及欺詐/不誠實罪行被判監者，均不合乎 Fit & Proper 資格。',
+        '✓ 續牌申請窗口：屆滿前不早於 3 個月且不遲於 1 個月提交申請。'
       ],
       verifiedNotesEn: [
         '✓ Three license types: Estate Agent (Individual), Estate Agent (Company), Salesperson. Salesperson cannot run business or manage branch.',
         '✓ Four statutory requirements: Age 18+, Form 5 completed, Fit & Proper person, and Examination passed within prescribed period.',
         '✓ Exam validity window: 12 months for Estate Agent license (EAQE); 6 months for Salesperson license (SQE).',
         '✓ "Relevant work experience" is NOT a licensing requirement and NOT a factor for Fit & Proper assessment.',
-        '✓ Undischarged bankrupts, mental disorder subjects, or convictions involving fraud/dishonesty fail Fit & Proper criteria.'
+        '✓ Undischarged bankrupts, mental disorder subjects, or convictions involving fraud/dishonesty fail Fit & Proper criteria.',
+        '✓ License renewal window: Not earlier than 3 months before expiry and not later than 1 month before expiry.'
       ],
       memoryHookZh: '【18 - 5 - 12 - F&P】口訣：18 歲🎂、中五學歷📜、12 個月考試合格 (SQE 為 6 個月)⌛、Fit & Proper 審查🛡️。EAA 建築物分為四層：發牌、規管、紀律、教育。',
       memoryHookEn: 'Mnemonic: 18 (Age) - 5 (Form 5) - 12 (Months validity, 6 for SQE) - Fit & Proper. Visualize EAA as a 4-floor building: Licence, Regulate, Discipline, Educate.',
@@ -92,16 +109,36 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '2. What are the exam validity windows for SQE vs EAQE applications?',
         '3. What does the "3 to 1" rule mean regarding license renewal timelines?'
       ],
+      doNotConfusePairs: [
+        {
+          topicZh: '考試合格有效期限',
+          topicEn: 'Exam Validity Window',
+          correctZh: '代理牌照 (EAQE) 為 12 個月',
+          correctEn: '12 months for Estate Agent License (EAQE)',
+          wrongTurnZh: '營業員牌照 (SQE) 為 6 個月 (切勿混淆兩者時間！)',
+          wrongTurnEn: '6 months for Salesperson License (SQE)'
+        },
+        {
+          topicZh: '分行經理任職資格',
+          topicEn: 'Branch Manager Qualification',
+          correctZh: '必須持有「地產代理牌照 (個人)」',
+          correctEn: 'Must hold an Individual Estate Agent License',
+          wrongTurnZh: '營業員牌照 (SQE) 無論從業多少年均無權擔任經理',
+          wrongTurnEn: 'Salesperson license holder cannot manage an office regardless of years of experience'
+        }
+      ],
       examTrapsZh: [
         ' Trap: 主考官常宣稱「具備 3 年行業經驗的 22 歲營業員可擔任分行經理」——錯誤！原因是他未持有「代理牌照」，與年齡或經驗無關。',
-        ' Trap: 宣稱「只要業主沒有明確反對，代理即可發放廣告」——錯誤！必須取得業主「事先書面同意」。'
+        ' Trap: 宣稱「相關工作經驗為發牌與 Fit & Proper 評估之法定條件」——錯誤！EAA 完全不考慮工作經驗。'
       ],
       examTrapsEn: [
         ' Trap: "A 22-year-old salesperson with 3 years experience can manage a branch" — FALSE. Cause: Lacks Estate Agent License.',
-        ' Trap: "Agents can advertise unless vendor expressly forbids it" — FALSE. Prior written consent is mandatory.'
+        ' Trap: "Relevant work experience is a licensing requirement or fit-and-proper factor" — FALSE.'
       ]
     }
   },
+
+  // Block 02
   { 
     id: 'b2', 
     num: 'Block 02', 
@@ -141,6 +178,16 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '1. What specific event must be reported to EAA within 31 days of opening a new branch?',
         '2. What license qualification must a branch manager hold? Is SQE + 10 years experience sufficient?'
       ],
+      doNotConfusePairs: [
+        {
+          topicZh: '開張與變更通知',
+          topicEn: 'Branch Opening vs Change Notice',
+          correctZh: '於 31 天內通知 EAA「分行經理之委任」',
+          correctEn: 'Notify EAA of Manager Appointment within 31 days',
+          wrongTurnZh: '誤以為需於 31 天內通知「分行開張」本身',
+          wrongTurnEn: 'Mistakenly notifying branch opening date instead of manager appointment'
+        }
+      ],
       examTrapsZh: [
         ' Trap: 宣稱「分行開張只需通知 EAA 營業地址，無需指定代理牌照持有人管理」——錯誤！必須由代理牌照持有人有效控制。'
       ],
@@ -149,6 +196,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       ]
     }
   },
+
+  // Block 04
   { 
     id: 'b4', 
     num: 'Block 04', 
@@ -190,6 +239,16 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '1. A salesperson receives $40,000 cash deposit for a vendor. Where must it be deposited?',
         '2. What is the deadline to issue a receipt, and how long must its carbon copy be kept?'
       ],
+      doNotConfusePairs: [
+        {
+          topicZh: '客戶款項存放地點',
+          topicEn: 'Client Money Destination',
+          correctZh: '代理行於持牌銀行開立之客戶信託戶口',
+          correctEn: 'Agency designated bank Client Trust Account',
+          wrongTurnZh: '不得直接存入業主律師樓或營業戶口 (除非有書面指示)',
+          wrongTurnEn: 'Cannot deposit directly into solicitor or office operating account'
+        }
+      ],
       examTrapsZh: [
         ' Trap: 宣稱「代理可將客戶訂金直接存入買方律師樓戶口」——錯誤！除非取得客戶事先書面指示，否則必須存入代理行信託戶口。'
       ],
@@ -198,6 +257,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       ]
     }
   },
+
+  // Block 11
   { 
     id: 'b11', 
     num: 'Block 11', 
@@ -239,6 +300,16 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '1. Which form does a landlord sign? Which form does a residential purchaser sign?',
         '2. Name three property transaction scenarios where NO statutory agency agreement form exists.'
       ],
+      doNotConfusePairs: [
+        {
+          topicZh: '表格單雙數區分',
+          topicEn: 'Odd vs Even Forms',
+          correctZh: '單數屬賣方/業主端 (Form 3, Form 5)',
+          correctEn: 'Odd numbers belong to Seller/Landlord (Form 3, Form 5)',
+          wrongTurnZh: '雙數屬買方/租客端 (Form 4, Form 6)',
+          wrongTurnEn: 'Even numbers belong to Buyer/Tenant (Form 4, Form 6)'
+        }
+      ],
       examTrapsZh: [
         ' Trap: 宣稱「出租商業寫字樓必須簽署 Form 5」——錯誤！法定表格僅適用於住宅物業，寫字樓不適用。'
       ],
@@ -247,6 +318,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       ]
     }
   },
+
+  // Block 14
   { 
     id: 'b14', 
     num: 'Block 14', 
@@ -279,7 +352,7 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       memoryHookZh: '【P-O-I-M 四大抽屜🗄️】公司賣家一定要開啟「第二個櫃桶」(公司註冊處查冊)！',
       memoryHookEn: 'Mnemonic: P-O-I-M 4-Drawer Cabinet🗄️. For company vendors, open the second cabinet (Companies Registry).',
       retrievalQuestionsZh: [
-        '1. 土地查冊 P-O-I-M 代表哪四個欄位？',
+         me => '1. 土地查冊 P-O-I-M 代表哪四個欄位？',
         '2. 賣家是一家有限公司時，除了土地查冊外，還必須進行甚麼查冊？',
         '3. 佔用許可證 (OP) 可以查到甚麼資料？查不到甚麼資料？'
       ],
@@ -287,6 +360,16 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '1. What do the 4 letters P-O-I-M stand for in a Land Search document?',
         '2. When the vendor is a limited company, what second search must be conducted?',
         '3. What item of information does an Occupation Permit provide, and what does it NOT provide?'
+      ],
+      doNotConfusePairs: [
+        {
+          topicZh: '公司賣方查冊地點',
+          topicEn: 'Company Vendor Search Locations',
+          correctZh: '土地註冊處查物業 + 公司註冊處查抵押 (Two Searches)',
+          correctEn: 'Land Registry for Property + Companies Registry for Charges (Two Searches)',
+          wrongTurnZh: '商業登記證 (BR) 或公司組織章程絕不可查出按揭押記',
+          wrongTurnEn: 'Business Registration Certificate or Memorandum of Association will NOT reveal mortgages'
+        }
       ],
       examTrapsZh: [
         ' Trap: 宣稱「公司的商業登記證 (BR) 可查出物業是否設有按揭押記」——錯誤！必須進行公司註冊處 (Companies Registry) 查冊。'
@@ -296,6 +379,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       ]
     }
   },
+
+  // Block 16
   { 
     id: 'b16', 
     num: 'Block 16', 
@@ -337,6 +422,24 @@ const TOPIC_BLOCKS: TopicBlock[] = [
         '2. Absent a forfeiture clause, after how many days of unpaid rent can a landlord forfeit?',
         '3. When must Form CR109 be lodged? Does it apply to commercial offices?'
       ],
+      doNotConfusePairs: [
+        {
+          topicZh: '維修責任劃分',
+          topicEn: 'Repair Responsibility Split',
+          correctZh: '業主負責結構與外牆 (Structure & Exterior)',
+          correctEn: 'Landlord repairs structure & exterior',
+          wrongTurnZh: '租客僅負責內部維修 (Interior, fair wear & tear excepted)',
+          wrongTurnEn: 'Tenant maintains interior only'
+        },
+        {
+          topicZh: '欠租沒收門檻',
+          topicEn: 'Unpaid Rent Forfeiture Window',
+          correctZh: '欠租達 15 天 (15 Days)',
+          correctEn: '15 Days unpaid rent',
+          wrongTurnZh: '14 天是常見干擾選項 (14 days is a false distractor)',
+          wrongTurnEn: '14 days is FALSE'
+        }
+      ],
       examTrapsZh: [
         ' Trap: 宣稱「住宅租客欠租 14 天業主即可沒收租賃權」——錯誤！法定門檻為 15 天 (15 Days)。',
         ' Trap: 宣稱「租客退租 (Surrender) 或出租商業寫字樓時需提交 CR109」——錯誤！僅適用於住宅之新租與續租。'
@@ -357,6 +460,7 @@ export default function CoursePage() {
   const [selectedTrack, setSelectedTrack] = useState<'sqe' | 'eaqe'>('sqe');
   const [examDate, setExamDate] = useState<string>('2026-11-18');
   const [activeLessonBlock, setActiveLessonBlock] = useState<TopicBlock | null>(null);
+  const [modalTab, setModalTab] = useState<'notes' | 'mnemonic' | 'confuse' | 'traps'>('notes');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -398,8 +502,8 @@ export default function CoursePage() {
             </h1>
             <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl leading-relaxed">
               {isZh 
-                ? '點擊任何單元即可開啟「驗證筆記、記憶口訣、主考官陷阱與主動檢索測試」。點擊下方按鈕可直接進入專屬題庫。'
-                : 'Click any block to open statutory notes, memory hooks, trap registers, and active retrieval drills.'}
+                ? '點擊任何單元即可開啟「驗證筆記、記憶口訣、易混淆辨析對照表與主考官陷阱登錄」。'
+                : 'Click any block card to open statutory notes, memory hooks, Do Not Confuse pairs, and trap registers.'}
             </p>
           </div>
 
@@ -422,7 +526,7 @@ export default function CoursePage() {
           </div>
         </div>
 
-        {/* Dedicated Track Switcher Bar */}
+        {/* Track Switcher Bar */}
         <div 
           style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
           className="p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6"
@@ -523,7 +627,10 @@ export default function CoursePage() {
                 </div>
 
                 <div 
-                  onClick={() => setActiveLessonBlock(block)}
+                  onClick={() => {
+                    setActiveLessonBlock(block);
+                    setModalTab('notes');
+                  }}
                   className="cursor-pointer space-y-2 group-hover:text-indigo-400 transition"
                 >
                   <h3 className="text-lg font-bold flex items-center justify-between">
@@ -547,11 +654,14 @@ export default function CoursePage() {
                   </div>
 
                   <button
-                    onClick={() => setActiveLessonBlock(block)}
+                    onClick={() => {
+                      setActiveLessonBlock(block);
+                      setModalTab('notes');
+                    }}
                     className="text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center gap-1 cursor-pointer"
                   >
                     <BookOpen className="h-3.5 w-3.5" />
-                    <span>{isZh ? '閱讀課文' : 'Read Lesson'}</span>
+                    <span>{isZh ? '開啟完整課文' : 'Deep-Dive Lesson'}</span>
                   </button>
                 </div>
 
@@ -571,12 +681,12 @@ export default function CoursePage() {
 
       </div>
 
-      {/* Interactive Lesson Modal Drawer */}
+      {/* Deep-Dive Interactive Lesson Modal */}
       {activeLessonBlock && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
           <div 
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-            className="w-full max-w-3xl max-h-[88vh] overflow-y-auto p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 relative scrollbar-thin"
+            className="w-full max-w-4xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 relative scrollbar-thin"
           >
             {/* Modal Header */}
             <div className="flex items-start justify-between border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
@@ -602,84 +712,186 @@ export default function CoursePage() {
               </button>
             </div>
 
-            {/* Lesson Body */}
+            {/* Modal Navigation Sub-Tabs */}
+            <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto scrollbar-none" style={{ borderColor: 'var(--border-color)' }}>
+              <button
+                onClick={() => setModalTab('notes')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                  modalTab === 'notes'
+                    ? 'bg-emerald-600 text-white shadow-md'
+                    : 'bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50'
+                }`}
+              >
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>{isZh ? '📖 驗證筆記 (Verified Notes)' : '📖 Verified Notes'}</span>
+              </button>
+
+              <button
+                onClick={() => setModalTab('mnemonic')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                  modalTab === 'mnemonic'
+                    ? 'bg-amber-500 text-slate-950 font-extrabold shadow-md'
+                    : 'bg-slate-900/60 border border-slate-800 hover:border-amber-500/50'
+                }`}
+              >
+                <Lightbulb className="h-3.5 w-3.5" />
+                <span>{isZh ? '🧠 記憶圖像 (Mnemonic & Loci)' : '🧠 Mnemonic & Loci'}</span>
+              </button>
+
+              <button
+                onClick={() => setModalTab('confuse')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                  modalTab === 'confuse'
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-slate-900/60 border border-slate-800 hover:border-indigo-500/50'
+                }`}
+              >
+                <Scale className="h-3.5 w-3.5" />
+                <span>{isZh ? '⚔️ 易混淆辨析 (Do Not Confuse)' : '⚔️ Do Not Confuse'}</span>
+              </button>
+
+              <button
+                onClick={() => setModalTab('traps')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                  modalTab === 'traps'
+                    ? 'bg-rose-600 text-white shadow-md'
+                    : 'bg-slate-900/60 border border-slate-800 hover:border-rose-500/50'
+                }`}
+              >
+                <AlertTriangle className="h-3.5 w-3.5" />
+                <span>{isZh ? '🎯 考官陷阱 (Trap Register)' : '🎯 Trap Register'}</span>
+              </button>
+            </div>
+
+            {/* Modal Body Tab Content */}
             <div className="space-y-6 text-xs sm:text-sm">
 
-              {/* Overview Box */}
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
-                <span className="font-bold text-indigo-400 uppercase font-mono block">
-                  {isZh ? '【 學習要求與考綱大綱 】' : '[ Syllabus Expectation ]'}
-                </span>
-                <p className="opacity-90 leading-relaxed font-medium">
-                  {isZh ? activeLessonBlock.lesson.overviewZh : activeLessonBlock.lesson.overviewEn}
-                </p>
-              </div>
-
-              {/* Verified Statutory Notes */}
-              <div className="space-y-3">
-                <h3 className="font-extrabold text-base flex items-center gap-2 text-emerald-400">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>{isZh ? '驗證真題筆記 (Verified Notes)' : 'Verified Statutory Notes'}</span>
-                </h3>
-
-                <ul className="space-y-2.5">
-                  {(isZh ? activeLessonBlock.lesson.verifiedNotesZh : activeLessonBlock.lesson.verifiedNotesEn).map((note, idx) => (
-                    <li key={idx} className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 leading-relaxed font-medium">
-                      {note}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Memory Hook / Mnemonic */}
-              <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
-                <div className="flex items-center gap-2 text-amber-400 font-extrabold">
-                  <Lightbulb className="h-4 w-4" />
-                  <span>{isZh ? '記憶工程圖像口訣 (Memory Hook)' : 'Memory Engineering Mnemonic'}</span>
-                </div>
-                <p className="font-bold text-amber-200 leading-relaxed">
-                  {isZh ? activeLessonBlock.lesson.memoryHookZh : activeLessonBlock.lesson.memoryHookEn}
-                </p>
-              </div>
-
-              {/* Active Retrieval Prompts */}
-              <div className="space-y-3">
-                <h3 className="font-extrabold text-base flex items-center gap-2 text-indigo-400">
-                  <HelpCircle className="h-4 w-4" />
-                  <span>{isZh ? '主動檢索測試 (Active Retrieval Questions)' : 'Active Retrieval Prompts'}</span>
-                </h3>
-
-                <div className="p-4 rounded-2xl border border-indigo-500/20 space-y-2 bg-indigo-950/20">
-                  {(isZh ? activeLessonBlock.lesson.retrievalQuestionsZh : activeLessonBlock.lesson.retrievalQuestionsEn).map((q, idx) => (
-                    <p key={idx} className="font-semibold leading-relaxed">
-                      {q}
+              {/* Tab 1: Verified Notes */}
+              {modalTab === 'notes' && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-1">
+                    <span className="font-bold text-indigo-400 uppercase font-mono block">
+                      {isZh ? '【 官方考綱要求 】' : '[ Syllabus Requirement ]'}
+                    </span>
+                    <p className="opacity-90 leading-relaxed font-medium">
+                      {isZh ? activeLessonBlock.lesson.overviewZh : activeLessonBlock.lesson.overviewEn}
                     </p>
-                  ))}
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="font-extrabold text-base flex items-center gap-2 text-emerald-400">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>{isZh ? '官方驗證真題筆記 (Exhaustive Verified Notes)' : 'Exhaustive Verified Notes'}</span>
+                    </h3>
+
+                    <ul className="space-y-2.5">
+                      {(isZh ? activeLessonBlock.lesson.verifiedNotesZh : activeLessonBlock.lesson.verifiedNotesEn).map((note, idx) => (
+                        <li key={idx} className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 leading-relaxed font-medium">
+                          {note}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Master Exam Traps */}
-              <div className="space-y-3">
-                <h3 className="font-extrabold text-base flex items-center gap-2 text-rose-400">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span>{isZh ? '主考官陷阱登錄 (Master Exam Traps)' : 'Master Exam Trap Register'}</span>
-                </h3>
-
-                <div className="space-y-2">
-                  {(isZh ? activeLessonBlock.lesson.examTrapsZh : activeLessonBlock.lesson.examTrapsEn).map((trap, idx) => (
-                    <div key={idx} className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-200 font-bold leading-relaxed">
-                      {trap}
+              {/* Tab 2: Mnemonic & Loci */}
+              {modalTab === 'mnemonic' && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+                    <div className="flex items-center gap-2 text-amber-400 font-extrabold text-base">
+                      <Lightbulb className="h-5 w-5" />
+                      <span>{isZh ? '記憶工程圖像口訣 (Dual Coding Mnemonic)' : 'Dual Coding Mnemonic'}</span>
                     </div>
-                  ))}
+                    <p className="font-bold text-amber-200 text-sm leading-relaxed">
+                      {isZh ? activeLessonBlock.lesson.memoryHookZh : activeLessonBlock.lesson.memoryHookEn}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3 pt-2">
+                    <h3 className="font-extrabold text-base flex items-center gap-2 text-indigo-400">
+                      <HelpCircle className="h-4 w-4" />
+                      <span>{isZh ? '主動檢索測試 (Active Retrieval Questions)' : 'Active Retrieval Questions'}</span>
+                    </h3>
+
+                    <div className="p-4 rounded-2xl border border-indigo-500/20 space-y-3 bg-indigo-950/20">
+                      {(isZh ? activeLessonBlock.lesson.retrievalQuestionsZh : activeLessonBlock.lesson.retrievalQuestionsEn).map((q, idx) => (
+                        <p key={idx} className="font-semibold leading-relaxed">
+                          {q}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Tab 3: Do Not Confuse */}
+              {modalTab === 'confuse' && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-base flex items-center gap-2 text-indigo-400">
+                      <Scale className="h-4 w-4" />
+                      <span>{isZh ? '易混淆對照表 (Do Not Confuse Pair Tables)' : 'Do Not Confuse Pair Tables'}</span>
+                    </h3>
+                    <p className="text-xs opacity-75">
+                      {isZh ? '90% 的失分來自概念混淆而非盲區。請務必成對對照記憶：' : 'Most marks are lost through confusing two similar rules. Learn them as pairs:'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {activeLessonBlock.lesson.doNotConfusePairs.map((pair, idx) => (
+                      <div key={idx} className="p-4 rounded-2xl border border-slate-800 bg-slate-900/80 space-y-3">
+                        <span className="text-xs font-mono font-bold text-amber-400 block">
+                          Topic: {isZh ? pair.topicZh : pair.topicEn}
+                        </span>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-semibold space-y-1">
+                            <span className="font-mono font-bold block text-emerald-400">✓ 正確條文 (Correct Rule)</span>
+                            <p>{isZh ? pair.correctZh : pair.correctEn}</p>
+                          </div>
+
+                          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 font-semibold space-y-1">
+                            <span className="font-mono font-bold block text-rose-400">✗ 常犯陷阱 (Wrong Turn)</span>
+                            <p>{isZh ? pair.wrongTurnZh : pair.wrongTurnEn}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Tab 4: Trap Register */}
+              {modalTab === 'traps' && (
+                <div className="space-y-4 animate-in fade-in duration-200">
+                  <div className="space-y-2">
+                    <h3 className="font-extrabold text-base flex items-center gap-2 text-rose-400">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span>{isZh ? '主考官假命題陷阱登錄 (Master Exam Trap Register)' : 'Master Exam Trap Register'}</span>
+                    </h3>
+                    <p className="text-xs opacity-75">
+                      {isZh ? '下列選項均為地產代理監管局 (EAA) 試題庫中出現過的錯誤命題 (FALSE)：' : 'The following are false statements directly marked incorrect in official EAA exam papers:'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {(isZh ? activeLessonBlock.lesson.examTrapsZh : activeLessonBlock.lesson.examTrapsEn).map((trap, idx) => (
+                      <div key={idx} className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 font-bold leading-relaxed flex items-start gap-2.5">
+                        <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+                        <span>{trap}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             </div>
 
-            {/* Modal Bottom CTA */}
+            {/* Modal Bottom Control Footer */}
             <div className="pt-4 border-t flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderColor: 'var(--border-color)' }}>
               <span className="text-xs font-mono font-bold opacity-60">
-                {isZh ? '閱讀完成？立即進行刷題測驗' : 'Lesson complete? Launch topic quiz'}
+                {isZh ? '準備好測驗了嗎？進入專屬題庫' : 'Ready to test your memory? Launch block quiz'}
               </span>
 
               <Link
