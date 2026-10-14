@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { getUserQuota, canRunExam, consumeQuota, UserQuota } from '@/app/utils/quotaManager';
-import { PRESET_EXAM_BANK, getExamSuiteByMode, Question } from '@/app/data/examPool';
+import { getExamSuiteByMode, Question } from '@/app/data/examPool';
 import { 
   Timer, 
   CheckCircle2, 
@@ -15,7 +15,6 @@ import {
   BarChart3,
   ArrowRight,
   BookOpen,
-  LayoutDashboard,
   Sparkles,
   Zap,
   ShieldAlert
