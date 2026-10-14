@@ -18,9 +18,6 @@ import {
   HelpCircle,
   AlertTriangle,
   ChevronRight,
-  ShieldCheck,
-  Zap,
-  Layers,
   Scale
 } from 'lucide-react';
 
@@ -352,7 +349,7 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       memoryHookZh: '【P-O-I-M 四大抽屜🗄️】公司賣家一定要開啟「第二個櫃桶」(公司註冊處查冊)！',
       memoryHookEn: 'Mnemonic: P-O-I-M 4-Drawer Cabinet🗄️. For company vendors, open the second cabinet (Companies Registry).',
       retrievalQuestionsZh: [
-         me => '1. 土地查冊 P-O-I-M 代表哪四個欄位？',
+        '1. 土地查冊 P-O-I-M 代表哪四個欄位？',
         '2. 賣家是一家有限公司時，除了土地查冊外，還必須進行甚麼查冊？',
         '3. 佔用許可證 (OP) 可以查到甚麼資料？查不到甚麼資料？'
       ],
