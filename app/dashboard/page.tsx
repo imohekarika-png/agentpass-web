@@ -5,63 +5,59 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
-  BrainCircuit, 
+  LayoutDashboard, 
+  Calendar, 
   CheckCircle2, 
-  Clock, 
-  TrendingUp,
-  Award,
-  RotateCcw
+  RotateCw, 
+  Award, 
+  AlertTriangle, 
+  Zap, 
+  BookOpen,
+  ArrowRight,
+  TrendingUp
 } from 'lucide-react';
 
 interface ReviewItem {
   id: string;
-  topicZh: string;
-  topicEn: string;
-  intervalDay: number;
-  dueDate: string;
-  status: 'due' | 'upcoming' | 'completed';
+  blockNum: string;
+  titleZh: string;
+  titleEn: string;
+  lastReviewed: string;
+  nextReviewDate: string;
+  ladderStage: 'Day 1' | 'Day 3' | 'Day 7' | 'Day 16' | 'Day 35';
+  accuracy: number;
 }
 
-const INITIAL_REVIEWS: ReviewItem[] = [
+const DEFAULT_REVIEWS: ReviewItem[] = [
   {
-    id: 'r1',
-    topicZh: 'Cap. 511 牌照條例與營業地址申報 (30天規則)',
-    topicEn: 'Cap. 511 Licensing & Business Address Rules',
-    intervalDay: 1,
-    dueDate: 'Today',
-    status: 'due'
+    id: 'b1',
+    blockNum: 'Block 01',
+    titleZh: 'EAA 架構與持牌資格',
+    titleEn: 'EAA Structure & Licensing Qualifications',
+    lastReviewed: '2026-10-12',
+    nextReviewDate: '2026-10-15',
+    ladderStage: 'Day 3',
+    accuracy: 85
   },
   {
-    id: 'r2',
-    topicZh: '屋宇署 s.24 違例建築物清拆令 (UBW)',
-    topicEn: 'Buildings Ordinance s.24 Demolition Orders',
-    intervalDay: 3,
-    dueDate: 'Tomorrow',
-    status: 'upcoming'
+    id: 'b4',
+    blockNum: 'Block 04',
+    titleZh: '客戶存款 (Client Money) 託管與獨立信託帳戶',
+    titleEn: 'Client Money Custody & Trust Accounts',
+    lastReviewed: '2026-10-13',
+    nextReviewDate: '2026-10-14',
+    ladderStage: 'Day 1',
+    accuracy: 60
   },
   {
-    id: 'r3',
-    topicZh: 'Cap. 7 租務條例與無保障租務解約程序',
-    topicEn: 'Cap. 7 Landlord & Tenant Ordinance Terminations',
-    intervalDay: 7,
-    dueDate: 'In 4 Days',
-    status: 'upcoming'
-  },
-  {
-    id: 'r4',
-    topicZh: '表格 3 至 表格 6 (Form 3-6) 必填佣金條款',
-    topicEn: 'Form 3-6 Mandatory Commission Terms',
-    intervalDay: 16,
-    dueDate: 'In 12 Days',
-    status: 'upcoming'
-  },
-  {
-    id: 'r5',
-    topicZh: 'Cap. 511C 地產代理協議規例與聲明書備存',
-    topicEn: 'Cap. 511C Estate Agency Agreements & Record Keeping',
-    intervalDay: 35,
-    dueDate: 'In 28 Days',
-    status: 'upcoming'
+    id: 'b16',
+    blockNum: 'Block 16',
+    titleZh: '業主與租客 (綜合) 條例 Cap. 7',
+    titleEn: 'Landlord & Tenant Ordinance Cap. 7',
+    lastReviewed: '2026-10-07',
+    nextReviewDate: '2026-10-14',
+    ladderStage: 'Day 7',
+    accuracy: 50
   }
 ];
 
@@ -70,124 +66,125 @@ export default function DashboardPage() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const [reviews, setReviews] = useState<ReviewItem[]>(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<ReviewItem[]>(DEFAULT_REVIEWS);
+  const [selectedTrack, setSelectedTrack] = useState<string>('sqe');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('agentpass_spaced_reviews');
-      if (saved) {
-        try {
-          setReviews(JSON.parse(saved));
-        } catch {
-          setReviews(INITIAL_REVIEWS);
-        }
-      }
+      const savedTrack = localStorage.getItem('agentpass_selected_track');
+      if (savedTrack) setSelectedTrack(savedTrack);
     }
   }, []);
 
-  const saveReviews = (updated: ReviewItem[]) => {
-    setReviews(updated);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('agentpass_spaced_reviews', JSON.stringify(updated));
-    }
-  };
-
-  const markComplete = (id: string) => {
-    const updated = reviews.map(item => item.id === id ? { ...item, status: 'completed' as const } : item);
-    saveReviews(updated);
-  };
-
-  const resetQueue = () => {
-    saveReviews(INITIAL_REVIEWS);
-  };
-
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-10 px-4 sm:px-6">
+    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-6xl mx-auto space-y-10">
-        
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-2xl bg-slate-900 border border-slate-800">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-3.5 py-1 text-xs font-bold text-emerald-300 mb-2">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>{isZh ? '1-3-7-16-35 間隔重複溫習儀表板' : 'Ebbinghaus Spaced Review Dashboard'}</span>
+
+        {/* Header Banner */}
+        <div 
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
+          className="p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
+        >
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-400">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              <span>Spaced Repetition Engine (1-3-7-16-35 Ladder)</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white">
-              {isZh ? '個人學員溫習進度與復習階梯' : 'Personal Study & Review Progress'}
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
+              {isZh ? '學員溫習儀表板與記憶階梯' : 'Student Review Dashboard'}
             </h1>
+            <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl">
+              {isZh ? '根據艾賓浩斯記憶曲線自動推算最佳複習時間點，精準消滅弱點單元。' : 'Automated spaced repetition review schedules tracking weak blocks.'}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={resetQueue}
-              className="p-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
-              title={isZh ? '重置溫習進度' : 'Reset Progress'}
-            >
-              <RotateCcw className="h-4 w-4" />
-            </button>
-
+          <div className="flex items-center gap-3 shrink-0">
             <Link
               href="/mock-exam"
-              className="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition flex items-center gap-2 shadow-lg shadow-indigo-600/20"
+              className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-2"
             >
               <Award className="h-4 w-4" />
-              <span>{isZh ? '進入全真模擬考場' : 'Take Timed Mock Exam'}</span>
+              <span>{isZh ? '進入全真模擬考' : 'Full Mock Exam'}</span>
             </Link>
           </div>
         </div>
 
-        {/* Ebbinghaus Review Queue */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h2 className="text-lg font-bold text-white flex items-center gap-2">
-              <BrainCircuit className="h-5 w-5 text-indigo-400" />
-              <span>{isZh ? '1-3-7-16-35 記憶卡片 (Spaced Review Queue)' : 'Spaced Review Queue'}</span>
-            </h2>
-            <span className="text-xs font-mono text-slate-400">
-              {reviews.filter(r => r.status === 'completed').length} / {reviews.length} {isZh ? '已複習' : 'Completed'}
+        {/* Performance Overview Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-6 rounded-3xl border shadow-lg space-y-2"
+          >
+            <span className="text-xs font-mono font-bold uppercase opacity-60 block">Active Track</span>
+            <span className="text-xl font-black text-indigo-400">
+              {selectedTrack.toUpperCase()} {selectedTrack === 'sqe' ? '(16 Blocks)' : '(20 Blocks)'}
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-6 rounded-3xl border shadow-lg space-y-2"
+          >
+            <span className="text-xs font-mono font-bold uppercase opacity-60 block">Due Today for Review</span>
+            <span className="text-xl font-black text-amber-400">2 Topic Blocks</span>
+          </div>
+
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="p-6 rounded-3xl border shadow-lg space-y-2"
+          >
+            <span className="text-xs font-mono font-bold uppercase opacity-60 block">Overall Mastery Level</span>
+            <span className="text-xl font-black text-emerald-400">68% Pass Confidence</span>
+          </div>
+        </div>
+
+        {/* Spaced Repetition Review Table */}
+        <div 
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+          className="p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6"
+        >
+          <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="flex items-center gap-2 text-base font-extrabold">
+              <Calendar className="h-5 w-5 text-amber-400" />
+              <span>{isZh ? '今日待溫習單元 (Due for Spaced Review)' : 'Today\'s Spaced Repetition Queue'}</span>
+            </div>
+            <span className="text-xs font-mono opacity-60">Ladder: 1 - 3 - 7 - 16 - 35 Days</span>
+          </div>
+
+          <div className="space-y-3">
             {reviews.map((item) => (
               <div 
                 key={item.id}
-                className={`p-5 rounded-2xl border transition space-y-3 ${
-                  item.status === 'completed'
-                    ? 'bg-slate-950/40 border-slate-800 opacity-60'
-                    : item.status === 'due'
-                    ? 'bg-indigo-950/20 border-indigo-500/40'
-                    : 'bg-slate-900 border-slate-800'
-                }`}
+                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-slate-800 text-indigo-300">
-                    Day {item.intervalDay} Review
-                  </span>
-                  <span className="text-xs font-semibold text-slate-400 flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    <span>{item.dueDate}</span>
-                  </span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-mono font-bold text-indigo-400">
+                      {item.blockNum}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono font-bold text-amber-400">
+                      {item.ladderStage}
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-bold">
+                    {isZh ? item.titleZh : item.titleEn}
+                  </h3>
                 </div>
 
-                <h3 className="text-xs font-bold text-white leading-relaxed">
-                  {isZh ? item.topicZh : item.topicEn}
-                </h3>
-
-                {item.status !== 'completed' ? (
-                  <button
-                    onClick={() => markComplete(item.id)}
-                    className="w-full py-2.5 rounded-xl bg-slate-950 hover:bg-emerald-950 border border-slate-800 hover:border-emerald-500 text-xs font-bold text-slate-300 hover:text-emerald-300 transition flex items-center justify-center gap-1.5 cursor-pointer"
-                  >
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                    <span>{isZh ? '標記為已複習' : 'Mark Reviewed'}</span>
-                  </button>
-                ) : (
-                  <div className="text-xs font-bold text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>{isZh ? '已完成記憶強化' : 'Memory Reinforced'}</span>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <span className="text-xs font-mono font-bold block text-emerald-400">{item.accuracy}% Accuracy</span>
+                    <span className="text-[10px] opacity-60">Next: {item.nextReviewDate}</span>
                   </div>
-                )}
+
+                  <Link
+                    href={`/quiz?block=${item.id}`}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5"
+                  >
+                    <span>{isZh ? '立即複習' : 'Review Now'}</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
