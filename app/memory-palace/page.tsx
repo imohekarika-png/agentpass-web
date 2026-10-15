@@ -18,7 +18,8 @@ import {
   Scale, 
   Layers,
   MapPin,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 
 interface LociStation {
