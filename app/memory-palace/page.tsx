@@ -11,15 +11,16 @@ import {
   Lightbulb, 
   CheckCircle2, 
   AlertTriangle, 
-  ArrowRight, 
   FileText, 
   Building2, 
   Key, 
   Scale, 
   Layers,
   MapPin,
+  ShieldCheck,
   ChevronRight,
-  ShieldCheck
+  Eye,
+  Maximize2
 } from 'lucide-react';
 
 interface LociStation {
@@ -42,6 +43,7 @@ interface LociStation {
   linkedRoute?: string;
   linkedRouteLabelZh?: string;
   linkedRouteLabelEn?: string;
+  coords: { x: number; y: number; labelX: number; labelY: number };
 }
 
 const LOCI_STATIONS: LociStation[] = [
@@ -61,7 +63,8 @@ const LOCI_STATIONS: LociStation[] = [
     mnemonicHookZh: '口訣：【18 - 5 - 12 - F&P】。工作經驗 (Work Experience) 完全不屬於柱石之一！',
     mnemonicHookEn: 'Mnemonic: 18 - 5 - 12 - F&P. Work Experience is completely absent from the pillars!',
     examTrapZh: ' Trap: 考官常宣稱「具備 3 年行業經驗可獲評為 Fit & Proper」——錯誤！EAA 評估不考慮工作經驗。',
-    examTrapEn: ' Trap: "3 years experience counts for Fit & Proper assessment" — FALSE. EAA ignores work experience.'
+    examTrapEn: ' Trap: "3 years experience counts for Fit & Proper assessment" — FALSE. EAA ignores work experience.',
+    coords: { x: 120, y: 150, labelX: 120, labelY: 195 }
   },
   {
     id: 'loci-2',
@@ -79,7 +82,8 @@ const LOCI_STATIONS: LociStation[] = [
     mnemonicHookZh: '口訣：【31 天郵筒】。注意：每一營業地點必須由持「地產代理牌照 (個人)」之經理獨立有效控制。',
     mnemonicHookEn: 'Mnemonic: The 31-Day Mailbox. Every branch requires separate effective control by an Individual Estate Agent License holder.',
     examTrapZh: ' Trap: 宣稱「分行開張只需通知開張日期，無需指派代理牌照持有人經理」——錯誤！',
-    examTrapEn: ' Trap: "Branch opening only requires reporting the address without a licensed agent manager" — FALSE.'
+    examTrapEn: ' Trap: "Branch opening only requires reporting the address without a licensed agent manager" — FALSE.',
+    coords: { x: 380, y: 150, labelX: 380, labelY: 195 }
   },
   {
     id: 'loci-3',
@@ -97,7 +101,8 @@ const LOCI_STATIONS: LociStation[] = [
     mnemonicHookZh: '口訣：【3 - 2 - 14 - 3】。客戶訂金絕對不能存入代理營業戶口或個人戶口！',
     mnemonicHookEn: 'Mnemonic: 3 - 2 - 14 - 3. Client deposits must NEVER enter an agency office or personal bank account!',
     examTrapZh: ' Trap: 宣稱「代理可直接將買家訂金存入賣方律師樓戶口」——錯誤！除非有事前書面指示。',
-    examTrapEn: ' Trap: "Agent can directly deposit client money into vendor solicitor account" — FALSE unless prior written instruction exists.'
+    examTrapEn: ' Trap: "Agent can directly deposit client money into vendor solicitor account" — FALSE unless prior written instruction exists.',
+    coords: { x: 640, y: 150, labelX: 640, labelY: 195 }
   },
   {
     id: 'loci-4',
@@ -115,7 +120,8 @@ const LOCI_STATIONS: LociStation[] = [
     mnemonicHookZh: '口訣：【單數賣 🏷️、雙數買 🛒】。Form 1 & 2 是資料單 (Information)，Form 3 至 6 是約束協議！',
     mnemonicHookEn: 'Mnemonic: Odd Sells 🏷️, Even Buys 🛒. Forms 1 & 2 are Info forms, Forms 3 to 6 are Binding Agreements.',
     examTrapZh: ' Trap: 宣稱「出租商業寫字樓必須簽署 Form 5」——錯誤！法定表格僅適用於住宅物業。',
-    examTrapEn: ' Trap: "Leasing commercial office requires Form 5" — FALSE. Prescribed forms apply only to residential properties.'
+    examTrapEn: ' Trap: "Leasing commercial office requires Form 5" — FALSE. Prescribed forms apply only to residential properties.',
+    coords: { x: 120, y: 350, labelX: 120, labelY: 395 }
   },
   {
     id: 'loci-5',
@@ -136,7 +142,8 @@ const LOCI_STATIONS: LociStation[] = [
     examTrapEn: ' Trap: "Business Registration (BR) reveals corporate floating charges" — FALSE. Requires Companies Registry search.',
     linkedRoute: '/case-study',
     linkedRouteLabelZh: '進入 Part II 個案實務 & POIM 查冊',
-    linkedRouteLabelEn: 'Launch Part II Case Study & POIM Viewer'
+    linkedRouteLabelEn: 'Launch Part II Case Study & POIM Viewer',
+    coords: { x: 380, y: 350, labelX: 380, labelY: 395 }
   },
   {
     id: 'loci-6',
@@ -154,7 +161,8 @@ const LOCI_STATIONS: LociStation[] = [
     mnemonicHookZh: '口訣：【2-2-2 鏡像 🪞 與 15 天】。住宅新租續租必須於 1 個月內提交 Form CR109！',
     mnemonicHookEn: 'Mnemonic: 2-2-2 Mirror 🪞 & 15 Days. Residential new/renewals require Form CR109 within 1 month!',
     examTrapZh: ' Trap: 宣稱「住宅租客欠租 14 天業主即可收樓」——錯誤！法定門檻為 15 天。',
-    examTrapEn: ' Trap: "Landlord can forfeit for unpaid rent after 14 days" — FALSE. Threshold is 15 Days.'
+    examTrapEn: ' Trap: "Landlord can forfeit for unpaid rent after 14 days" — FALSE. Threshold is 15 Days.',
+    coords: { x: 640, y: 350, labelX: 640, labelY: 395 }
   }
 ];
 
@@ -184,8 +192,8 @@ export default function MemoryPalacePage() {
             </h1>
             <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl leading-relaxed">
               {isZh 
-                ? '點擊下方宮殿記憶驛站，以空間視覺圖像錨定法規考點，實現零遺忘長效記憶。'
-                : 'Click through memory loci stations to anchor complex statutory rules with spatial visual imagery.'}
+                ? '點擊下方宮殿藍圖或記憶驛站，以空間視覺圖像錨定法規考點，實現零遺忘長效記憶。'
+                : 'Click through the architectural blueprint or memory loci stations to anchor statutory rules with spatial visual imagery.'}
             </p>
           </div>
 
@@ -208,14 +216,117 @@ export default function MemoryPalacePage() {
           </div>
         </div>
 
-        {/* Station Navigation Grid Map */}
+        {/* Interactive Architectural Blueprint Visual Aid */}
+        <div 
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+          className="p-6 rounded-3xl border shadow-xl space-y-4"
+        >
+          <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400">
+              <Eye className="h-4 w-4" />
+              <span>{isZh ? '宮殿建築平面視覺藍圖 (Architectural Loci Floorplan Blueprint)' : 'Architectural Loci Floorplan Blueprint'}</span>
+            </div>
+            <span className="text-[10px] font-mono px-2.5 py-1 rounded-md bg-slate-800 text-slate-300">
+              {isZh ? '點擊房間節點進行視察' : 'Click Room Nodes to Inspect'}
+            </span>
+          </div>
+
+          <div className="relative w-full overflow-x-auto rounded-2xl bg-slate-950 p-2 border border-slate-800">
+            <svg viewBox="0 0 760 480" className="w-full min-w-[650px] h-auto">
+              {/* Floorplan Outer Boundary */}
+              <rect x="10" y="10" width="740" height="460" rx="20" fill="#090d16" stroke="#1e293b" strokeWidth="3" />
+              
+              {/* Grid Layout Lines */}
+              <path d="M 260 10 L 260 470 M 510 10 L 510 470 M 10 240 L 750 240" stroke="#1e293b" strokeWidth="2" strokeDasharray="6 6" />
+
+              {/* Connecting Pathway Line */}
+              <path d="M 120 150 L 380 150 L 640 150 L 640 350 L 380 350 L 120 350" fill="none" stroke="#f59e0b" strokeWidth="3" strokeDasharray="8 8" opacity="0.6" />
+
+              {/* Render Room Nodes */}
+              {LOCI_STATIONS.map((station) => {
+                const isActive = station.id === activeStation.id;
+
+                return (
+                  <g key={station.id} onClick={() => setActiveStation(station)} className="cursor-pointer group">
+                    {/* Room Box */}
+                    <rect 
+                      x={station.coords.x - 100} 
+                      y={station.coords.y - 70} 
+                      width="200" 
+                      height="120" 
+                      rx="16" 
+                      fill={isActive ? '#1e1b4b' : '#0f172a'} 
+                      stroke={isActive ? '#f59e0b' : '#334155'} 
+                      strokeWidth={isActive ? '3' : '1.5'} 
+                      className="transition-all duration-300 group-hover:stroke-amber-400"
+                    />
+
+                    {/* Glowing Pulse Ring for Active Node */}
+                    {isActive && (
+                      <circle cx={station.coords.x} cy={station.coords.y - 15} r="28" fill="#f59e0b" opacity="0.15" className="animate-ping" />
+                    )}
+
+                    {/* Center Icon Circle */}
+                    <circle 
+                      cx={station.coords.x} 
+                      cy={station.coords.y - 15} 
+                      r="20" 
+                      fill={isActive ? '#f59e0b' : '#1e293b'} 
+                      stroke={isActive ? '#fef08a' : '#475569'} 
+                      strokeWidth="2" 
+                    />
+
+                    {/* Room Number Badge */}
+                    <text 
+                      x={station.coords.x} 
+                      cy={station.coords.y - 10} 
+                      textAnchor="middle" 
+                      fill={isActive ? '#0f172a' : '#f59e0b'} 
+                      fontSize="10" 
+                      fontWeight="900" 
+                      fontFamily="monospace"
+                    >
+                      {station.num.replace('Station ', 'S')}
+                    </text>
+
+                    {/* Room Title Label */}
+                    <text 
+                      x={station.coords.x} 
+                      cy={station.coords.y + 22} 
+                      textAnchor="middle" 
+                      fill={isActive ? '#fef08a' : '#e2e8f0'} 
+                      fontSize="11" 
+                      fontWeight="800"
+                    >
+                      {isZh ? station.titleZh.slice(0, 12) + '...' : station.titleEn.slice(0, 14) + '...'}
+                    </text>
+
+                    {/* Sub-location Label */}
+                    <text 
+                      x={station.coords.x} 
+                      cy={station.coords.y + 36} 
+                      textAnchor="middle" 
+                      fill={isActive ? '#f59e0b' : '#64748b'} 
+                      fontSize="9" 
+                      fontWeight="600"
+                    >
+                      {isZh ? station.locationZh.split(' ')[0] : station.locationEn.split(' ')[0]}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+        </div>
+
+        {/* Station Navigation Button Cards */}
         <div 
           style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
           className="p-6 rounded-3xl border shadow-xl space-y-4"
         >
           <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
             <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
-              {isZh ? '宮殿空間驛站導覽 (Palace Spatial Route Map):' : 'Palace Spatial Route Map:'}
+              {isZh ? '宮殿空間驛站列表 (Spatial Loci List):' : 'Spatial Loci List:'}
             </span>
             <span className="text-xs font-mono font-bold text-amber-400">
               6 Spatial Loci Stations
@@ -223,7 +334,7 @@ export default function MemoryPalacePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {LOCI_STATIONS.map((station, idx) => {
+            {LOCI_STATIONS.map((station) => {
               const IconComp = station.icon;
               const isActive = station.id === activeStation.id;
 
@@ -260,7 +371,7 @@ export default function MemoryPalacePage() {
           </div>
         </div>
 
-        {/* Selected Loci Station Deep-Dive Viewer */}
+        {/* Selected Loci Station Deep-Dive Inspector */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
