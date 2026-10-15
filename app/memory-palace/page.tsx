@@ -6,40 +6,167 @@ import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   Compass, 
-  MapPin, 
+  BookOpen, 
   Sparkles, 
-  ShieldAlert, 
-  Layers, 
   Lightbulb, 
-  ChevronDown, 
-  ChevronUp,
-  BookOpen,
-  ArrowRight
+  CheckCircle2, 
+  AlertTriangle, 
+  ArrowRight, 
+  FileText, 
+  Building2, 
+  Key, 
+  Scale, 
+  Layers,
+  MapPin,
+  ChevronRight
 } from 'lucide-react';
+
+interface LociStation {
+  id: string;
+  num: string;
+  titleZh: string;
+  titleEn: string;
+  locationZh: string;
+  locationEn: string;
+  icon: any;
+  blockId: string;
+  statuteRefZh: string;
+  statuteRefEn: string;
+  spatialSceneZh: string;
+  spatialSceneEn: string;
+  mnemonicHookZh: string;
+  mnemonicHookEn: string;
+  examTrapZh: string;
+  examTrapEn: string;
+  linkedRoute?: string;
+  linkedRouteLabelZh?: string;
+  linkedRouteLabelEn?: string;
+}
+
+const LOCI_STATIONS: LociStation[] = [
+  {
+    id: 'loci-1',
+    num: 'Station 01',
+    titleZh: 'EAA 拱門與持牌四大柱石',
+    titleEn: 'EAA Archway & 4 Licensing Pillars',
+    locationZh: '記憶宮殿大門入口 (Entrance Gate)',
+    locationEn: 'Memory Palace Main Entrance Gate',
+    icon: Building2,
+    blockId: 'b1',
+    statuteRefZh: 'Cap. 511 s.15 & s.19',
+    statuteRefEn: 'Cap. 511 s.15 & s.19',
+    spatialSceneZh: '想像宮殿入口有四根巨型大理石柱：柱子頂部雕刻著「18 歲🎂」、「中五畢業證書📜」、「12 個月考試合格沙漏⏳」與「Fit & Proper 盾牌🛡️」。',
+    spatialSceneEn: 'Visualize four giant marble pillars at the entrance arch: carved with "Age 18🎂", "Form 5 Certificate📜", "12-Month Exam Validity Hourglass⏳", and "Fit & Proper Shield🛡️".',
+    mnemonicHookZh: '口訣：【18 - 5 - 12 - F&P】。工作經驗 (Work Experience) 完全不屬於柱石之一！',
+    mnemonicHookEn: 'Mnemonic: 18 - 5 - 12 - F&P. Work Experience is completely absent from the pillars!',
+    examTrapZh: ' Trap: 考官常宣稱「具備 3 年行業經驗可獲評為 Fit & Proper」——錯誤！EAA 評估不考慮工作經驗。',
+    examTrapEn: ' Trap: "3 years experience counts for Fit & Proper assessment" — FALSE. EAA ignores work experience.'
+  },
+  {
+    id: 'loci-2',
+    num: 'Station 02',
+    titleZh: '31 天紅色郵筒與分行管理',
+    titleEn: '31-Day Red Mailbox & Branch Control',
+    locationZh: '接待大堂 (Main Reception Lobby)',
+    locationEn: 'Main Reception Lobby',
+    icon: MapPin,
+    blockId: 'b2',
+    statuteRefZh: 'Cap. 511 s.36 & s.40',
+    statuteRefEn: 'Cap. 511 s.36 & s.40',
+    spatialSceneZh: '在大堂正中央立著一個耀眼的「31 天發光紅色郵筒 📬」。每當分行搬遷或新經理上任，工作人員必須在 31 天內將通知信投進郵筒。',
+    spatialSceneEn: 'A glowing "31-Day Red Mailbox 📬" stands in the lobby center. Whenever a branch moves or a new manager is appointed, a notice letter must be mailed within 31 days.',
+    mnemonicHookZh: '口訣：【31 天郵筒】。注意：每一營業地點必須由持「地產代理牌照 (個人)」之經理獨立有效控制。',
+    mnemonicHookEn: 'Mnemonic: The 31-Day Mailbox. Every branch requires separate effective control by an Individual Estate Agent License holder.',
+    examTrapZh: ' Trap: 宣稱「分行開張只需通知開張日期，無需指派代理牌照持有人經理」——錯誤！',
+    examTrapEn: ' Trap: "Branch opening only requires reporting the address without a licensed agent manager" — FALSE.'
+  },
+  {
+    id: 'loci-3',
+    num: 'Station 03',
+    titleZh: '客戶存款獨立金庫 (3-2-14-3)',
+    titleEn: 'Client Money Safe Deposit Vault (3-2-14-3)',
+    locationZh: '地下地下室金庫 (Underground Vault)',
+    locationEn: 'Underground Vault',
+    icon: ShieldCheck,
+    blockId: 'b4',
+    statuteRefZh: 'Cap. 511 s.43 & Client Money Rules',
+    statuteRefEn: 'Cap. 511 s.43 & Client Money Rules',
+    spatialSceneZh: '走進金庫，看見一個嚴密密封的「銀行客戶信託戶口保險箱 🏦」。牆上刻著密碼數字：【3 種法定用途 - 2 個可支付對象 - 14 天發收據 - 3 年收據保存】。',
+    spatialSceneEn: 'Step inside the vault to see a sealed "Bank Client Trust Account Safe 🏦". Etched on the wall is the formula: 3 Permitted Uses - 2 Recipients - 14 Days Receipt - 3 Years Record Retention.',
+    mnemonicHookZh: '口訣：【3 - 2 - 14 - 3】。客戶訂金絕對不能存入代理營業戶口或個人戶口！',
+    mnemonicHookEn: 'Mnemonic: 3 - 2 - 14 - 3. Client deposits must NEVER enter an agency office or personal bank account!',
+    examTrapZh: ' Trap: 宣稱「代理可直接將買家訂金存入賣方律師樓戶口」——錯誤！除非有事前書面指示。',
+    examTrapEn: ' Trap: "Agent can directly deposit client money into vendor solicitor account" — FALSE unless prior written instruction exists.'
+  },
+  {
+    id: 'loci-4',
+    num: 'Station 04',
+    titleZh: '單雙數代理協議翹翹板',
+    titleEn: 'Odd/Even Agency Agreement Seesaw',
+    locationZh: '法律檔案館 (Legal Filing Archive)',
+    locationEn: 'Legal Filing Archive',
+    icon: Layers,
+    blockId: 'b11',
+    statuteRefZh: 'Form 3, Form 4, Form 5, Form 6',
+    statuteRefEn: 'Form 3, Form 4, Form 5, Form 6',
+    spatialSceneZh: '檔案館中央有一個巨大的翹翹板：左邊坐著「單數賣方/業主 (Form 3, Form 5 🏷️)」，右邊坐著「雙數買方/租客 (Form 4, Form 6 🛒)」。翹翹板中間掛著【最長 3 個月有效期】時鐘。',
+    spatialSceneEn: 'A giant seesaw stands in the archive: "Odd Seller/Landlord (Form 3, Form 5 🏷️)" sits on the left, "Even Buyer/Tenant (Form 4, Form 6 🛒)" sits on the right. A clock reading "Max 3 Months" hangs in the middle.',
+    mnemonicHookZh: '口訣：【單數賣 🏷️、雙數買 🛒】。Form 1 & 2 是資料單 (Information)，Form 3 至 6 是約束協議！',
+    mnemonicHookEn: 'Mnemonic: Odd Sells 🏷️, Even Buys 🛒. Forms 1 & 2 are Info forms, Forms 3 to 6 are Binding Agreements.',
+    examTrapZh: ' Trap: 宣稱「出租商業寫字樓必須簽署 Form 5」——錯誤！法定表格僅適用於住宅物業。',
+    examTrapEn: ' Trap: "Leasing commercial office requires Form 5" — FALSE. Prescribed forms apply only to residential properties.'
+  },
+  {
+    id: 'loci-5',
+    num: 'Station 05',
+    titleZh: 'POIM 四大抽屜與公司雙重查冊',
+    titleEn: 'POIM 4-Drawer Cabinet & Two-Search Rule',
+    locationZh: '土地註冊處展廳 (Land Registry Gallery)',
+    locationEn: 'Land Registry Gallery',
+    icon: FileText,
+    blockId: 'b14',
+    statuteRefZh: 'Land Registration Ordinance Cap. 128',
+    statuteRefEn: 'Land Registration Ordinance Cap. 128',
+    spatialSceneZh: '展廳立著一座四層金屬抽屜柜：【(P) Property - (O) Owner - (I) Incumbrances - (M) Memorials】。每當賣家是「有限公司」時，抽屜上方會閃爍警示燈，指示開啟旁邊的【公司註冊處 (Companies Registry) 抵押櫃】！',
+    spatialSceneEn: 'A 4-drawer metal cabinet stands tall: (P) Property - (O) Owner - (I) Incumbrances - (M) Memorials. When the vendor is a Limited Company, a flashing light alerts you to open the adjacent "Companies Registry Charges Cabinet"!',
+    mnemonicHookZh: '口訣：【P-O-I-M 四抽屜 🗄️ 與 雙重查冊 (Two Searches)】。',
+    mnemonicHookEn: 'Mnemonic: P-O-I-M 4-Drawer Cabinet 🗄️ & Two-Search Rule.',
+    examTrapZh: ' Trap: 宣稱「商業登記證 (BR) 可查出公司物業是否設有浮動押記」——錯誤！必須做公司註冊處查冊。',
+    examTrapEn: ' Trap: "Business Registration (BR) reveals corporate floating charges" — FALSE. Requires Companies Registry search.',
+    linkedRoute: '/case-study',
+    linkedRouteLabelZh: '進入 Part II 個案實務 & POIM 查冊',
+    linkedRouteLabelEn: 'Launch Part II Case Study & POIM Viewer'
+  },
+  {
+    id: 'loci-6',
+    num: 'Station 06',
+    titleZh: '2-2-2 鏡像長廊與 15 天沒收權',
+    titleEn: '2-2-2 Mirror Corridor & 15-Day Forfeiture',
+    locationZh: '租務法庭長廊 (Tenancy Court Corridor)',
+    locationEn: 'Tenancy Court Corridor',
+    icon: Scale,
+    blockId: 'b16',
+    statuteRefZh: 'Cap. 7 Part IV & Part IVA',
+    statuteRefEn: 'Cap. 7 Part IV & Part IVA',
+    spatialSceneZh: '長廊兩側設有對稱鏡子：租客鏡像顯示「2 項權利 + 2 項義務」；業主鏡像顯示「2 項權利 + 1 項義務 (結構及外牆維修)」。鏡面上方標註著【欠租 15 天沒收權】與【劏房 2+2 四年保障期】。',
+    spatialSceneEn: 'Symmetrical mirrors line the corridor: Tenant mirror shows "2 Rights + 2 Duties"; Landlord mirror shows "2 Rights + 1 Duty (Structure/Exterior Repairs)". Highlighted above is "15-Day Unpaid Rent Forfeiture" and "Part IVA 2+2 Tenure Protection".',
+    mnemonicHookZh: '口訣：【2-2-2 鏡像 🪞 與 15 天】。住宅新租續租必須於 1 個月內提交 Form CR109！',
+    mnemonicHookEn: 'Mnemonic: 2-2-2 Mirror 🪞 & 15 Days. Residential new/renewals require Form CR109 within 1 month!',
+    examTrapZh: ' Trap: 宣稱「住宅租客欠租 14 天業主即可收樓」——錯誤！法定門檻為 15 天。',
+    examTrapEn: ' Trap: "Landlord can forfeit for unpaid rent after 14 days" — FALSE. Threshold is 15 Days.'
+  }
+];
 
 export default function MemoryPalacePage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const [showExplanation, setShowExplanation] = useState(true);
-
-  const stations = [
-    { num: '01', titleZh: '接待大堂：牌照展示與名片規範', titleEn: 'Lobby: License Display & Business Cards', section: 'Cap. 511 s.36', descZh: '每一營業地點必須展示牌照正本，名片需有持牌人姓名及號碼。', descEn: 'Mandatory display of original license at branch. Cards must state license number.' },
-    { num: '02', titleZh: '會議室：委託協議 Form 3 簽署點', titleEn: 'Conference Room: Form 3 Execution', section: 'Form 3 Rules', descZh: '賣方地產代理協議 (Form 3) 最長有效期為 3 個月。', descEn: 'Vendor agency agreement (Form 3) validity capped at 3 months.' },
-    { num: '03', titleZh: '文件櫃：土地查冊 P-O-I-M 審核', titleEn: 'Filing Room: P-O-I-M Land Search', section: 'Land Search', descZh: '審核 Property, Owner, Incumbrances (釘牌/押記) 及 Memorials。', descEn: 'Audit Property, Owner, Incumbrances (Charging orders), and Memorials.' },
-    { num: '04', titleZh: '會客室：物業資料單 Form 1 查核', titleEn: 'Meeting Room: Form 1 Inspection', section: 'Form 1 Details', descZh: '出售住宅必須附帶 Form 1，核實業權及違建紀錄。', descEn: 'Mandatory Form 1 for residential sales; verify ownership and encumbrances.' },
-    { num: '05', titleZh: '露台：違例建築工程 (UBW) 警示', titleEn: 'Balcony: UBW Risk Disclosure', section: 'Cap. 123 Rules', descZh: '屋宇署 Cap. 123 清拆令 (s.24/s.26)，代理需向買方警示按揭風險。', descEn: 'Buildings Dept Cap. 123 removal orders; warn buyers of mortgage risks.' },
-    { num: '06', titleZh: '總經理室：雙重代理與權益披露', titleEn: 'Manager Office: Dual Agency Notice', section: 'Code of Ethics', descZh: '雙重代理必須取得雙方書面同意，披露任何金錢利益。', descEn: 'Dual agency requires bilateral written consent and full interest disclosure.' },
-    { num: '07', titleZh: '財務部：客戶帳戶託管與訂金', titleEn: 'Finance: Client Account Trust', section: 'Cap. 511 s.43', descZh: '客戶款項必須存入獨立信託戶口，嚴禁挪用。', descEn: 'Client deposits must be held in designated bank trust accounts.' },
-    { num: '08', titleZh: '簽約廳：臨時買賣合約 (PASP) 擬定', titleEn: 'Signing Room: PASP Execution', section: 'PASP Terms', descZh: 'PASP 具法律約束力，細訂與大訂條款及破約賠訂責任。', descEn: 'Binding nature of PASP, initial/further deposit terms, and default remedies.' },
-    { num: '09', titleZh: '信件箱：變更營業地點 31 天通知', titleEn: 'Mailbox: 31-Day Address Notice', section: 'Cap. 511 s.40', descZh: '營業地點變更必須於 31 天內以書面通知 EAA。', descEn: 'Written notice to EAA within 31 days of changing business address.' },
-    { num: '10', titleZh: '交鑰處：租約終止通知期 (Cap. 7)', titleEn: 'Handover: Notice to Quit', section: 'Cap. 7 Tenancy', descZh: 'Cap. 7 住宅租務終止通知期 (Notice to Quit) 及 CR109 申報。', descEn: 'Cap. 7 statutory Notice to Quit rules and Rating & Valuation CR109 filing.' },
-  ];
+  const [activeStation, setActiveStation] = useState<LociStation>(LOCI_STATIONS[0]);
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto space-y-10">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+      <div className="max-w-7xl mx-auto space-y-8">
 
         {/* Top Header Banner */}
         <div 
@@ -49,148 +176,206 @@ export default function MemoryPalacePage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
               <Compass className="h-3.5 w-3.5" />
-              <span>Step 2 • Visual Spatial Mnemonic Anchor</span>
+              <span>Method of Loci & Spatial Memory Architecture</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              {isZh ? '10 站實景記憶宮殿' : '10-Station Memory Palace'}
+              {isZh ? '互動記憶宮殿路線圖 (Memory Loci Map)' : 'Interactive Memory Palace Loci Map'}
             </h1>
             <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl leading-relaxed">
               {isZh 
-                ? '將香港 EAA 監管局核心法條與數字錨點，順序映射至真實住宅交易路線的 10 個記憶站點。'
-                : 'Map HK EAA statutory duties and numeric anchors onto a 10-station residential transaction route.'}
+                ? '點擊下方宮殿記憶驛站，以空間視覺圖像錨定法規考點，實現零遺忘長效記憶。'
+                : 'Click through memory loci stations to anchor complex statutory rules with spatial visual imagery.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 shrink-0 flex-wrap">
             <Link
-              href="/course"
+              href="/case-study"
               className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
             >
-              <BookOpen className="h-4 w-4 text-indigo-400" />
-              <span>{isZh ? '返回課程大綱' : 'View Syllabus'}</span>
+              <FileText className="h-4 w-4 text-indigo-400" />
+              <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
             </Link>
 
-            <button
-              onClick={() => setShowExplanation(!showExplanation)}
-              style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-              className="px-4 py-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 hover:border-amber-500 cursor-pointer"
+            <Link
+              href="/course"
+              className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xl transition flex items-center gap-2"
             >
-              <Lightbulb className="h-4 w-4 text-amber-400" />
-              <span>{showExplanation ? (isZh ? '隱藏指南' : 'Hide Guide') : (isZh ? '記憶法指南' : 'Method Guide')}</span>
-              {showExplanation ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            </button>
+              <BookOpen className="h-4 w-4" />
+              <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
+            </Link>
           </div>
         </div>
 
-        {/* Student Concept Guide */}
-        {showExplanation && (
+        {/* Station Navigation Grid Map */}
+        <div 
+          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+          className="p-6 rounded-3xl border shadow-xl space-y-4"
+        >
+          <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
+            <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
+              {isZh ? '宮殿空間驛站導覽 (Palace Spatial Route Map):' : 'Palace Spatial Route Map:'}
+            </span>
+            <span className="text-xs font-mono font-bold text-amber-400">
+              6 Spatial Loci Stations
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {LOCI_STATIONS.map((station, idx) => {
+              const IconComp = station.icon;
+              const isActive = station.id === activeStation.id;
+
+              return (
+                <button
+                  key={station.id}
+                  onClick={() => setActiveStation(station)}
+                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between gap-3 cursor-pointer relative overflow-hidden group ${
+                    isActive
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xl font-extrabold scale-[1.02]'
+                      : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-amber-500/50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-slate-800 text-slate-400'
+                    }`}>
+                      {station.num}
+                    </span>
+                    <IconComp className={`h-4 w-4 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />
+                  </div>
+
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-extrabold leading-snug line-clamp-2">
+                      {isZh ? station.titleZh : station.titleEn}
+                    </h4>
+                    <span className={`text-[10px] block truncate font-medium ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                      {isZh ? station.locationZh : station.locationEn}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Selected Loci Station Deep-Dive Viewer */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
           <div 
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-            className="p-6 sm:p-8 rounded-3xl border shadow-lg space-y-4 animate-in fade-in duration-200"
+            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between"
           >
-            <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
-              <Sparkles className="h-4 w-4" />
-              <span>{isZh ? '學員記憶法指引：如何運用 10 站實景記憶宮殿？' : 'Student Guide: How to Use the 10-Station Spatial Memory Palace'}</span>
-            </div>
-
-            <p className="text-xs sm:text-sm opacity-85 leading-relaxed">
-              {isZh 
-                ? '考場上死記硬背容易混淆死板法條。「記憶宮殿 (Loci Method)」將香港 EAA 監管局最常考的 10 大法定職責，按「住宅物業交易流程」從接待大堂一路順序映射到交鑰處。在試場上，您只需在腦海中「漫步這 10 個房間」，即可秒速喚醒 Cap. 511、Cap. 7 及 Form 1-6 的核心條文與數字時間限制。'
-                : 'Rote learning statute numbers leads to confusion under exam pressure. The Memory Palace converts key HK EAA statutory duties into a physical residential transaction route (Lobby to Handover). During the exam, simply "walk" through these 10 rooms in your mind to instantly recall statutory numbers, notice deadlines, and form execution rules.'}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 text-xs font-semibold">
-              <div className="p-3 rounded-2xl border border-indigo-500/20 bg-indigo-500/5 space-y-1">
-                <span className="text-indigo-400 font-mono font-bold block">01. 空間順序 (Sequence)</span>
-                <p className="opacity-75">{isZh ? '按物業代理交易真實先後順序排列，絕不混淆流程。' : 'Arranged in chronological real estate transaction sequence.'}</p>
-              </div>
-
-              <div className="p-3 rounded-2xl border border-amber-500/20 bg-amber-500/5 space-y-1">
-                <span className="text-amber-400 font-mono font-bold block">02. 數字錨點 (Anchors)</span>
-                <p className="opacity-75">{isZh ? '精準鎖定 31 天地點變更通知、Form 3 三個月等關鍵期限。' : 'Anchors 31-day notice, 3-month Form 3 limit, and Cap. 7 deadlines.'}</p>
-              </div>
-
-              <div className="p-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 space-y-1">
-                <span className="text-emerald-400 font-mono font-bold block">03. 關聯特訓 (Drills)</span>
-                <p className="opacity-75">{isZh ? '溫習完 10 站後，直接進入 38 個考官陷阱進行實戰測驗。' : 'Directly links memory anchors to 38 Exam Trap questions.'}</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 10 Stations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {stations.map((st) => (
-            <div 
-              key={st.num}
-              style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-              className="p-6 rounded-3xl border shadow-xl flex flex-col justify-between space-y-4 hover:border-amber-500/60 transition group cursor-pointer"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-xl border border-amber-500/20">
-                    Station {st.num}
-                  </span>
-                  <span className="text-[10px] font-mono opacity-60 bg-slate-800/60 px-2 py-0.5 rounded-lg">
-                    {st.section}
-                  </span>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-mono font-bold text-amber-400">
+                      {activeStation.num} • {isZh ? activeStation.locationZh : activeStation.locationEn}
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-black">
+                    {isZh ? activeStation.titleZh : activeStation.titleEn}
+                  </h2>
                 </div>
 
-                <h3 className="text-base font-bold group-hover:text-amber-400 transition">
-                  {isZh ? st.titleZh : st.titleEn}
-                </h3>
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
+                  {isZh ? activeStation.statuteRefZh : activeStation.statuteRefEn}
+                </span>
+              </div>
 
-                <p className="text-xs opacity-75 leading-relaxed">
-                  {isZh ? st.descZh : st.descEn}
+              {/* Spatial Scene Description */}
+              <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                  <Sparkles className="h-4 w-4" />
+                  <span>{isZh ? '宮殿空間視覺影像 (Spatial Visual Scene)' : 'Spatial Visual Scene'}</span>
+                </div>
+                <p className="text-xs sm:text-sm font-medium leading-relaxed opacity-90">
+                  {isZh ? activeStation.spatialSceneZh : activeStation.spatialSceneEn}
                 </p>
               </div>
 
-              <div className="pt-3 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
-                <span className="text-[10px] font-mono font-bold opacity-50 uppercase">
-                  Route Stage {st.num}/10
-                </span>
-                <MapPin className="h-4 w-4 text-amber-400 group-hover:scale-110 transition" />
+              {/* Dual Coding Mnemonic Anchor */}
+              <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                  <Lightbulb className="h-4 w-4" />
+                  <span>{isZh ? '記憶錨定口訣 (Mnemonic Anchor)' : 'Mnemonic Anchor'}</span>
+                </div>
+                <p className="text-xs sm:text-sm font-bold text-amber-200 leading-relaxed">
+                  {isZh ? activeStation.mnemonicHookZh : activeStation.mnemonicHookEn}
+                </p>
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Bottom Transition CTA Banner */}
-        <div 
-          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-          className="p-8 rounded-3xl border shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6"
-        >
-          <div className="space-y-2 text-center sm:text-left">
-            <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-widest">
-              {isZh ? '【 步驟 2 完成 】下一步：考官陷阱特訓' : '[ Step 2 Complete ] Next: Exam Trap Drills'}
-            </span>
-            <h3 className="text-xl font-extrabold">
-              {isZh ? '準備好驗證您的記憶宮殿了嗎？' : 'Ready to Test Your Memory Palace Anchors?'}
-            </h3>
-            <p className="text-xs opacity-80 max-w-xl">
-              {isZh 
-                ? '進入 Step 3 破解 38 個主考官假命題陷阱，或開啟速記閃卡特訓。' 
-                : 'Proceed to Step 3 to review 38 Master Exam Traps or test yourself with AI Legal Flashcards.'}
-            </p>
+            {/* Station Action Link Group */}
+            <div className="pt-4 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: 'var(--border-color)' }}>
+              {activeStation.linkedRoute ? (
+                <Link
+                  href={activeStation.linkedRoute}
+                  className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>{isZh ? activeStation.linkedRouteLabelZh : activeStation.linkedRouteLabelEn}</span>
+                </Link>
+              ) : (
+                <span className="text-xs font-mono opacity-50">
+                  {isZh ? '錨定完成！即可進入對應題庫測試' : 'Loci anchored! Ready for practice'}
+                </span>
+              )}
+
+              <Link
+                href={`/quiz?block=${activeStation.blockId}`}
+                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                <span>{isZh ? '進入單元刷題' : 'Practice Block Quiz'}</span>
+              </Link>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-3 shrink-0">
-            <Link
-              href="/quiz"
-              className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-indigo-600 text-white font-bold text-xs shadow-lg shadow-indigo-600/20 hover:opacity-95 transition flex items-center gap-2"
-            >
-              <ShieldAlert className="h-4 w-4" />
-              <span>{isZh ? '破解 38 考官陷阱' : 'Master 38 Traps'}</span>
-            </Link>
+          {/* Right Panel: Exam Trap & Practice Integration (5 Columns) */}
+          <div 
+            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
+            className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between"
+          >
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-rose-400 font-extrabold text-base border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
+                <AlertTriangle className="h-5 w-5" />
+                <span>{isZh ? '關聯主考官陷阱登錄' : 'Associated Master Exam Trap'}</span>
+              </div>
 
-            <Link
-              href="/flashcards"
-              className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
-            >
-              <Layers className="h-4 w-4 text-indigo-400" />
-              <span>{isZh ? '開啟速記閃卡' : 'Flip Flashcards'}</span>
-            </Link>
+              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs sm:text-sm font-bold leading-relaxed space-y-2">
+                <p>{isZh ? activeStation.examTrapZh : activeStation.examTrapEn}</p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2 text-xs">
+                <span className="font-bold text-indigo-400 uppercase font-mono block">
+                  {isZh ? '【 空間記憶複習指南 】' : '[ Spatial Recall Guide ]'}
+                </span>
+                <p className="opacity-80 leading-relaxed">
+                  {isZh 
+                    ? '閉上眼睛，在腦海中沿著宮殿路線從 Station 01 走到 Station 06。重現每一個驛站的視覺物件與數字，即可徹底鎖定法規細節。'
+                    : 'Close your eyes and mentally walk from Station 01 to Station 06. Revisualize each spatial object to lock in statutory nuances.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
+              <span className="text-xs font-mono font-bold opacity-60">
+                {isZh ? 'AgentPass™ 空間工程' : 'AgentPass™ Loci Engine'}
+              </span>
+
+              <Link
+                href={`/flashcards?block=${activeStation.blockId}`}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs transition flex items-center gap-1.5"
+              >
+                <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                <span>{isZh ? '翻閱對應閃卡' : 'View Flashcards'}</span>
+              </Link>
+            </div>
           </div>
+
         </div>
 
       </div>
