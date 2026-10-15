@@ -1,5 +1,6 @@
-// app/memory-palace/blueprint/page.tsx
-import React, { useState, useRef, useEffect } from 'react';
+'use client';
+
+import React, { useState, useRef } from 'react';
 import { 
   Compass, 
   BookOpen, 
@@ -15,13 +16,10 @@ import {
   ShieldCheck, 
   Eye, 
   ArrowRight, 
-  ArrowLeft,
+  ArrowLeft, 
   ChevronDown, 
   Globe, 
-  Info,
-  ExternalLink,
-  RotateCcw,
-  Zap
+  Zap 
 } from 'lucide-react';
 
 interface LociStation {
@@ -45,7 +43,6 @@ interface LociStation {
   linkedRoute?: string;
   linkedRouteLabelZh?: string;
   linkedRouteLabelEn?: string;
-  // Vector Room Coordinates for SVG Layout (ViewBox 900 x 560)
   room: {
     x: number;
     y: number;
@@ -196,23 +193,20 @@ export default function App() {
     }
   };
 
-  const handleNavigate = (path: string) => {
-    window.location.href = path;
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-6 sm:py-10 px-3 sm:px-6 lg:px-8 selection:bg-amber-500 selection:text-slate-950">
       <div className="max-w-7xl mx-auto space-y-8">
 
-        {}
+        {/* Top Header Banner */}
         <div className="p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 backdrop-blur-md">
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
-                <Compass className="h-3.5 w-3.5 animate-spin-slow" />
+                <Compass className="h-3.5 w-3.5" />
                 <span>Spatial Loci Vector Blueprint Engine v2.0</span>
               </div>
               <button
+                type="button"
                 onClick={() => setIsZh(!isZh)}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-700 bg-slate-800/80 hover:border-amber-400 text-slate-300 hover:text-amber-400 transition cursor-pointer"
                 title="Toggle Language"
@@ -235,35 +229,34 @@ export default function App() {
             </p>
           </div>
 
-          {/* Functional CTAs connecting to and from memory-palace and course */}
           <div className="flex items-center gap-3 shrink-0 flex-wrap w-full md:w-auto">
-            <button
-              onClick={() => handleNavigate('/memory-palace')}
+            <a
+              href="/memory-palace"
               className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-700 bg-slate-800/80 hover:border-amber-400 font-bold text-xs transition flex items-center justify-center gap-2 text-slate-200 cursor-pointer hover:bg-slate-800"
             >
               <ArrowLeft className="h-4 w-4 text-amber-400" />
               <span>{isZh ? '返回宮殿路線' : 'Back to Loci Map'}</span>
-            </button>
+            </a>
 
-            <button
-              onClick={() => handleNavigate('/course')}
+            <a
+              href="/course"
               className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-700 bg-slate-800/80 hover:border-indigo-500 font-bold text-xs transition flex items-center justify-center gap-2 text-slate-200 cursor-pointer"
             >
               <BookOpen className="h-4 w-4 text-indigo-400" />
               <span>{isZh ? '課程大綱' : 'Syllabus'}</span>
-            </button>
+            </a>
 
-            <button
-              onClick={() => handleNavigate('/case-study')}
+            <a
+              href="/case-study"
               className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <FileText className="h-4 w-4 text-slate-950" />
               <span>{isZh ? 'Part II 個案實務' : 'Case Study'}</span>
-            </button>
+            </a>
           </div>
         </div>
 
-        {}
+        {/* Vector SVG Blueprint Canvas */}
         <div className="p-4 sm:p-7 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl space-y-4 relative overflow-hidden backdrop-blur-md">
           
           <div className="flex items-center justify-between border-b pb-3.5 border-slate-800 flex-wrap gap-2">
@@ -282,10 +275,9 @@ export default function App() {
             </div>
           </div>
 
-          {/* SVG Vector Blueprint Canvas Container */}
+          {/* SVG Vector Container */}
           <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] bg-slate-950 rounded-2xl border border-slate-800/90 overflow-hidden flex items-center justify-center shadow-inner">
             
-            {/* Background CAD Blueprint Grid Texture */}
             <div 
               className="absolute inset-0 pointer-events-none opacity-20"
               style={{
@@ -298,11 +290,11 @@ export default function App() {
               viewBox="0 0 900 550" 
               className="w-full h-full select-none"
             >
-              {/* Outer Perimeter Foundation Wall */}
+              {/* Outer Boundary Wall */}
               <rect x="25" y="25" width="850" height="500" rx="24" fill="none" stroke="#334155" strokeWidth="4" strokeDasharray="12 6" />
               <rect x="30" y="30" width="840" height="490" rx="20" fill="none" stroke="#1e293b" strokeWidth="2" />
 
-              {/* Connecting Spatial Memory Pathway Lines (Golden Circuit) */}
+              {/* Connecting Pathway Line */}
               <path 
                 d="M 165 145 L 450 145 L 735 145 L 735 400 L 450 400 L 165 400" 
                 fill="none" 
@@ -313,14 +305,14 @@ export default function App() {
                 className="opacity-70 animate-pulse" 
               />
 
-              {/* Directional Chevrons along pathway */}
+              {/* Intermediate Pathway Points */}
               <circle cx="307" cy="145" r="4" fill="#f59e0b" />
               <circle cx="592" cy="145" r="4" fill="#f59e0b" />
               <circle cx="735" cy="272" r="4" fill="#f59e0b" />
               <circle cx="592" cy="400" r="4" fill="#f59e0b" />
               <circle cx="307" cy="400" r="4" fill="#f59e0b" />
 
-              {/* Render the 6 Vector Rooms */}
+              {/* Rooms Render */}
               {LOCI_STATIONS.map((station) => {
                 const isActive = station.id === activeStation.id;
                 const isHovered = hoveredStation?.id === station.id;
@@ -333,7 +325,6 @@ export default function App() {
                     onMouseLeave={() => setHoveredStation(null)}
                     className="cursor-pointer transition-all duration-300"
                   >
-                    {/* Room Architectural Boundary Rect */}
                     <rect 
                       x={station.room.x} 
                       y={station.room.y} 
@@ -346,7 +337,7 @@ export default function App() {
                       className="transition-colors duration-200"
                     />
 
-                    {/* Architectural Room Tag Label (Top Header) */}
+                    {/* Room Code Badge */}
                     <rect 
                       x={station.room.x + 10} 
                       y={station.room.y + 10} 
@@ -368,7 +359,7 @@ export default function App() {
                       {station.code}
                     </text>
 
-                    {/* Room Title */}
+                    {/* Room Name */}
                     <text 
                       x={station.room.x + station.room.w / 2} 
                       y={station.room.y + 55} 
@@ -391,7 +382,7 @@ export default function App() {
                       {isZh ? station.locationZh.split(' ')[0] : station.locationEn}
                     </text>
 
-                    {/* Active Ping Glow Effect */}
+                    {/* Pulse Glow for active node */}
                     {isActive && (
                       <circle 
                         cx={station.room.nodeX} 
@@ -403,7 +394,7 @@ export default function App() {
                       />
                     )}
 
-                    {/* Central Loci Anchor Node */}
+                    {/* Center Node */}
                     <circle 
                       cx={station.room.nodeX} 
                       cy={station.room.nodeY} 
@@ -414,7 +405,7 @@ export default function App() {
                       className="transition-all duration-200"
                     />
 
-                    {/* Station Number on Center Node */}
+                    {/* Node Digit */}
                     <text 
                       x={station.room.nodeX} 
                       y={station.room.nodeY + 4.5} 
@@ -427,7 +418,7 @@ export default function App() {
                       {station.num.replace('Station 0', '')}
                     </text>
 
-                    {/* Statute Reference Badge at bottom */}
+                    {/* Statute Badge */}
                     <rect 
                       x={station.room.x + 20} 
                       y={station.room.y + station.room.h - 30} 
@@ -453,7 +444,7 @@ export default function App() {
               })}
             </svg>
 
-            {/* Float Popover Card preview on hover/select */}
+            {/* Float Card preview on select */}
             <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-md bg-slate-900/95 border border-slate-700/80 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2.5 overflow-hidden">
                 <span className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
@@ -470,6 +461,7 @@ export default function App() {
               </div>
 
               <button
+                type="button"
                 onClick={() => handleSelectStation(activeStation, true)}
                 className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] shrink-0 transition flex items-center gap-1 cursor-pointer"
               >
@@ -491,7 +483,7 @@ export default function App() {
           </div>
         </div>
 
-        {}
+        {/* Node Switcher Grid */}
         <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl space-y-4">
           <div className="flex items-center justify-between border-b pb-3 border-slate-800">
             <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
@@ -509,6 +501,7 @@ export default function App() {
 
               return (
                 <button
+                  type="button"
                   key={station.id}
                   onClick={() => handleSelectStation(station, true)}
                   className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between gap-2.5 cursor-pointer relative overflow-hidden group ${
@@ -540,14 +533,13 @@ export default function App() {
           </div>
         </div>
 
-        {}
+        {/* Selected Loci Detailed Inspector Panel */}
         <div ref={inspectorRef} className="scroll-mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
           <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl space-y-6 flex flex-col justify-between">
             <div className="space-y-6">
               
-              {/* Header Badge & Title */}
               <div className="flex items-center justify-between border-b pb-4 border-slate-800 flex-wrap gap-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -592,22 +584,22 @@ export default function App() {
             {/* Station Action Link Group */}
             <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
               {activeStation.linkedRoute && (
-                <button
-                  onClick={() => handleNavigate(activeStation.linkedRoute!)}
+                <a
+                  href={activeStation.linkedRoute}
                   className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
                 >
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 text-slate-950" />
                   <span>{isZh ? activeStation.linkedRouteLabelZh : activeStation.linkedRouteLabelEn}</span>
-                </button>
+                </a>
               )}
 
-              <button
-                onClick={() => handleNavigate(`/quiz?block=${activeStation.blockId}`)}
+              <a
+                href={`/quiz?block=${activeStation.blockId}`}
                 className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{isZh ? '進入單元刷題' : 'Practice Block Quiz'}</span>
-              </button>
+              </a>
             </div>
           </div>
 
@@ -640,13 +632,13 @@ export default function App() {
                 Spatial Loci Engine v2.0
               </span>
 
-              <button
-                onClick={() => handleNavigate(`/flashcards?block=${activeStation.blockId}`)}
+              <a
+                href={`/flashcards?block=${activeStation.blockId}`}
                 className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Layers className="h-3.5 w-3.5 text-indigo-400" />
                 <span>{isZh ? '翻閱對應閃卡' : 'View Flashcards'}</span>
-              </button>
+              </a>
             </div>
           </div>
 

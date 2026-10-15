@@ -1,4 +1,5 @@
-// app/memory-palace/blueprint/page.tsx
+'use client';
+
 import React, { useState, useRef } from 'react';
 import { 
   Compass, 
@@ -15,7 +16,6 @@ import {
   ShieldCheck,
   Eye,
   ArrowRight,
-  ChevronDown,
   Globe,
   Map
 } from 'lucide-react';
@@ -168,15 +168,11 @@ export default function App() {
     }
   };
 
-  const handleNavigate = (path: string) => {
-    window.location.href = path;
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 py-6 sm:py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-8">
 
-        {}
+        {/* Top Header Banner */}
         <div 
           className="p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
         >
@@ -187,8 +183,9 @@ export default function App() {
                 <span>Method of Loci & Spatial Memory Architecture</span>
               </div>
               <button
+                type="button"
                 onClick={() => setIsZh(!isZh)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-700 bg-slate-800/80 hover:border-amber-400 text-slate-300 hover:text-amber-400 transition"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-700 bg-slate-800/80 hover:border-amber-400 text-slate-300 hover:text-amber-400 transition cursor-pointer"
                 title="Toggle Language"
               >
                 <Globe className="h-3.5 w-3.5 text-amber-400" />
@@ -205,27 +202,26 @@ export default function App() {
             </p>
           </div>
 
-          {}
           <div className="flex items-center gap-3 shrink-0 flex-wrap w-full md:w-auto">
-            <button
-              onClick={() => handleNavigate('/course')}
+            <a
+              href="/course"
               className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-700 bg-slate-800/60 hover:border-indigo-500 font-bold text-xs transition flex items-center justify-center gap-2 text-slate-200"
             >
               <BookOpen className="h-4 w-4 text-indigo-400" />
               <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
-            </button>
+            </a>
 
-            <button
-              onClick={() => handleNavigate('/case-study')}
+            <a
+              href="/case-study"
               className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
             >
               <FileText className="h-4 w-4" />
               <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
-            </button>
+            </a>
           </div>
         </div>
 
-        {}
+        {/* Feature Banner Linking to Blueprint Subpage */}
         <div 
           className="p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-amber-500/15 via-slate-900 to-indigo-950/40 hover:border-amber-500/50 transition group"
         >
@@ -244,17 +240,17 @@ export default function App() {
             </p>
           </div>
 
-          <button
-            onClick={() => handleNavigate('/memory-palace/blueprint')}
+          <a
+            href="/memory-palace/blueprint"
             className="w-full md:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/20 transition flex items-center justify-center gap-2 shrink-0 group-hover:scale-105"
           >
             <Map className="h-4 w-4 text-slate-950" />
             <span>{isZh ? '開啟藍圖視察引擎' : 'Launch Blueprint Engine'}</span>
             <ArrowRight className="h-4 w-4 text-slate-950" />
-          </button>
+          </a>
         </div>
 
-        {}
+        {/* Station Navigation Cards */}
         <div 
           className="p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl space-y-4 bg-slate-900/60"
         >
@@ -274,6 +270,7 @@ export default function App() {
 
               return (
                 <button
+                  type="button"
                   key={station.id}
                   onClick={() => handleSelectStation(station)}
                   className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between gap-3 cursor-pointer relative overflow-hidden group ${
@@ -305,7 +302,7 @@ export default function App() {
           </div>
         </div>
 
-        {}
+        {/* Selected Loci Station Inspector Panel */}
         <div ref={inspectorRef} className="scroll-mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
@@ -354,22 +351,22 @@ export default function App() {
             {/* Station Action Link Group */}
             <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
               {activeStation.linkedRoute && (
-                <button
-                  onClick={() => handleNavigate(activeStation.linkedRoute!)}
+                <a
+                  href={activeStation.linkedRoute}
                   className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition flex items-center gap-2"
                 >
                   <FileText className="h-4 w-4" />
                   <span>{isZh ? activeStation.linkedRouteLabelZh : activeStation.linkedRouteLabelEn}</span>
-                </button>
+                </a>
               )}
 
-              <button
-                onClick={() => handleNavigate(`/quiz?block=${activeStation.blockId}`)}
+              <a
+                href={`/quiz?block=${activeStation.blockId}`}
                 className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{isZh ? '進入單元刷題' : 'Practice Block Quiz'}</span>
-              </button>
+              </a>
             </div>
           </div>
 
@@ -404,13 +401,13 @@ export default function App() {
                 AgentPass™ Loci Engine
               </span>
 
-              <button
-                onClick={() => handleNavigate(`/flashcards?block=${activeStation.blockId}`)}
+              <a
+                href={`/flashcards?block=${activeStation.blockId}`}
                 className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs text-slate-200 transition flex items-center gap-1.5"
               >
                 <Layers className="h-3.5 w-3.5 text-indigo-400" />
                 <span>{isZh ? '翻閱對應閃卡' : 'View Flashcards'}</span>
-              </button>
+              </a>
             </div>
           </div>
 
