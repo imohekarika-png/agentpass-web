@@ -15,7 +15,6 @@ import {
   MapPin, 
   ShieldCheck, 
   Eye, 
-  ArrowRight, 
   ArrowLeft, 
   ChevronDown, 
   Globe, 
@@ -194,35 +193,48 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 py-6 sm:py-10 px-3 sm:px-6 lg:px-8 selection:bg-amber-500 selection:text-slate-950">
+    <div 
+      className="min-h-screen py-6 sm:py-10 px-3 sm:px-6 lg:px-8 transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--bg-main, #f8fafc)',
+        color: 'var(--text-main, #0f172a)'
+      }}
+    >
       <div className="max-w-7xl mx-auto space-y-8">
 
-        {/* Top Header Banner */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 backdrop-blur-md">
+        {}
+        <div 
+          className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition"
+          style={{
+            backgroundColor: 'var(--bg-card, #ffffff)',
+            borderColor: 'var(--border-color, #e2e8f0)',
+            color: 'var(--text-main, #0f172a)'
+          }}
+        >
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
-                <Compass className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/10 px-3.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-400">
+                <Compass className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 <span>Spatial Loci Vector Blueprint Engine v2.0</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsZh(!isZh)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-700 bg-slate-800/80 hover:border-amber-400 text-slate-300 hover:text-amber-400 transition cursor-pointer"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:border-amber-500 transition cursor-pointer"
                 title="Toggle Language"
               >
-                <Globe className="h-3.5 w-3.5 text-amber-400" />
+                <Globe className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
                 <span>{isZh ? 'EN' : '繁體中文'}</span>
               </button>
             </div>
 
-            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white flex items-center gap-3">
+            <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
               <span>{isZh ? '宮殿建築平面視覺藍圖' : 'Architectural Vector Blueprint Engine'}</span>
-              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hidden sm:inline-block">
+              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/30 text-indigo-700 dark:text-indigo-400 hidden sm:inline-block">
                 VECTOR CAD 1:100
               </span>
             </h1>
-            <p className="text-xs sm:text-sm font-medium text-slate-400 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
               {isZh 
                 ? '點擊下方向量式建築藍圖中的 6 大房間驛站與節點，即時呼叫空間視覺影像、記憶錨定口訣與主考官陷阱登錄。'
                 : 'Click room nodes inside the interactive CAD blueprint to visually inspect spatial memory anchors, mnemonic formulas, and statutory traps.'}
@@ -232,23 +244,23 @@ export default function App() {
           <div className="flex items-center gap-3 shrink-0 flex-wrap w-full md:w-auto">
             <a
               href="/memory-palace"
-              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-700 bg-slate-800/80 hover:border-amber-400 font-bold text-xs transition flex items-center justify-center gap-2 text-slate-200 cursor-pointer hover:bg-slate-800"
+              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-amber-500 font-bold text-xs text-slate-700 dark:text-slate-200 shadow-sm transition flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4 text-amber-400" />
+              <ArrowLeft className="h-4 w-4 text-amber-600 dark:text-amber-400" />
               <span>{isZh ? '返回宮殿路線' : 'Back to Loci Map'}</span>
             </a>
 
             <a
               href="/course"
-              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-700 bg-slate-800/80 hover:border-indigo-500 font-bold text-xs transition flex items-center justify-center gap-2 text-slate-200 cursor-pointer"
+              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-indigo-500 font-bold text-xs text-slate-700 dark:text-slate-200 shadow-sm transition flex items-center justify-center gap-2"
             >
-              <BookOpen className="h-4 w-4 text-indigo-400" />
+              <BookOpen className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               <span>{isZh ? '課程大綱' : 'Syllabus'}</span>
             </a>
 
             <a
               href="/case-study"
-              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 cursor-pointer"
+              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
             >
               <FileText className="h-4 w-4 text-slate-950" />
               <span>{isZh ? 'Part II 個案實務' : 'Case Study'}</span>
@@ -256,27 +268,36 @@ export default function App() {
           </div>
         </div>
 
-        {/* Vector SVG Blueprint Canvas */}
-        <div className="p-4 sm:p-7 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl space-y-4 relative overflow-hidden backdrop-blur-md">
-          
-          <div className="flex items-center justify-between border-b pb-3.5 border-slate-800 flex-wrap gap-2">
+        {}
+        <div 
+          className="p-4 sm:p-7 rounded-3xl border shadow-xl space-y-4 relative overflow-hidden transition"
+          style={{
+            backgroundColor: 'var(--bg-card, #ffffff)',
+            borderColor: 'var(--border-color, #e2e8f0)',
+            color: 'var(--text-main, #0f172a)'
+          }}
+        >
+          <div 
+            className="flex items-center justify-between border-b pb-3.5 flex-wrap gap-2"
+            style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+          >
             <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs font-mono font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider flex items-center gap-1.5">
                 <Eye className="h-4 w-4" />
                 <span>{isZh ? '宮殿建築向量平面視圖 (Interactive SVG Blueprint)' : 'Interactive SVG Vector Blueprint'}</span>
               </span>
             </div>
-            <div className="flex items-center gap-3 text-[11px] font-mono text-slate-400">
+            <div className="flex items-center gap-3 text-[11px] font-mono text-slate-500 dark:text-slate-400">
               <span className="hidden sm:inline-block">SCALE 1:100 • 6 LOCI NODES</span>
-              <span className="px-2.5 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold">
+              <span className="px-2.5 py-0.5 rounded-md bg-amber-500/15 border border-amber-500/30 text-amber-800 dark:text-amber-400 font-bold">
                 {isZh ? `當前選中: ${activeStation.num}` : `Active: ${activeStation.num}`}
               </span>
             </div>
           </div>
 
-          {/* SVG Vector Container */}
-          <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] bg-slate-950 rounded-2xl border border-slate-800/90 overflow-hidden flex items-center justify-center shadow-inner">
+          {/* SVG Vector Container (Light / Dark theme adaptive canvas) */}
+          <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] max-h-[580px] bg-slate-900 dark:bg-slate-950 rounded-2xl border border-slate-800 overflow-hidden flex items-center justify-center shadow-inner">
             
             <div 
               className="absolute inset-0 pointer-events-none opacity-20"
@@ -291,28 +312,28 @@ export default function App() {
               className="w-full h-full select-none"
             >
               {/* Outer Boundary Wall */}
-              <rect x="25" y="25" width="850" height="500" rx="24" fill="none" stroke="#334155" strokeWidth="4" strokeDasharray="12 6" />
-              <rect x="30" y="30" width="840" height="490" rx="20" fill="none" stroke="#1e293b" strokeWidth="2" />
+              <rect x="25" y="25" width="850" height="500" rx="24" fill="none" stroke="#475569" strokeWidth="3" strokeDasharray="12 6" />
+              <rect x="30" y="30" width="840" height="490" rx="20" fill="none" stroke="#334155" strokeWidth="1.5" />
 
               {/* Connecting Pathway Line */}
               <path 
                 d="M 165 145 L 450 145 L 735 145 L 735 400 L 450 400 L 165 400" 
                 fill="none" 
                 stroke="#f59e0b" 
-                strokeWidth="3" 
+                strokeWidth="3.5" 
                 strokeDasharray="8 8" 
                 strokeLinecap="round"
-                className="opacity-70 animate-pulse" 
+                className="opacity-80 animate-pulse" 
               />
 
-              {/* Intermediate Pathway Points */}
-              <circle cx="307" cy="145" r="4" fill="#f59e0b" />
-              <circle cx="592" cy="145" r="4" fill="#f59e0b" />
-              <circle cx="735" cy="272" r="4" fill="#f59e0b" />
-              <circle cx="592" cy="400" r="4" fill="#f59e0b" />
-              <circle cx="307" cy="400" r="4" fill="#f59e0b" />
+              {/* Intermediate Pathway Dots */}
+              <circle cx="307" cy="145" r="4.5" fill="#f59e0b" />
+              <circle cx="592" cy="145" r="4.5" fill="#f59e0b" />
+              <circle cx="735" cy="272" r="4.5" fill="#f59e0b" />
+              <circle cx="592" cy="400" r="4.5" fill="#f59e0b" />
+              <circle cx="307" cy="400" r="4.5" fill="#f59e0b" />
 
-              {/* Rooms Render */}
+              {/* Render Room Polygons with high-contrast font colors */}
               {LOCI_STATIONS.map((station) => {
                 const isActive = station.id === activeStation.id;
                 const isHovered = hoveredStation?.id === station.id;
@@ -325,15 +346,16 @@ export default function App() {
                     onMouseLeave={() => setHoveredStation(null)}
                     className="cursor-pointer transition-all duration-300"
                   >
+                    {/* Room Background */}
                     <rect 
                       x={station.room.x} 
                       y={station.room.y} 
                       width={station.room.w} 
                       height={station.room.h} 
                       rx="18" 
-                      fill={isActive ? 'rgba(245, 158, 11, 0.12)' : isHovered ? 'rgba(99, 102, 241, 0.12)' : 'rgba(15, 23, 42, 0.85)'} 
-                      stroke={isActive ? '#f59e0b' : isHovered ? '#818cf8' : '#334155'} 
-                      strokeWidth={isActive ? '3' : isHovered ? '2.5' : '1.5'} 
+                      fill={isActive ? 'rgba(245, 158, 11, 0.22)' : isHovered ? 'rgba(99, 102, 241, 0.22)' : 'rgba(30, 41, 59, 0.95)'} 
+                      stroke={isActive ? '#f59e0b' : isHovered ? '#818cf8' : '#475569'} 
+                      strokeWidth={isActive ? '3.5' : isHovered ? '2.5' : '1.5'} 
                       className="transition-colors duration-200"
                     />
 
@@ -342,29 +364,31 @@ export default function App() {
                       x={station.room.x + 10} 
                       y={station.room.y + 10} 
                       width="110" 
-                      height="20" 
+                      height="22" 
                       rx="6" 
-                      fill={isActive ? '#f59e0b' : '#1e293b'} 
+                      fill={isActive ? '#f59e0b' : '#0f172a'} 
+                      stroke={isActive ? '#d97706' : '#334155'}
+                      strokeWidth="1"
                       className="transition-colors duration-200"
                     />
                     <text 
                       x={station.room.x + 65} 
-                      y={station.room.y + 24} 
+                      y={station.room.y + 25} 
                       textAnchor="middle" 
-                      fill={isActive ? '#0f172a' : '#94a3b8'} 
-                      fontSize="9.5" 
+                      fill={isActive ? '#0f172a' : '#cbd5e1'} 
+                      fontSize="10" 
                       fontFamily="monospace" 
                       fontWeight="bold"
                     >
                       {station.code}
                     </text>
 
-                    {/* Room Name */}
+                    {/* Room Name - High Contrast Text */}
                     <text 
                       x={station.room.x + station.room.w / 2} 
-                      y={station.room.y + 55} 
+                      y={station.room.y + 57} 
                       textAnchor="middle" 
-                      fill={isActive ? '#fef08a' : '#f8fafc'} 
+                      fill={isActive ? '#fef08a' : '#ffffff'} 
                       fontSize="12.5" 
                       fontWeight="bold"
                     >
@@ -373,11 +397,11 @@ export default function App() {
 
                     <text 
                       x={station.room.x + station.room.w / 2} 
-                      y={station.room.y + 73} 
+                      y={station.room.y + 75} 
                       textAnchor="middle" 
-                      fill={isActive ? '#f59e0b' : '#64748b'} 
-                      fontSize="10" 
-                      fontWeight="500"
+                      fill={isActive ? '#fbbf24' : '#94a3b8'} 
+                      fontSize="10.5" 
+                      fontWeight="600"
                     >
                       {isZh ? station.locationZh.split(' ')[0] : station.locationEn}
                     </text>
@@ -389,18 +413,18 @@ export default function App() {
                         cy={station.room.nodeY} 
                         r="32" 
                         fill="#f59e0b" 
-                        opacity="0.2" 
+                        opacity="0.3" 
                         className="animate-ping" 
                       />
                     )}
 
-                    {/* Center Node */}
+                    {/* Center Node Circle */}
                     <circle 
                       cx={station.room.nodeX} 
                       cy={station.room.nodeY} 
                       r="22" 
-                      fill={isActive ? '#f59e0b' : '#1e293b'} 
-                      stroke={isActive ? '#fef08a' : isHovered ? '#818cf8' : '#475569'} 
+                      fill={isActive ? '#f59e0b' : '#0f172a'} 
+                      stroke={isActive ? '#fef08a' : isHovered ? '#818cf8' : '#64748b'} 
                       strokeWidth="2.5" 
                       className="transition-all duration-200"
                     />
@@ -410,8 +434,8 @@ export default function App() {
                       x={station.room.nodeX} 
                       y={station.room.nodeY + 4.5} 
                       textAnchor="middle" 
-                      fill={isActive ? '#020617' : '#f59e0b'} 
-                      fontSize="11" 
+                      fill={isActive ? '#0f172a' : '#f59e0b'} 
+                      fontSize="12" 
                       fontWeight="900" 
                       fontFamily="monospace"
                     >
@@ -420,22 +444,23 @@ export default function App() {
 
                     {/* Statute Badge */}
                     <rect 
-                      x={station.room.x + 20} 
+                      x={station.room.x + 18} 
                       y={station.room.y + station.room.h - 30} 
-                      width={station.room.w - 40} 
-                      height="18" 
+                      width={station.room.w - 36} 
+                      height="20" 
                       rx="6" 
-                      fill="rgba(2, 6, 23, 0.6)" 
-                      stroke="#334155" 
+                      fill="rgba(15, 23, 42, 0.85)" 
+                      stroke="#475569" 
                       strokeWidth="1"
                     />
                     <text 
                       x={station.room.x + station.room.w / 2} 
-                      y={station.room.y + station.room.h - 17.5} 
+                      y={station.room.y + station.room.h - 16} 
                       textAnchor="middle" 
-                      fill="#94a3b8" 
-                      fontSize="9" 
+                      fill="#e2e8f0" 
+                      fontSize="9.5" 
                       fontFamily="monospace"
+                      fontWeight="bold"
                     >
                       {station.statuteRefZh}
                     </text>
@@ -444,17 +469,17 @@ export default function App() {
               })}
             </svg>
 
-            {/* Float Card preview on select */}
-            <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-md bg-slate-900/95 border border-slate-700/80 rounded-2xl p-3.5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-3 text-xs">
+            {/* Float Card preview on active node */}
+            <div className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-3.5 shadow-2xl flex items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2.5 overflow-hidden">
-                <span className="p-2 rounded-xl bg-amber-500/20 text-amber-400 shrink-0">
+                <span className="p-2 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-400 shrink-0">
                   <Sparkles className="h-4 w-4" />
                 </span>
                 <div className="overflow-hidden">
-                  <div className="text-[10px] font-mono text-amber-400 font-bold truncate">
+                  <div className="text-[10px] font-mono text-amber-700 dark:text-amber-400 font-bold truncate">
                     {activeStation.num} • {isZh ? activeStation.locationZh : activeStation.locationEn}
                   </div>
-                  <div className="font-extrabold text-slate-100 truncate">
+                  <div className="font-extrabold text-slate-900 dark:text-slate-100 truncate">
                     {isZh ? activeStation.titleZh : activeStation.titleEn}
                   </div>
                 </div>
@@ -472,24 +497,34 @@ export default function App() {
 
           </div>
 
-          <div className="flex items-center justify-between text-xs font-mono text-slate-400 pt-1">
+          <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400 pt-1">
             <span>
-              <Zap className="h-3.5 w-3.5 text-amber-400 inline mr-1" />
+              <Zap className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 inline mr-1" />
               <span>{isZh ? '導覽順序: 01 拱門 → 02 郵筒 → 03 金庫 → 04 翹翹板 → 05 POIM → 06 鏡像' : 'Flow: 01 Arch → 02 Mailbox → 03 Vault → 04 Seesaw → 05 POIM → 06 Mirror'}</span>
             </span>
-            <span className="text-emerald-400 font-bold hidden sm:inline-block">
+            <span className="text-emerald-600 dark:text-emerald-400 font-bold hidden sm:inline-block">
               {isZh ? '✓ 100% 空間錨定相容' : '✓ 100% Spatial Loci Aligned'}
             </span>
           </div>
         </div>
 
-        {/* Node Switcher Grid */}
-        <div className="p-6 rounded-3xl border border-slate-800 bg-slate-900/70 shadow-2xl space-y-4">
-          <div className="flex items-center justify-between border-b pb-3 border-slate-800">
-            <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
+        {}
+        <div 
+          className="p-6 rounded-3xl border shadow-xl space-y-4 transition"
+          style={{
+            backgroundColor: 'var(--bg-card, #ffffff)',
+            borderColor: 'var(--border-color, #e2e8f0)',
+            color: 'var(--text-main, #0f172a)'
+          }}
+        >
+          <div 
+            className="flex items-center justify-between border-b pb-3"
+            style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+          >
+            <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
               {isZh ? '空間驛站快速切換 (Spatial Node Switcher):' : 'Spatial Node Switcher:'}
             </span>
-            <span className="text-xs font-mono text-amber-400 font-bold">
+            <span className="text-xs font-mono text-amber-700 dark:text-amber-400 font-bold">
               6 Spatial Loci Nodes
             </span>
           </div>
@@ -504,26 +539,28 @@ export default function App() {
                   type="button"
                   key={station.id}
                   onClick={() => handleSelectStation(station, true)}
-                  className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between gap-2.5 cursor-pointer relative overflow-hidden group ${
+                  className={`p-3.5 rounded-2xl border text-left transition flex flex-col justify-between gap-2.5 cursor-pointer relative overflow-hidden group shadow-sm ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xl font-extrabold scale-[1.02]'
-                      : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-amber-500/50'
+                      ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md font-black scale-[1.02]'
+                      : 'bg-slate-50 dark:bg-slate-900/80 border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-200 hover:border-amber-500 hover:bg-amber-500/5'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
-                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-slate-800 text-slate-400'
+                      isActive 
+                        ? 'bg-slate-950 text-amber-400' 
+                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
                     }`}>
                       {station.num}
                     </span>
-                    <IconComp className={`h-4 w-4 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />
+                    <IconComp className={`h-4 w-4 ${isActive ? 'text-slate-950' : 'text-amber-600 dark:text-amber-400'}`} />
                   </div>
 
                   <div className="space-y-0.5">
                     <h4 className="text-xs font-extrabold leading-snug line-clamp-2">
                       {isZh ? station.titleZh : station.titleEn}
                     </h4>
-                    <span className={`text-[10px] block truncate font-medium ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                    <span className={`text-[10px] block truncate font-medium ${isActive ? 'text-slate-950 font-bold' : 'text-slate-500 dark:text-slate-400'}`}>
                       {isZh ? station.locationZh : station.locationEn}
                     </span>
                   </div>
@@ -533,48 +570,58 @@ export default function App() {
           </div>
         </div>
 
-        {/* Selected Loci Detailed Inspector Panel */}
+        {}
         <div ref={inspectorRef} className="scroll-mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
-          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl space-y-6 flex flex-col justify-between">
+          <div 
+            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between transition"
+            style={{
+              backgroundColor: 'var(--bg-card, #ffffff)',
+              borderColor: 'var(--border-color, #e2e8f0)',
+              color: 'var(--text-main, #0f172a)'
+            }}
+          >
             <div className="space-y-6">
               
-              <div className="flex items-center justify-between border-b pb-4 border-slate-800 flex-wrap gap-2">
+              <div 
+                className="flex items-center justify-between border-b pb-4 flex-wrap gap-2"
+                style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs font-mono font-bold text-amber-400">
+                    <span className="px-3 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-mono font-bold text-amber-700 dark:text-amber-400">
                       {activeStation.num} • {isZh ? activeStation.locationZh : activeStation.locationEn}
                     </span>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-black text-white">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white pt-1">
                     {isZh ? activeStation.titleZh : activeStation.titleEn}
                   </h2>
                 </div>
 
-                <span className="text-xs font-mono font-bold px-3 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300">
+                <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
                   {isZh ? activeStation.statuteRefZh : activeStation.statuteRefEn}
                 </span>
               </div>
 
               {/* Spatial Scene Description */}
-              <div className="p-5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
-                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+              <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400 font-extrabold text-sm">
                   <Sparkles className="h-4 w-4" />
                   <span>{isZh ? '宮殿空間視覺影像 (Spatial Visual Scene)' : 'Spatial Visual Scene'}</span>
                 </div>
-                <p className="text-xs sm:text-sm font-medium leading-relaxed text-slate-200 opacity-90">
+                <p className="text-xs sm:text-sm font-semibold leading-relaxed text-slate-800 dark:text-slate-100">
                   {isZh ? activeStation.spatialSceneZh : activeStation.spatialSceneEn}
                 </p>
               </div>
 
               {/* Dual Coding Mnemonic Anchor */}
               <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
-                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-extrabold text-sm">
                   <Lightbulb className="h-4 w-4" />
                   <span>{isZh ? '記憶錨定口訣 (Mnemonic Anchor)' : 'Mnemonic Anchor'}</span>
                 </div>
-                <p className="text-xs sm:text-sm font-bold text-amber-200 leading-relaxed">
+                <p className="text-xs sm:text-sm font-black text-amber-900 dark:text-amber-200 leading-relaxed">
                   {isZh ? activeStation.mnemonicHookZh : activeStation.mnemonicHookEn}
                 </p>
               </div>
@@ -582,11 +629,14 @@ export default function App() {
             </div>
 
             {/* Station Action Link Group */}
-            <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <div 
+              className="pt-4 border-t flex flex-wrap items-center justify-between gap-3"
+              style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+            >
               {activeStation.linkedRoute && (
                 <a
                   href={activeStation.linkedRoute}
-                  className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
+                  className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
                   <FileText className="h-4 w-4 text-slate-950" />
                   <span>{isZh ? activeStation.linkedRouteLabelZh : activeStation.linkedRouteLabelEn}</span>
@@ -595,7 +645,7 @@ export default function App() {
 
               <a
                 href={`/quiz?block=${activeStation.blockId}`}
-                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
+                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-2 cursor-pointer"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{isZh ? '進入單元刷題' : 'Practice Block Quiz'}</span>
@@ -604,22 +654,32 @@ export default function App() {
           </div>
 
           {/* Right Panel: Associated Master Exam Trap (5 Columns) */}
-          <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl space-y-6 flex flex-col justify-between">
+          <div 
+            className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between transition"
+            style={{
+              backgroundColor: 'var(--bg-card, #ffffff)',
+              borderColor: 'var(--border-color, #e2e8f0)',
+              color: 'var(--text-main, #0f172a)'
+            }}
+          >
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-rose-400 font-extrabold text-base border-b border-slate-800 pb-3">
+              <div 
+                className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-extrabold text-base border-b pb-3"
+                style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+              >
                 <AlertTriangle className="h-5 w-5" />
                 <span>{isZh ? '關聯主考官陷阱登錄' : 'Associated Master Exam Trap'}</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs sm:text-sm font-bold leading-relaxed space-y-2">
+              <div className="p-4.5 rounded-2xl bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/30 text-rose-900 dark:text-rose-200 text-xs sm:text-sm font-bold leading-relaxed space-y-2">
                 <p>{isZh ? activeStation.examTrapZh : activeStation.examTrapEn}</p>
               </div>
 
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2 text-xs">
-                <span className="font-bold text-indigo-400 uppercase font-mono block">
+              <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 space-y-2 text-xs">
+                <span className="font-black text-indigo-700 dark:text-indigo-400 uppercase font-mono block">
                   {isZh ? '【 向量空間複習心法 】' : '[ Vector Spatial Recall Method ]'}
                 </span>
-                <p className="opacity-80 leading-relaxed text-slate-300">
+                <p className="text-slate-700 dark:text-slate-300 font-medium leading-relaxed">
                   {isZh 
                     ? '閉上眼睛，在腦海中俯瞰整座 1:100 宮殿平面圖：從 01 拱門走入 02 郵筒大堂，進入 03 金庫，下轉 04 翹翹板，再到 05 POIM 展廳與 06 租務長廊。空間定位即是法規答案。'
                     : 'Close your eyes and mentally view the 1:100 palace floorplan from above: follow the golden vector line across all 6 rooms to lock in statutory rules.'}
@@ -627,16 +687,19 @@ export default function App() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs font-mono font-bold opacity-60 text-slate-400">
+            <div 
+              className="pt-4 border-t flex items-center justify-between"
+              style={{ borderColor: 'var(--border-color, #e2e8f0)' }}
+            >
+              <span className="text-xs font-mono font-bold text-slate-500 dark:text-slate-400">
                 Spatial Loci Engine v2.0
               </span>
 
               <a
                 href={`/flashcards?block=${activeStation.blockId}`}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-xs text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs text-slate-800 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer"
               >
-                <Layers className="h-3.5 w-3.5 text-indigo-400" />
+                <Layers className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                 <span>{isZh ? '翻閱對應閃卡' : 'View Flashcards'}</span>
               </a>
             </div>
