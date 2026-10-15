@@ -169,29 +169,21 @@ export default function App() {
   };
 
   return (
-    <div 
-      className="min-h-screen py-6 sm:py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300"
-      style={{
-        backgroundColor: 'var(--bg-main, #f8fafc)',
-        color: 'var(--text-main, #0f172a)'
-      }}
-    >
+    <div className="min-h-screen py-6 sm:py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors duration-300">
       <div className="max-w-7xl mx-auto space-y-8">
 
-        {}
-        <div 
-          className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 transition-colors bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800"
-        >
+        {/* Header Hero Banner with High Contrast */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-3">
             <div className="flex items-center gap-3 flex-wrap">
-              <div className="inline-flex items-center gap-2 rounded-full border border-amber-600/50 bg-amber-50 dark:bg-amber-950/40 px-3.5 py-1 text-xs font-bold text-amber-900 dark:text-amber-300">
-                <Compass className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-50 dark:bg-amber-950/50 px-3.5 py-1 text-xs font-black text-amber-900 dark:text-amber-300 shadow-sm">
+                <Compass className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                 <span>Method of Loci & Spatial Memory Architecture</span>
               </div>
               <button
                 type="button"
                 onClick={() => setIsZh(!isZh)}
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold border border-slate-400 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:border-amber-600 transition cursor-pointer shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 hover:border-amber-600 transition cursor-pointer shadow-sm"
                 title="Toggle Language"
               >
                 <Globe className="h-3.5 w-3.5 text-amber-700 dark:text-amber-400" />
@@ -202,7 +194,7 @@ export default function App() {
             <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-950 dark:text-white">
               {isZh ? '互動記憶宮殿路線圖 (Memory Loci Map)' : 'Interactive Memory Palace Loci Map'}
             </h1>
-            <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200 max-w-2xl leading-relaxed">
+            <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 max-w-2xl leading-relaxed">
               {isZh 
                 ? '點擊下方宮殿記憶驛站，以空間視覺圖像錨定法規考點，實現零遺忘長效記憶。'
                 : 'Click through memory loci stations to anchor complex statutory rules with spatial visual imagery.'}
@@ -212,7 +204,7 @@ export default function App() {
           <div className="flex items-center gap-3 shrink-0 flex-wrap w-full md:w-auto">
             <a
               href="/course"
-              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-600 font-bold text-xs text-slate-900 dark:text-slate-100 shadow-sm transition flex items-center justify-center gap-2"
+              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-indigo-600 font-extrabold text-xs text-slate-900 dark:text-slate-100 shadow-sm transition flex items-center justify-center gap-2"
             >
               <BookOpen className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
               <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
@@ -220,7 +212,7 @@ export default function App() {
 
             <a
               href="/case-study"
-              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2"
+              className="flex-1 md:flex-initial px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-2"
             >
               <FileText className="h-4 w-4 text-slate-950" />
               <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
@@ -228,19 +220,17 @@ export default function App() {
           </div>
         </div>
 
-        {}
-        <div 
-          className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 transition group bg-gradient-to-r from-amber-100 via-white to-indigo-50 dark:from-amber-950/30 dark:via-slate-900 dark:to-indigo-950/30 border-amber-300 dark:border-amber-500/30"
-        >
+        {/* Featured Blueprint Subpage Banner */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-amber-300 dark:border-amber-600/40 bg-gradient-to-r from-amber-100/80 via-white to-indigo-50 dark:from-amber-950/40 dark:via-slate-900 dark:to-indigo-950/40 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 group transition">
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-amber-900 dark:text-amber-400 font-mono font-bold text-xs">
+            <div className="flex items-center gap-2 text-amber-900 dark:text-amber-400 font-mono font-black text-xs">
               <Eye className="h-4 w-4 text-amber-700 dark:text-amber-400" />
               <span>FEATURED • Spatial Loci Blueprint Engine v2.0</span>
             </div>
             <h3 className="text-xl font-black tracking-tight text-slate-950 dark:text-white group-hover:text-amber-700 dark:group-hover:text-amber-300 transition">
               {isZh ? '宮殿建築平面視覺藍圖 (Architectural Loci Floorplan)' : 'Architectural Loci Floorplan Blueprint'}
             </h3>
-            <p className="text-xs font-semibold text-slate-700 dark:text-slate-200 max-w-2xl leading-relaxed">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300 max-w-2xl leading-relaxed">
               {isZh 
                 ? '開啟專屬向量式 2D 建築平面圖，視覺化檢索 6 大空間驛站、流動導覽路線與法規細節。'
                 : 'Launch the dedicated 2D architectural vector floorplan to visually inspect all 6 spatial rooms.'}
@@ -249,7 +239,7 @@ export default function App() {
 
           <a
             href="/memory-palace/blueprint"
-            className="w-full md:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/25 transition flex items-center justify-center gap-2 shrink-0 group-hover:scale-105"
+            className="w-full md:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl shadow-amber-500/30 transition flex items-center justify-center gap-2 shrink-0 group-hover:scale-105"
           >
             <Map className="h-4 w-4 text-slate-950" />
             <span>{isZh ? '開啟藍圖視察引擎' : 'Launch Blueprint Engine'}</span>
@@ -257,17 +247,13 @@ export default function App() {
           </a>
         </div>
 
-        {}
-        <div 
-          className="p-6 sm:p-8 rounded-3xl border shadow-xl space-y-4 transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800"
-        >
-          <div 
-            className="flex items-center justify-between border-b pb-3 flex-wrap gap-2 border-slate-200 dark:border-slate-800"
-          >
-            <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider block">
+        {/* Station Navigation Grid Map */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-3 flex-wrap gap-2">
+            <span className="text-xs font-mono font-black text-slate-800 dark:text-slate-300 uppercase tracking-wider block">
               {isZh ? '宮殿空間驛站導覽 (Palace Spatial Route Map):' : 'Palace Spatial Route Map:'}
             </span>
-            <span className="text-xs font-mono font-extrabold text-amber-900 dark:text-amber-300 px-3 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700">
+            <span className="text-xs font-mono font-black text-amber-900 dark:text-amber-300 px-3 py-1 rounded-lg bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700">
               6 Spatial Loci Stations
             </span>
           </div>
@@ -289,10 +275,10 @@ export default function App() {
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-mono font-extrabold px-2 py-0.5 rounded-md ${
+                    <span className={`text-[10px] font-mono font-black px-2 py-0.5 rounded-md ${
                       isActive 
                         ? 'bg-slate-950 text-amber-300' 
-                        : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
+                        : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-200 border border-slate-300 dark:border-slate-700'
                     }`}>
                       {station.num}
                     </span>
@@ -303,7 +289,7 @@ export default function App() {
                     <h4 className="text-xs font-black leading-snug line-clamp-2 text-slate-950 dark:text-white">
                       {isZh ? station.titleZh : station.titleEn}
                     </h4>
-                    <span className={`text-[10px] block truncate font-bold ${isActive ? 'text-slate-950' : 'text-slate-600 dark:text-slate-300'}`}>
+                    <span className={`text-[10px] block truncate font-bold ${isActive ? 'text-slate-950' : 'text-slate-700 dark:text-slate-300'}`}>
                       {isZh ? station.locationZh : station.locationEn}
                     </span>
                   </div>
@@ -313,19 +299,15 @@ export default function App() {
           </div>
         </div>
 
-        {}
+        {/* Selected Loci Station Deep-Dive Viewer */}
         <div ref={inspectorRef} className="scroll-mt-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Spatial Scene & Mnemonic Anchor */}
-          <div 
-            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800"
-          >
+          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl space-y-6 flex flex-col justify-between">
             <div className="space-y-6">
-              <div 
-                className="flex items-center justify-between border-b pb-4 flex-wrap gap-2 border-slate-200 dark:border-slate-800"
-              >
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 flex-wrap gap-2">
                 <div className="space-y-1.5">
-                  <span className="px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-xs font-mono font-extrabold text-amber-900 dark:text-amber-300">
+                  <span className="px-3 py-1 rounded-xl bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 text-xs font-mono font-black text-amber-900 dark:text-amber-300">
                     {activeStation.num} • {isZh ? activeStation.locationZh : activeStation.locationEn}
                   </span>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-950 dark:text-white pt-1">
@@ -333,14 +315,14 @@ export default function App() {
                   </h2>
                 </div>
 
-                <span className="text-xs font-mono font-bold px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100">
+                <span className="text-xs font-mono font-black px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100">
                   {isZh ? activeStation.statuteRefZh : activeStation.statuteRefEn}
                 </span>
               </div>
 
-              {/* Spatial Scene Description (Darkened readable text) */}
+              {/* Spatial Scene Description (Dark high-contrast container with white text) */}
               <div className="p-5 rounded-2xl bg-slate-900 dark:bg-slate-950 border border-slate-800 space-y-3 shadow-sm">
-                <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
+                <div className="flex items-center gap-2 text-amber-400 font-black text-sm">
                   <Sparkles className="h-4 w-4" />
                   <span>{isZh ? '宮殿空間視覺影像 (Spatial Visual Scene)' : 'Spatial Visual Scene'}</span>
                 </div>
@@ -349,8 +331,8 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Mnemonic Anchor Box (High contrast text) */}
-              <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-600/40 space-y-2">
+              {/* Mnemonic Anchor Box (High-contrast rich amber with dark bold text) */}
+              <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-600/40 space-y-2">
                 <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-black text-sm">
                   <Lightbulb className="h-4 w-4 text-amber-700 dark:text-amber-400" />
                   <span>{isZh ? '記憶錨定口訣 (Mnemonic Anchor)' : 'Mnemonic Anchor'}</span>
@@ -362,9 +344,7 @@ export default function App() {
             </div>
 
             {/* Station Action Link Group */}
-            <div 
-              className="pt-4 border-t flex flex-wrap items-center justify-between gap-3 border-slate-200 dark:border-slate-800"
-            >
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
               {activeStation.linkedRoute && (
                 <a
                   href={activeStation.linkedRoute}
@@ -377,7 +357,7 @@ export default function App() {
 
               <a
                 href={`/quiz?block=${activeStation.blockId}`}
-                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-2"
+                className="px-5 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-2"
               >
                 <CheckCircle2 className="h-4 w-4" />
                 <span>{isZh ? '進入單元刷題' : 'Practice Block Quiz'}</span>
@@ -386,25 +366,21 @@ export default function App() {
           </div>
 
           {/* Right Panel: Associated Master Exam Trap */}
-          <div 
-            className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between transition bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-800"
-          >
+          <div className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl space-y-6 flex flex-col justify-between">
             <div className="space-y-4">
-              <div 
-                className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-black text-base border-b pb-3 border-slate-200 dark:border-slate-800"
-              >
+              <div className="flex items-center gap-2 text-rose-700 dark:text-rose-400 font-black text-base border-b border-slate-200 dark:border-slate-800 pb-3">
                 <AlertTriangle className="h-5 w-5" />
                 <span>{isZh ? '關聯主考官陷阱登錄' : 'Associated Master Exam Trap'}</span>
               </div>
 
-              {/* Trap Box - Darkened ruby text */}
-              <div className="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-200 text-xs sm:text-sm font-black leading-relaxed space-y-2">
+              {/* Trap Box - Dark ruby text on rose-50 with solid border */}
+              <div className="p-5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border-2 border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-200 text-xs sm:text-sm font-black leading-relaxed space-y-2">
                 <p>{isZh ? activeStation.examTrapZh : activeStation.examTrapEn}</p>
               </div>
 
-              {/* Spatial Recall Guide - High contrast */}
-              <div className="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-2 text-xs">
-                <span className="font-black text-indigo-900 dark:text-indigo-300 uppercase font-mono block">
+              {/* Spatial Recall Guide - High contrast Indigo Box */}
+              <div className="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border-2 border-indigo-200 dark:border-indigo-800 space-y-2 text-xs">
+                <span className="font-black text-indigo-950 dark:text-indigo-300 uppercase font-mono block">
                   {isZh ? '【 空間記憶複習指南 】' : '[ Spatial Recall Guide ]'}
                 </span>
                 <p className="text-slate-900 dark:text-slate-200 font-bold leading-relaxed">
@@ -415,16 +391,14 @@ export default function App() {
               </div>
             </div>
 
-            <div 
-              className="pt-4 border-t flex items-center justify-between border-slate-200 dark:border-slate-800"
-            >
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-400">
                 AgentPass™ Loci Engine
               </span>
 
               <a
                 href={`/flashcards?block=${activeStation.blockId}`}
-                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs text-slate-900 dark:text-slate-100 transition flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-black text-xs text-slate-900 dark:text-slate-100 transition flex items-center gap-1.5"
               >
                 <Layers className="h-3.5 w-3.5 text-indigo-700 dark:text-indigo-400" />
                 <span>{isZh ? '翻閱對應閃卡' : 'View Flashcards'}</span>
