@@ -1,4 +1,4 @@
-// app/memory-palace/page.tsx
+// app/memory-palace/blueprint/page.tsx
 'use client';
 
 import { useState } from 'react';
@@ -18,7 +18,7 @@ import {
   MapPin,
   ShieldCheck,
   Eye,
-  ArrowRight
+  ArrowLeft
 } from 'lucide-react';
 
 interface LociStation {
@@ -157,7 +157,7 @@ const LOCI_STATIONS: LociStation[] = [
   }
 ];
 
-export default function MemoryPalacePage() {
+export default function LociBlueprintPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
@@ -176,121 +176,101 @@ export default function MemoryPalacePage() {
           <div className="space-y-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
               <Compass className="h-3.5 w-3.5" />
-              <span>Method of Loci & Spatial Memory Architecture</span>
+              <span>Spatial Loci Blueprint Engine v2.0</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black tracking-tight">
-              {isZh ? '互動記憶宮殿路線圖 (Memory Loci Map)' : 'Interactive Memory Palace Loci Map'}
+              {isZh ? '宮殿建築平面視覺藍圖 (Architectural Blueprint)' : 'Architectural Loci Floorplan Blueprint'}
             </h1>
             <p className="text-xs sm:text-sm font-medium opacity-80 max-w-2xl leading-relaxed">
               {isZh 
-                ? '點擊下方宮殿記憶驛站，以空間視覺圖像錨定法規考點，實現零遺忘長效記憶。'
-                : 'Click through memory loci stations to anchor complex statutory rules with spatial visual imagery.'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0 flex-wrap">
-            <Link
-              href="/case-study"
-              className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4 text-indigo-400" />
-              <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
-            </Link>
-
-            <Link
-              href="/course"
-              className="px-5 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-xl transition flex items-center gap-2"
-            >
-              <BookOpen className="h-4 w-4" />
-              <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* FEATURED: Spatial Loci Blueprint Engine v2.0 Sub-page Card Link */}
-        <div 
-          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-          className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col md:flex-row items-center justify-between gap-6 bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-950/40 hover:border-amber-500/50 transition group"
-        >
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-amber-400 font-mono font-bold text-xs">
-              <Eye className="h-4 w-4" />
-              <span>NEW • Spatial Loci Blueprint Engine v2.0</span>
-            </div>
-            <h3 className="text-xl font-black tracking-tight group-hover:text-amber-300 transition">
-              {isZh ? '宮殿建築平面視覺藍圖 (Architectural Loci Floorplan)' : 'Architectural Loci Floorplan Blueprint'}
-            </h3>
-            <p className="text-xs opacity-80 max-w-2xl leading-relaxed">
-              {isZh 
-                ? '開啟向量式互動 2D 建築平面圖，視覺化檢索 6 大空間驛站與法規考點。'
-                : 'Launch the interactive 2D SVG vector architectural blueprint to visually inspect all 6 spatial rooms.'}
+                ? '點擊下方平面藍圖中的 6 大房間驛站，視覺化檢索各區域之空間記憶圖像、法規考點與主考官陷阱。'
+                : 'Click room nodes inside the architectural blueprint below to inspect spatial memory anchors and statutory traps.'}
             </p>
           </div>
 
           <Link
-            href="/memory-palace/blueprint"
-            className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-xl transition flex items-center gap-2 shrink-0 group-hover:scale-105"
+            href="/memory-palace"
+            className="px-5 py-3 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2 shrink-0"
           >
-            <span>{isZh ? '開啟藍圖視察引擎' : 'Launch Blueprint Engine'}</span>
-            <ArrowRight className="h-4 w-4 text-slate-950" />
+            <ArrowLeft className="h-4 w-4 text-amber-400" />
+            <span>{isZh ? '返回記憶宮殿主頁' : 'Back to Memory Palace'}</span>
           </Link>
         </div>
 
-        {/* Station Navigation Grid Map */}
+        {/* High-End Architectural Blueprint Grid */}
         <div 
           style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-          className="p-6 rounded-3xl border shadow-xl space-y-4"
+          className="p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6 relative overflow-hidden bg-slate-950"
         >
-          <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
-            <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
-              {isZh ? '宮殿空間驛站導覽 (Palace Spatial Route Map):' : 'Palace Spatial Route Map:'}
-            </span>
-            <span className="text-xs font-mono font-bold text-amber-400">
-              6 Spatial Loci Stations
+          <div className="flex items-center justify-between border-b pb-4 border-slate-800">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400">
+              <Eye className="h-4 w-4" />
+              <span>{isZh ? '宮殿空間藍圖平面圖 (2D Vector Loci Floorplan)' : '2D Vector Loci Floorplan'}</span>
+            </div>
+            <span className="text-xs font-mono px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-bold">
+              6 Spatial Loci Nodes
             </span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {LOCI_STATIONS.map((station) => {
+          {/* Blueprint Interactive Overlay Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative">
+            {LOCI_STATIONS.map((station, idx) => {
               const IconComp = station.icon;
               const isActive = station.id === activeStation.id;
 
               return (
-                <button
+                <div
                   key={station.id}
                   onClick={() => setActiveStation(station)}
-                  className={`p-4 rounded-2xl border text-left transition flex flex-col justify-between gap-3 cursor-pointer relative overflow-hidden group ${
+                  className={`p-6 rounded-3xl border text-left transition-all duration-300 flex flex-col justify-between gap-4 cursor-pointer relative overflow-hidden group ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-xl font-extrabold scale-[1.02]'
-                      : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-amber-500/50'
+                      ? 'bg-gradient-to-br from-amber-500/20 via-indigo-950 to-slate-900 border-amber-400 shadow-2xl scale-[1.02] ring-2 ring-amber-400/40'
+                      : 'bg-slate-900/80 border-slate-800 text-slate-300 hover:border-amber-500/50 hover:bg-slate-900'
                   }`}
                 >
                   <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-md ${
-                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-slate-800 text-slate-400'
+                    <span className={`text-xs font-mono font-bold px-3 py-1 rounded-xl border ${
+                      isActive 
+                        ? 'bg-amber-500 text-slate-950 border-amber-300 font-extrabold shadow-md' 
+                        : 'bg-slate-800/80 border-slate-700 text-amber-400'
                     }`}>
                       {station.num}
                     </span>
-                    <IconComp className={`h-4 w-4 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />
+
+                    <div className={`p-2.5 rounded-2xl border transition ${
+                      isActive 
+                        ? 'bg-amber-500 text-slate-950 border-amber-300' 
+                        : 'bg-slate-800/80 border-slate-700 text-amber-400 group-hover:border-amber-500/50'
+                    }`}>
+                      <IconComp className="h-5 w-5" />
+                    </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <h4 className="text-xs font-extrabold leading-snug line-clamp-2">
+                  <div className="space-y-1.5">
+                    <h3 className={`text-base font-extrabold tracking-tight ${isActive ? 'text-amber-200' : 'text-slate-100'}`}>
                       {isZh ? station.titleZh : station.titleEn}
-                    </h4>
-                    <span className={`text-[10px] block truncate font-medium ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
+                    </h3>
+                    <p className={`text-xs font-medium ${isActive ? 'text-amber-300/80' : 'text-slate-400'}`}>
                       {isZh ? station.locationZh : station.locationEn}
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono">
+                    <span className="opacity-60">{isZh ? station.statuteRefZh : station.statuteRefEn}</span>
+                    <span className={`font-bold transition ${isActive ? 'text-amber-400' : 'text-slate-500 group-hover:text-amber-400'}`}>
+                      {isZh ? '視察驛站 →' : 'Inspect Node →'}
                     </span>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
         </div>
 
-        {/* Selected Loci Inspector Panel */}
+        {/* Selected Loci Detailed Inspector Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
+          {/* Left Panel: Spatial Scene & Mnemonic Anchor (7 Columns) */}
           <div 
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
             className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between"
@@ -311,6 +291,7 @@ export default function MemoryPalacePage() {
                 </span>
               </div>
 
+              {/* Spatial Scene Description */}
               <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
                 <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
                   <Sparkles className="h-4 w-4" />
@@ -321,6 +302,7 @@ export default function MemoryPalacePage() {
                 </p>
               </div>
 
+              {/* Dual Coding Mnemonic Anchor */}
               <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
                 <div className="flex items-center gap-2 text-amber-400 font-extrabold text-sm">
                   <Lightbulb className="h-4 w-4" />
@@ -332,8 +314,9 @@ export default function MemoryPalacePage() {
               </div>
             </div>
 
+            {/* Station Action Link Group */}
             <div className="pt-4 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: 'var(--border-color)' }}>
-              {activeStation.linkedRoute ? (
+              {activeStation.linkedRoute && (
                 <Link
                   href={activeStation.linkedRoute}
                   className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-lg transition flex items-center gap-2"
@@ -341,10 +324,6 @@ export default function MemoryPalacePage() {
                   <FileText className="h-4 w-4" />
                   <span>{isZh ? activeStation.linkedRouteLabelZh : activeStation.linkedRouteLabelEn}</span>
                 </Link>
-              ) : (
-                <span className="text-xs font-mono opacity-50">
-                  {isZh ? '錨定完成！即可進入對應題庫測試' : 'Loci anchored! Ready for practice'}
-                </span>
               )}
 
               <Link
@@ -357,6 +336,7 @@ export default function MemoryPalacePage() {
             </div>
           </div>
 
+          {/* Right Panel: Associated Master Exam Trap (5 Columns) */}
           <div 
             style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
             className="lg:col-span-5 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between"
@@ -367,25 +347,14 @@ export default function MemoryPalacePage() {
                 <span>{isZh ? '關聯主考官陷阱登錄' : 'Associated Master Exam Trap'}</span>
               </div>
 
-              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs sm:text-sm font-bold leading-relaxed space-y-2">
+              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-200 text-xs sm:text-sm font-bold leading-relaxed">
                 <p>{isZh ? activeStation.examTrapZh : activeStation.examTrapEn}</p>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2 text-xs">
-                <span className="font-bold text-indigo-400 uppercase font-mono block">
-                  {isZh ? '【 空間記憶複習指南 】' : '[ Spatial Recall Guide ]'}
-                </span>
-                <p className="opacity-80 leading-relaxed">
-                  {isZh 
-                    ? '閉上眼睛，在腦海中沿著宮殿路線從 Station 01 走到 Station 06。重現每一個驛站的視覺物件與數字，即可徹底鎖定法規細節。'
-                    : 'Close your eyes and mentally walk from Station 01 to Station 06. Revisualize each spatial object to lock in statutory nuances.'}
-                </p>
               </div>
             </div>
 
             <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
               <span className="text-xs font-mono font-bold opacity-60">
-                {isZh ? 'AgentPass™ 空間工程' : 'AgentPass™ Loci Engine'}
+                Spatial Loci Engine v2.0
               </span>
 
               <Link
