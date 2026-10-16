@@ -22,7 +22,8 @@ import {
   Eye,
   Check,
   ChevronRight,
-  Globe
+  Globe,
+  Compass
 } from 'lucide-react';
 
 
