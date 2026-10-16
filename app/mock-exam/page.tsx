@@ -21,12 +21,21 @@ import {
   Eye,
   Loader2,
   Zap,
-  Globe
+  Globe,
+  Layers,
+  ChevronDown
 } from 'lucide-react';
 
 /* ========================================================
    DATA CONTRACTS & INTERFACES
    ======================================================== */
+export type ExamDomainBatch = 
+  | 'CAP511' 
+  | 'CONVEYANCING' 
+  | 'TENANCY_BUILDINGS' 
+  | 'AGENCY_TORT' 
+  | 'POIM_CASE';
+
 interface MockQuestion {
   id: number;
   part: 'I' | 'II';
@@ -63,7 +72,7 @@ interface CaseScenario {
 }
 
 /* ========================================================
-   PART II POIM CASE SCENARIOS (LAND SEARCH ANNEX ENGINE)
+   PART II POIM MULTI-CASE SUITE (CASES 1, 2 & 3)
    ======================================================== */
 const CASE_SCENARIOS: Record<string, CaseScenario> = {
   'case-1': {
@@ -104,9 +113,9 @@ const CASE_SCENARIOS: Record<string, CaseScenario> = {
         '2. Building Order: Buildings Ordinance Cap. 123 s.24 Removal Order (Balcony UBW)'
       ],
       memorialsZh: [
-        'UB99201 - 遺囑認證文書',
-        'UB44012 - 法定押記 / 按揭',
-        'UB77341 - 建築事務監督清拆命令'
+        'UB99201 - 遺囑認證文書 (Letters of Probate)',
+        'UB44012 - 法定押記 / 按揭 (Legal Charge)',
+        'UB77341 - 建築事務監督清拆命令 (Removal Order s.24)'
       ],
       memorialsEn: [
         'UB99201 - Letters of Probate',
@@ -119,7 +128,7 @@ const CASE_SCENARIOS: Record<string, CaseScenario> = {
     id: 'case-2',
     titleZh: '個案二：有限公司賣方與雙重查冊 (Central Commercial Tower)',
     titleEn: 'Case 2: Company Vendor & Dual-Search Protocol (Central Commercial Tower)',
-    narrativeZh: '賣方為「卓越投資有限公司 (Apex Profits Limited)」，委託代理 Ken 出售中環商業大廈 20 樓 01 室。土地查冊顯示物業無按揭登記。Ken 僅提供土地註冊處查冊紀錄，未有辦理公司註冊處 (Companies Registry) 查冊。買方簽訂臨時買賣合約後，始發現該公司存在未解除之浮動押記 (Floating Charge)。',
+    narrativeZh: '賣方為「卓越投資有限公司 (Apex Profits Limited)」，委託代理 Ken 出售中環商業大廈 20 樓 01 室。土地查冊顯示物業無按揭登記。Ken 僅提供土地註冊處查冊紀錄，未有辦理公司註冊處 (Companies Registry) 查冊。買方簽訂臨時買賣合約後，始發現該公司存在未解除之浮動押記 (Floating Charge) 及押記令 (Charging Order) 風險。',
     narrativeEn: 'Vendor is "Apex Profits Limited", instructing agent Ken to sell Suite 01, 20/F, Central Commercial Tower. The Land Registry search shows no encumbrance. Ken provided only the land search without conducting a Companies Registry charge search. Buyer signed the PASP only to discover an outstanding floating charge debenture.',
     landSearch: {
       propertyZh: [
@@ -143,10 +152,12 @@ const CASE_SCENARIOS: Record<string, CaseScenario> = {
         'Memorial No.: UB88102'
       ],
       incumbrancesZh: [
-        '【土地註冊處無未結清押記或命令登記紀錄】'
+        '【土地註冊處無任何未結清押記或拆卸命令登記紀錄】',
+        '註：公司註冊處登記冊載有一項未解除之浮動押記 (Floating Charge)'
       ],
       incumbrancesEn: [
-        '[No encumbrance or court order registered in Land Registry]'
+        '[No encumbrance registered in Land Registry]',
+        'Note: Companies Registry maintains an outstanding Floating Charge debenture'
       ],
       memorialsZh: [
         'UB88102 - 轉讓契約 (Assignment)'
@@ -155,13 +166,61 @@ const CASE_SCENARIOS: Record<string, CaseScenario> = {
         'UB88102 - Deed of Assignment'
       ]
     }
+  },
+  'case-3': {
+    id: 'case-3',
+    titleZh: '個案三：海外授權書與破產查冊 (Harborview Garden)',
+    titleEn: 'Case 3: Overseas Power of Attorney & Bankruptcy Search (Harborview Garden)',
+    narrativeZh: '業主陳偉明先生長居加拿大，簽署一份授權書 (Power of Attorney) 委託其表妹李小姐出售港島海景花園 8 座 15 樓 A 室。買方何先生經代理 Rachel 洽購。Rachel 未有查核授權書是否仍具法定效力或已被撤銷，亦未進行破產查冊 (Bankruptcy Search)，並指示何先生將 100 萬臨時訂金以劃線支票抬頭直接開予表妹李小姐個人。',
+    narrativeEn: 'Owner Mr. Chan resides in Canada and executed a Power of Attorney authorizing his cousin Ms. Li to sell Flat A, 15/F, Tower 8, Harborview Garden. Buyer Mr. Ho negotiated through agent Rachel. Rachel failed to confirm whether the PoA was revoked or inspect statutory non-revocation declarations, omitted a bankruptcy search, and instructed Mr. Ho to draw the HK$1M deposit cheque directly payable to Ms. Li personally.',
+    landSearch: {
+      propertyZh: [
+        '地段編號：柴灣內地段第 431 號 (Chai Wan Inland Lot No. 431)',
+        '物業地址：香港港島東區海景花園第 8 座 15 樓 A 室',
+        '批約年期：75 年自 1991 年起計'
+      ],
+      propertyEn: [
+        'Lot No.: Chai Wan Inland Lot No. 431',
+        'Property: Flat A, 15/F, Tower 8, Harborview Garden, HK',
+        'Lease Term: 75 years from 1991'
+      ],
+      ownerZh: [
+        '登記業主：陳偉明 (Chan Wai Ming)',
+        '註冊代價：HK$11,500,000',
+        '註冊摘要編號：UB66219'
+      ],
+      ownerEn: [
+        'Registered Owner: Chan Wai Ming',
+        'Consideration: HK$11,500,000',
+        'Memorial No.: UB66219'
+      ],
+      incumbrancesZh: [
+        '1. 法定押記：中國銀行（香港）有限公司按揭 (摘要編號 UB71203)',
+        '2. 授權書登記：委託李小姐代理物業處理權 (摘要編號 UB92014)'
+      ],
+      incumbrancesEn: [
+        '1. Legal Charge: Bank of China (HK) Ltd (Memorial UB71203)',
+        '2. Power of Attorney: Granting disposal powers to Ms. Li (Memorial UB92014)'
+      ],
+      memorialsZh: [
+        'UB66219 - 轉讓契約 (Assignment)',
+        'UB71203 - 法定押記 (Legal Charge)',
+        'UB92014 - 授權書 (Power of Attorney)'
+      ],
+      memorialsEn: [
+        'UB66219 - Deed of Assignment',
+        'UB71203 - Legal Charge',
+        'UB92014 - Power of Attorney'
+      ]
+    }
   }
 };
 
 /* ========================================================
-   MASTER EXAM QUESTION REPOSITORY
+   MASTER EXAM QUESTION REPOSITORY (FULL SUITE SEEDS)
    ======================================================== */
 const MASTER_QUESTIONS: MockQuestion[] = [
+  // PART I - CAP 511 & LICENSING
   {
     id: 1,
     part: 'I',
@@ -179,21 +238,6 @@ const MASTER_QUESTIONS: MockQuestion[] = [
   },
   {
     id: 2,
-    part: 'I',
-    topicZh: '租務法定權益 (Cap. 7)',
-    topicEn: 'Landlord & Tenant Rights (Cap. 7)',
-    questionZh: '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
-    questionEn: 'In the absence of an express forfeiture clause, after how many days of unpaid domestic rent can a landlord exercise the statutory implied right of forfeiture?',
-    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 15 天', 'D. 30 天'],
-    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 15 Days', 'D. 30 Days'],
-    answerIndex: 2,
-    explanationZh: '《業主與租客（綜合）條例》(Cap. 7) 第 IV 部規定，住宅租賃中拖欠租金的法定沒收權門檻為 15 天（商用物業一般為 21 天，須依合約或普通法判定）。',
-    explanationEn: 'Under Cap. 7 Part IV, the statutory implied forfeiture threshold for non-payment of domestic rent is 15 days.',
-    statuteRefZh: '《業主與租客（綜合）條例》Cap. 7 Part IV',
-    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7'
-  },
-  {
-    id: 3,
     part: 'I',
     topicZh: '客戶款項規則 (Client Money)',
     topicEn: 'Client Money Accounts (Cap. 511)',
@@ -218,7 +262,7 @@ const MASTER_QUESTIONS: MockQuestion[] = [
     statuteRefEn: 'Estate Agents (Client Money) Rules s.4 & s.8'
   },
   {
-    id: 4,
+    id: 3,
     part: 'I',
     topicZh: '物業資料常規 (Practice Regs)',
     topicEn: 'Practice Regulations (Cap. 511A)',
@@ -242,8 +286,79 @@ const MASTER_QUESTIONS: MockQuestion[] = [
     statuteRefZh: '《地產代理常規 (一般職責及香港住宅物業) 規例》Form 1',
     statuteRefEn: 'Estate Agents Practice (General & Residential) Regs Form 1'
   },
+
+  // PART I - TENANCY & BUILDINGS
+  {
+    id: 4,
+    part: 'I',
+    topicZh: '租務法定權益 (Cap. 7)',
+    topicEn: 'Landlord & Tenant Rights (Cap. 7)',
+    questionZh: '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
+    questionEn: 'In the absence of an express forfeiture clause, after how many days of unpaid domestic rent can a landlord exercise the statutory implied right of forfeiture?',
+    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 15 天', 'D. 30 天'],
+    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 15 Days', 'D. 30 Days'],
+    answerIndex: 2,
+    explanationZh: '《業主與租客（綜合）條例》(Cap. 7) 第 IV 部規定，住宅租賃中拖欠租金的法定沒收權門檻為 15 天（商用物業一般為 21 天，須依合約或普通法判定）。',
+    explanationEn: 'Under Cap. 7 Part IV, the statutory implied forfeiture threshold for non-payment of domestic rent is 15 days.',
+    statuteRefZh: '《業主與租客（綜合）條例》Cap. 7 Part IV',
+    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7'
+  },
   {
     id: 5,
+    part: 'I',
+    topicZh: '劏房租務管制 (Cap. 7 Part IVA)',
+    topicEn: 'Subdivided Unit Control (Cap. 7 Part IVA)',
+    questionZh: '根據《業主與租客（綜合）條例》第 IVA 部（劏房租管），規管租賃首期 2 年租期屆滿後，次期租賃（次期 2 年）租金加幅上限為何？',
+    questionEn: 'Under Cap. 7 Part IVA (Subdivided Units), upon expiry of the first 2-year term, what is the maximum statutory rent increase cap for the second 2-year term?',
+    optionsZh: [
+      'A. 5%',
+      'B. 10% 或差餉物業估價署同類物業租金指數變動百分率（以較低者為準）',
+      'C. 15%',
+      'D. 由業主單方面全權決定'
+    ],
+    optionsEn: [
+      'A. 5%',
+      'B. 10% or the RVD rental index change percentage, whichever is lower',
+      'C. 15%',
+      'D. At the landlord’s unilateral discretion'
+    ],
+    answerIndex: 1,
+    explanationZh: 'Cap. 7 Part IVA 明訂 2+2 保障期內，次期續租租金加幅不得超過差估署私樓租金指數變動百分率，並設有 10% 的法定上限封頂。',
+    explanationEn: 'Under Cap. 7 Part IVA, rent renewal increases are capped at the RVD private domestic rental index movement, subject to an absolute ceiling of 10%.',
+    statuteRefZh: '《業主與租客（綜合）條例》第 IVA 部 第 120AA 條',
+    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Part IVA s.120AA'
+  },
+
+  // PART I - CONVEYANCING & LAND LAW
+  {
+    id: 6,
+    part: 'I',
+    topicZh: '聯權共有與分權共有 (Cap. 219)',
+    topicEn: 'Joint Tenancy & Severance (Cap. 219)',
+    questionZh: '若甲、乙兩人以「聯權共有 (Joint Tenancy)」形式持有香港物業，甲未經乙同意，依法將其權益轉讓予丙。此項轉讓對物業業權模式產生何種法律效果？',
+    questionEn: 'If A and B hold a property as Joint Tenants, and A conveys his interest to C without B’s consent, what is the legal effect on ownership structure?',
+    optionsZh: [
+      'A. 轉讓無效，因聯權共有未經全體同意不得處置',
+      'B. 聯權共有中斷 (Severance)，乙與丙將以「分權共有 (Tenancy in Common)」形式各佔一半權益',
+      'C. 乙自動獲得甲的全部業權 (Right of Survivorship)',
+      'D. 乙有權撤銷該買賣並沒收全部樓款'
+    ],
+    optionsEn: [
+      'A. The conveyance is void ab initio without unanimous consent',
+      'B. Joint tenancy is severed; B and C become Tenants in Common holding equal undivided shares',
+      'C. B automatically absorbs A’s share via right of survivorship',
+      'D. B can unilaterally rescind the assignment and forfeit sale proceeds'
+    ],
+    answerIndex: 1,
+    explanationZh: '普通法及 Cap. 219 規定：聯權共有人轉讓其份額將破壞「時間與產權四同原則 (Four Unities)」，導致聯權共有中斷 (Severance)，受讓人與原共有人變為分權共有 (Tenancy in Common)。',
+    explanationEn: 'Conveying a joint tenant share severs the joint tenancy due to alienation, creating a tenancy in common between the remaining owner and new assignee.',
+    statuteRefZh: '《物業轉易及物業條例》(Cap. 219) 及普通法業權原則',
+    statuteRefEn: 'Conveyancing and Property Ordinance (Cap. 219)'
+  },
+
+  // PART II - CASE 1 (SMART MANSION)
+  {
+    id: 7,
     part: 'II',
     caseScenarioId: 'case-1',
     topicZh: '土地查冊 (POIM 業主權限)',
@@ -269,7 +384,7 @@ const MASTER_QUESTIONS: MockQuestion[] = [
     statuteRefEn: 'Probate and Administration Ordinance (Cap. 10) & EAA Code'
   },
   {
-    id: 6,
+    id: 8,
     part: 'II',
     caseScenarioId: 'case-1',
     topicZh: '違建命令揭示 (Cap. 123 s.24)',
@@ -294,8 +409,10 @@ const MASTER_QUESTIONS: MockQuestion[] = [
     statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
     statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)'
   },
+
+  // PART II - CASE 2 (CENTRAL COMMERCIAL TOWER)
   {
-    id: 7,
+    id: 9,
     part: 'II',
     caseScenarioId: 'case-2',
     topicZh: '公司賣方雙重查冊 (Cap. 622)',
@@ -319,6 +436,34 @@ const MASTER_QUESTIONS: MockQuestion[] = [
     explanationEn: 'Under Cap. 622 and EAA Guidelines, corporate floating charges are recorded at the Companies Registry. Omitting this search exposes purchasers to encumbered titles upon debenture crystallization.',
     statuteRefZh: '《公司條例》(Cap. 622) 第 335 條及 EAA 執業指引',
     statuteRefEn: 'Companies Ordinance Cap. 622 s.335 & EAA Guidelines'
+  },
+
+  // PART II - CASE 3 (HARBORVIEW GARDEN)
+  {
+    id: 10,
+    part: 'II',
+    caseScenarioId: 'case-3',
+    topicZh: '海外授權書時效 (Cap. 31)',
+    topicEn: 'Power of Attorney Validity (Cap. 31)',
+    questionZh: '【Part II 個案題 - 個案三】在海景花園個案中，表妹李小姐持有陳先生的授權書簽約。代理 Rachel 指示買方直接將 100 萬訂金支票抬頭寫給李小姐個人。此做法有何重大法律與操守缺失？',
+    questionEn: '[Part II Case Study - Case 3] In the Harborview Garden case, Ms. Li signed via Power of Attorney. Rachel instructed the buyer to draw a HK$1M cheque directly to Ms. Li. What is the fatal professional and legal flaw?',
+    optionsZh: [
+      'A. 表妹李小姐無權收取任何款項，除非授權書有明文特別授權 (Express Authority)，且因存在現存按揭及撤銷風險，訂金必須由賣方律師樓作為 Stakeholder 託管',
+      'B. 支票必須抬頭寫給地產代理公司由代理轉發',
+      'C. 授權書一旦登記在土地註冊處即永遠有效，無須理會按揭狀況',
+      'D. 只要李小姐提供身份證，便可任意以個人名義收取所有樓價'
+    ],
+    optionsEn: [
+      'A. An attorney has no implied authority to receive purchase monies personally unless expressly conferred; given the existing mortgage and revocation risk, deposits must be held by the vendor solicitor as stakeholder',
+      'B. The cheque must be drawn payable to the estate agency company for onward transmission',
+      'C. Registered powers of attorney remain valid indefinitely regardless of underlying mortgages',
+      'D. Possessing an HKID card automatically confers full rights to collect sale proceeds personally'
+    ],
+    answerIndex: 0,
+    explanationZh: '《授權書條例》(Cap. 31) 及 EAA 執業通告明確規定：獲授權人除非獲明文具體授權收取樓款，否則不可個人接收訂金。且物業尚有按揭登記 (UB71203)，所有訂金必須由賣方律師以保證金 (Stakeholder) 託管以確保能贖樓清繳。',
+    explanationEn: 'Under Cap. 31 and EAA circulars, an attorney cannot receive monies personally without express power. With a subsisting mortgage, deposits must be held by the vendor solicitor as stakeholder.',
+    statuteRefZh: '《授權書條例》(Cap. 31) 第 5 條及 EAA 執業通告',
+    statuteRefEn: 'Powers of Attorney Ordinance (Cap. 31) s.5 & EAA Practice Circular'
   }
 ];
 
@@ -336,11 +481,12 @@ export default function MockExamPage() {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(180 * 60);
   const [activeAnnexTab, setActiveAnnexTab] = useState<'property' | 'owner' | 'incumbrances' | 'narrative'>('incumbrances');
 
-  // AI Cognitive Synthesizer state
+  // Matrix Synthesizer states
   const [showAiModal, setShowAiModal] = useState<boolean>(false);
   const [aiGenerating, setAiGenerating] = useState<boolean>(false);
-  const [aiTopic, setAiTopic] = useState<string>('Cap. 511 & Form 1-6');
-  const [aiTargetPart, setAiTargetPart] = useState<'I' | 'II'>('I');
+  const [selectedBatchDomain, setSelectedBatchDomain] = useState<ExamDomainBatch>('CAP511');
+  const [selectedCaseId, setSelectedCaseId] = useState<string>('case-1');
+  const [batchProgressText, setBatchProgressText] = useState<string>('');
   const [aiError, setAiError] = useState<string | null>(null);
   const [questionsList, setQuestionsList] = useState<MockQuestion[]>(MASTER_QUESTIONS);
 
@@ -414,7 +560,7 @@ export default function MockExamPage() {
     });
 
     const totalQuestions = questionsList.length;
-    const scorePct = Math.round((correctCount / totalQuestions) * 100);
+    const scorePct = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const isPassed = scorePct >= 60;
 
     return {
@@ -429,62 +575,142 @@ export default function MockExamPage() {
     };
   };
 
-  /* AI Synthesizer trigger via backend OpenRouter API */
-  const handleGenerateAiQuestions = async () => {
+  /* Single-batch AI synthesizer call */
+  const runSingleBatchSynthesis = async (domain: ExamDomainBatch, caseId: string = 'case-1') => {
+    const scenario = CASE_SCENARIOS[caseId];
+
+    const payload: any = {
+      track,
+      domainBatch: domain,
+      count: domain === 'POIM_CASE' ? 3 : 4,
+      isZh,
+      caseScenarioId: domain === 'POIM_CASE' ? caseId : undefined
+    };
+
+    if (domain === 'POIM_CASE' && scenario) {
+      payload.caseContext = {
+        title: isZh ? scenario.titleZh : scenario.titleEn,
+        narrative: isZh ? scenario.narrativeZh : scenario.narrativeEn,
+        incumbrances: isZh ? scenario.landSearch.incumbrancesZh : scenario.landSearch.incumbrancesEn,
+        owner: isZh ? scenario.landSearch.ownerZh : scenario.landSearch.ownerEn
+      };
+    }
+
+    const response = await fetch('/api/generate-exam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errJson = await response.json().catch(() => ({}));
+      throw new Error(errJson.error || `Server responded with ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.questions || [];
+  };
+
+  /* Multi-Batch Domain Matrix Orchestrator: Synthesize a progressive set */
+  const handleOrchestrateFullMatrix = async () => {
     setAiGenerating(true);
     setAiError(null);
+    setBatchProgressText(isZh ? '初始化多模組法規考題矩陣...' : 'Initializing multi-domain exam matrix...');
+
+    const domainsToRun: { domain: ExamDomainBatch; caseId?: string }[] = [
+      { domain: 'CAP511' },
+      { domain: 'CONVEYANCING' },
+      { domain: 'TENANCY_BUILDINGS' },
+      { domain: 'AGENCY_TORT' },
+      { domain: 'POIM_CASE', caseId: 'case-1' },
+      { domain: 'POIM_CASE', caseId: 'case-2' }
+    ];
 
     try {
-      const response = await fetch('/api/generate-exam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          track,
-          part: aiTargetPart,
-          count: 3,
-          topic: aiTopic,
-          isZh
-        })
-      });
+      let combinedNewQs: MockQuestion[] = [];
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error || `Server responded with ${response.status}`);
-      }
+      for (let i = 0; i < domainsToRun.length; i++) {
+        const item = domainsToRun[i];
+        setBatchProgressText(
+          isZh 
+            ? `正在生成模組 [${i + 1}/${domainsToRun.length}]: ${item.domain}...`
+            : `Synthesizing Batch [${i + 1}/${domainsToRun.length}]: ${item.domain}...`
+        );
 
-      const data = await response.json();
-      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-        const formattedQs: MockQuestion[] = data.questions.map((q: any, i: number) => ({
-          id: Date.now() + i,
-          part: aiTargetPart,
-          caseScenarioId: aiTargetPart === 'II' ? 'case-1' : undefined,
-          topicZh: q.topicZh || aiTopic,
-          topicEn: q.topicEn || aiTopic,
+        const batchQs = await runSingleBatchSynthesis(item.domain, item.caseId || 'case-1');
+        
+        const formatted: MockQuestion[] = batchQs.map((q: any, idx: number) => ({
+          id: Date.now() + combinedNewQs.length + idx,
+          part: item.domain === 'POIM_CASE' ? 'II' : 'I',
+          caseScenarioId: item.domain === 'POIM_CASE' ? (item.caseId || 'case-1') : undefined,
+          topicZh: q.topicZh || item.domain,
+          topicEn: q.topicEn || item.domain,
           questionZh: q.questionZh,
           questionEn: q.questionEn,
           optionsZh: q.optionsZh,
           optionsEn: q.optionsEn,
           answerIndex: typeof q.answerIndex === 'number' ? q.answerIndex : 0,
-          explanationZh: q.explanationZh || '依據香港地產代理條例及執業指引核定。',
-          explanationEn: q.explanationEn || 'Determined under HK Estate Agents Ordinance & regulatory circulars.',
+          explanationZh: q.explanationZh || '依據香港地產代理條例及法定查冊指引判定。',
+          explanationEn: q.explanationEn || 'Determined under Hong Kong conveyancing statutes and EAA guidelines.',
           statuteRefZh: q.statuteRefZh || '《地產代理條例》Cap. 511',
           statuteRefEn: q.statuteRefEn || 'Estate Agents Ordinance Cap. 511'
         }));
 
-        setQuestionsList((prev) => [...prev, ...formattedQs]);
-        setShowAiModal(false);
-      } else {
-        throw new Error('No valid questions received from synthesis engine.');
+        combinedNewQs = [...combinedNewQs, ...formatted];
       }
+
+      setQuestionsList((prev) => [...prev, ...combinedNewQs]);
+      setShowAiModal(false);
     } catch (err: any) {
-      setAiError(err.message || 'Failed to synthesize questions. Please check API Key configuration.');
+      setAiError(err.message || 'Matrix synthesis failed. Please verify API key.');
     } finally {
       setAiGenerating(false);
+      setBatchProgressText('');
+    }
+  };
+
+  /* Single Domain Batch Generation */
+  const handleGenerateSingleBatch = async () => {
+    setAiGenerating(true);
+    setAiError(null);
+    setBatchProgressText(isZh ? `正在生成 ${selectedBatchDomain} 模組...` : `Synthesizing ${selectedBatchDomain}...`);
+
+    try {
+      const batchQs = await runSingleBatchSynthesis(selectedBatchDomain, selectedCaseId);
+
+      if (batchQs && batchQs.length > 0) {
+        const formatted: MockQuestion[] = batchQs.map((q: any, idx: number) => ({
+          id: Date.now() + idx,
+          part: selectedBatchDomain === 'POIM_CASE' ? 'II' : 'I',
+          caseScenarioId: selectedBatchDomain === 'POIM_CASE' ? selectedCaseId : undefined,
+          topicZh: q.topicZh || selectedBatchDomain,
+          topicEn: q.topicEn || selectedBatchDomain,
+          questionZh: q.questionZh,
+          questionEn: q.questionEn,
+          optionsZh: q.optionsZh,
+          optionsEn: q.optionsEn,
+          answerIndex: typeof q.answerIndex === 'number' ? q.answerIndex : 0,
+          explanationZh: q.explanationZh || '依據香港地產代理條例及法定查冊指引判定。',
+          explanationEn: q.explanationEn || 'Determined under Hong Kong conveyancing statutes and EAA guidelines.',
+          statuteRefZh: q.statuteRefZh || '《地產代理條例》Cap. 511',
+          statuteRefEn: q.statuteRefEn || 'Estate Agents Ordinance Cap. 511'
+        }));
+
+        setQuestionsList((prev) => [...prev, ...formatted]);
+        setShowAiModal(false);
+      } else {
+        throw new Error('No questions returned from synthesis engine.');
+      }
+    } catch (err: any) {
+      setAiError(err.message || 'Batch synthesis encountered an error.');
+    } finally {
+      setAiGenerating(false);
+      setBatchProgressText('');
     }
   };
 
   /* ========================================================
-     MODAL: AI QUESTION SYNTHESIZER
+     MODAL: COGNITIVE EXAM SYNTHESIZER (DOMAIN MATRIX ENGINE)
      ======================================================== */
   const renderAiModal = () => {
     if (!showAiModal) return null;
@@ -498,7 +724,7 @@ export default function MockExamPage() {
                 COGNITIVE EXAM SYNTHESIZER
               </span>
               <h3 className="text-xl font-extrabold text-slate-900">
-                {isZh ? '動態法規試題生成引擎' : 'Cognitive Exam Synthesizer'}
+                {isZh ? '動態法規試題矩陣生成器' : 'Domain Matrix Exam Synthesizer'}
               </h3>
             </div>
             <button
@@ -514,54 +740,52 @@ export default function MockExamPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Domain Selection */}
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-700 block">
-                {isZh ? '選取試卷部分 (Exam Part)' : 'Target Examination Part'}
+                {isZh ? '選取試題法規矩陣模組 (Statutory Domain)' : 'Statutory Domain Matrix'}
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setAiTargetPart('I')}
-                  className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                    aiTargetPart === 'I'
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <ShieldCheck className="h-4 w-4" />
-                  <span>{isZh ? 'Part I 法規選擇題' : 'Part I Statutory MCQs'}</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAiTargetPart('II')}
-                  className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
-                    aiTargetPart === 'II'
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
-                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
-                  }`}
-                >
-                  <FileText className="h-4 w-4" />
-                  <span>{isZh ? 'Part II 查冊實務題' : 'Part II POIM Case Qs'}</span>
-                </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                {[
+                  { id: 'CAP511', zh: 'Cap. 511 牌照常規與客戶款項', en: 'Cap. 511 Licensing & Client Money' },
+                  { id: 'CONVEYANCING', zh: 'Cap. 219 & 128 物業轉易與查冊', en: 'Cap. 219 & 128 Conveyancing' },
+                  { id: 'TENANCY_BUILDINGS', zh: 'Cap. 7 租務與 Cap. 123 僭建令', en: 'Cap. 7 Tenancy & Cap. 123 UBWs' },
+                  { id: 'AGENCY_TORT', zh: '普通法代理關係與受信責任', en: 'Agency Law & Fiduciary Duty' },
+                  { id: 'POIM_CASE', zh: 'Part II POIM 土地查冊個案實務', en: 'Part II POIM Case Analysis' }
+                ].map((d) => (
+                  <button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setSelectedBatchDomain(d.id as ExamDomainBatch)}
+                    className={`p-3 rounded-2xl border text-left font-bold transition cursor-pointer ${
+                      selectedBatchDomain === d.id
+                        ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm ring-1 ring-amber-400'
+                        : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>{isZh ? d.zh : d.en}</span>
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-700 block">
-                {isZh ? '核心法規主題 (Statutory Topic)' : 'Statutory Topic Domain'}
-              </label>
-              <select
-                value={aiTopic}
-                onChange={(e) => setAiTopic(e.target.value)}
-                className="w-full p-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              >
-                <option value="Cap. 511 & Form 1-6">Cap. 511 地產代理條例與法定協議表格 (Form 1-6)</option>
-                <option value="Cap. 128 Land Registration & POIM">Cap. 128 土地註冊條例與 POIM 查冊分析</option>
-                <option value="Cap. 7 Landlord and Tenant & Part IVA">Cap. 7 業主與租客條例及劏房租管</option>
-                <option value="Cap. 123 Buildings Ordinance & UBW Orders">Cap. 123 建築物條例第 24 條清拆命令與僭建</option>
-                <option value="Cap. 622 Companies Ordinance Floating Charges">Cap. 622 公司條例與浮動押記雙重查冊</option>
-              </select>
-            </div>
+            {/* If POIM is selected, show Case Scenario selection */}
+            {selectedBatchDomain === 'POIM_CASE' && (
+              <div className="space-y-2 p-3.5 rounded-2xl bg-amber-50/60 border border-amber-200">
+                <label className="text-xs font-bold text-amber-950 block">
+                  {isZh ? '綁定 Part II 查冊個案附件 (Anchor Land Search Case)' : 'Anchor Land Search Case'}
+                </label>
+                <select
+                  value={selectedCaseId}
+                  onChange={(e) => setSelectedCaseId(e.target.value)}
+                  className="w-full p-2.5 rounded-xl border border-amber-300 bg-white text-xs font-bold text-slate-900 focus:outline-none"
+                >
+                  <option value="case-1">Smart Mansion (遺囑認證執行人與清拆命令)</option>
+                  <option value="case-2">Central Commercial Tower (有限公司與浮動押記)</option>
+                  <option value="case-3">Harborview Garden (海外授權書與破產查冊)</option>
+                </select>
+              </div>
+            )}
 
             {aiError && (
               <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-start gap-2">
@@ -569,34 +793,54 @@ export default function MockExamPage() {
                 <span>{aiError}</span>
               </div>
             )}
+
+            {batchProgressText && (
+              <div className="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-bold flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin text-indigo-600" />
+                <span>{batchProgressText}</span>
+              </div>
+            )}
           </div>
 
-          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => setShowAiModal(false)}
-              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer transition"
-            >
-              {isZh ? '取消' : 'Cancel'}
-            </button>
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100">
             <button
               type="button"
               disabled={aiGenerating}
-              onClick={handleGenerateAiQuestions}
-              className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              onClick={handleOrchestrateFullMatrix}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-2xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-extrabold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Orchestrate multiple batches to populate full exam"
             >
-              {aiGenerating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
-                  <span>{isZh ? '正在調用引擎生成中...' : 'Synthesizing Questions...'}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 text-slate-950" />
-                  <span>{isZh ? '開始動態生成 (3 題)' : 'Synthesize 3 Questions'}</span>
-                </>
-              )}
+              <Zap className="h-4 w-4 text-indigo-600" />
+              <span>{isZh ? '一鍵編排全卷矩陣 (Full Paper)' : 'Orchestrate Full Paper'}</span>
             </button>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <button
+                type="button"
+                onClick={() => setShowAiModal(false)}
+                className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer transition"
+              >
+                {isZh ? '取消' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                disabled={aiGenerating}
+                onClick={handleGenerateSingleBatch}
+                className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                    <span>{isZh ? '正在生成...' : 'Generating...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 text-slate-950" />
+                    <span>{isZh ? '生成此模組 (3-4 題)' : 'Generate Batch'}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -723,12 +967,12 @@ export default function MockExamPage() {
                 <span className="font-extrabold text-emerald-700 text-sm">60% 及格率</span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-500 block font-mono">{isZh ? '倒扣機制' : 'Negative Marking'}</span>
-                <span className="font-extrabold text-slate-900 text-sm">{isZh ? '無答錯倒扣' : 'None (No penalty)'}</span>
+                <span className="text-slate-500 block font-mono">{isZh ? '現有試題' : 'Active Items'}</span>
+                <span className="font-extrabold text-slate-900 text-sm">{questionsList.length} 題已就緒</span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-500 block font-mono">{isZh ? '查冊附件' : 'Land Search Annex'}</span>
-                <span className="font-extrabold text-amber-800 text-sm">{isZh ? '官方 IRIS 樣式' : 'Official IRIS'}</span>
+                <span className="text-slate-500 block font-mono">{isZh ? 'Part II 個案庫' : 'Part II POIM Cases'}</span>
+                <span className="font-extrabold text-amber-800 text-sm">3 大官方 IRIS 個案</span>
               </div>
             </div>
 
@@ -743,7 +987,7 @@ export default function MockExamPage() {
                     {isZh ? '智能試題生成引擎' : 'Cognitive Exam Synthesizer'}
                   </span>
                   <span className="text-slate-900 font-black block">
-                    {isZh ? '動態生成 Part I / Part II 最新真題' : 'Synthesize Authentic Part I & Part II Questions'}
+                    {isZh ? '動態生成法規模組與 Part II 土地查冊最新真題' : 'Synthesize Authentic Part I & Part II Questions'}
                   </span>
                 </div>
               </div>
@@ -868,8 +1112,8 @@ export default function MockExamPage() {
           {/* Main Workspace Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            {/* Left 7 Columns: Question Engine or Split Annex */}
-            <div className={`${currentQ.part === 'II' ? 'lg:col-span-8' : 'lg:col-span-8'} space-y-4`}>
+            {/* Left 8 Columns: Question Engine or Split Annex */}
+            <div className="lg:col-span-8 space-y-4">
 
               {/* Part II Land Search Annex Box */}
               {currentQ.part === 'II' && activeScenario && (
@@ -920,7 +1164,7 @@ export default function MockExamPage() {
                           activeAnnexTab === 'narrative' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'
                         }`}
                       >
-                        {isZh ? '個案情節' : 'Facts'}
+                        {isZh ? '個案事實' : 'Facts'}
                       </button>
                     </div>
                   </div>
@@ -1047,7 +1291,7 @@ export default function MockExamPage() {
                 </div>
 
                 {/* Grid Numbers */}
-                <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2">
+                <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1">
                   {activeQuestions.map((q, idx) => {
                     const isAnswered = typeof userAnswers[q.id] === 'number';
                     const isFlagged = !!flaggedQuestions[q.id];
@@ -1235,7 +1479,7 @@ export default function MockExamPage() {
                     <span className="text-xs font-mono font-bold text-slate-500">
                       #{idx + 1} • Part {q.part} • {isZh ? q.topicZh : q.topicEn}
                     </span>
-                    <span className="text-xs font-mono font-bold text-indigo-700 px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100">
+                    <span className="text-xs font-mono font-bold text-indigo-700 px-2.5 py-0.5 rounded bg-indigo-50 border border-indigo-100">
                       {isZh ? q.statuteRefZh : q.statuteRefEn}
                     </span>
                   </div>
