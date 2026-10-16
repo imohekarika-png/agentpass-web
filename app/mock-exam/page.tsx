@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Award,
   BookOpen,
@@ -15,7 +15,10 @@ import {
   Check,
   CheckCircle2,
   RotateCcw,
-  ChevronRight
+  ChevronRight,
+  Sparkles,
+  Layers,
+  Compass
 } from 'lucide-react';
 
 export type ExamDomainBatch =
@@ -28,6 +31,7 @@ export type ExamDomainBatch =
 export interface MockQuestion {
   id: number;
   part: 'I' | 'II';
+  trackApplicability?: 'BOTH' | 'EAQE_ONLY' | 'SQE_ONLY';
   caseScenarioId?: string;
   topicZh: string;
   topicEn: string;
@@ -41,6 +45,7 @@ export interface MockQuestion {
   statuteRefZh: string;
   statuteRefEn: string;
   isLocked?: boolean;
+  lockReason?: 'REQUIRES_EAQE_UPGRADE' | 'REQUIRES_SUBSCRIPTION';
 }
 
 interface CaseScenarioMeta {
@@ -102,6 +107,49 @@ const CASE_SCENARIOS: Record<string, CaseScenarioMeta> = {
         '2. 15 Sep 2022 - Order under s.24 of Buildings Ordinance (UBW Balcony, Memorial UB77341)'
       ]
     }
+  },
+  'case-2': {
+    id: 'case-2',
+    titleZh: '個案二：中環商業中心 18 樓全層 (公司賣方與浮動押記)',
+    titleEn: 'Case 2: 18/F, Central Commercial Tower (Corporate Vendor & Floating Charge)',
+    narrativeZh:
+      '業主為 Apex Profits Limited (香港註冊公司)，開價 3,800 萬出售。代理 Ken 查冊發現土地註冊處僅有渣打銀行按揭，但未查閱公司註冊處抵押登記冊。',
+    narrativeEn:
+      'Vendor is Apex Profits Limited, asking HK$38M. Agent Ken conducted land registry search revealing a standard mortgage, but omitted Companies Registry search for floating charges.',
+    landSearch: {
+      propertyZh: [
+        '地段編號：IL 1024 (內地段第 1024 號)',
+        '物業地址：香港中環德輔道中 28 號 18 樓全層',
+        '法定用途：非住宅/商業用途 (Commercial Office Only)',
+        '不可分割份數：2/100th shares of IL 1024'
+      ],
+      propertyEn: [
+        'Lot No.: Inland Lot No. 1024',
+        'Address: 18/F, Central Commercial Tower, 28 Des Voeux Road, Central, HK',
+        'Permitted Use: Non-Domestic / Commercial Purposes Only',
+        'Undivided Shares: 2/100th parts or shares of and in IL 1024'
+      ],
+      ownerZh: [
+        '現任登記業主：Apex Profits Limited (頂點利潤有限公司)',
+        '身分性質：法人團體 (Body Corporate)',
+        '註冊摘要：Memorial UB88310',
+        '代價款額：HK$32,000,000'
+      ],
+      ownerEn: [
+        'Current Registered Owner: Apex Profits Limited',
+        'Capacity: Body Corporate',
+        'Memorial: UB88310',
+        'Consideration: HK$32,000,000'
+      ],
+      incumbrancesZh: [
+        '1. 2019年3月22日 - 渣打銀行法定押記 (Memorial UB55123)',
+        '2. 公司註冊處登記 - 浮動押記 (Floating Charge in favour of HSBC with Negative Pledge)'
+      ],
+      incumbrancesEn: [
+        '1. 22 Mar 2019 - Legal Charge in favour of Standard Chartered Bank (Memorial UB55123)',
+        '2. Registered at Companies Registry - Debenture & Floating Charge with Negative Pledge Clause'
+      ]
+    }
   }
 };
 
@@ -109,19 +157,16 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
   {
     id: 1,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '條例牌照要求 (Cap. 511)',
     topicEn: 'Licensing Requirements (Cap. 511)',
-    questionZh:
-      '根據《地產代理條例》(Cap. 511)，地產代理（個人）牌照持有人在變更其主要或分行營業地點後，必須於多少天內以書面通知地產代理監管局 (EAA)？',
-    questionEn:
-      'Under the Estate Agents Ordinance (Cap. 511), within how many days must an individual estate agent licensee notify the EAA in writing after a change in principal or branch place of business?',
+    questionZh: '根據《地產代理條例》(Cap. 511)，地產代理（個人）牌照持有人在變更其主要或分行營業地點後，必須於多少天內以書面通知地產代理監管局 (EAA)？',
+    questionEn: 'Under the Estate Agents Ordinance (Cap. 511), within how many days must an individual estate agent licensee notify the EAA in writing after a change in principal or branch place of business?',
     optionsZh: ['A. 7 天', 'B. 14 天', 'C. 31 天', 'D. 60 天'],
     optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 31 Days', 'D. 60 Days'],
     answerIndex: 2,
-    explanationZh:
-      '根據 Cap. 511 第 40 條，任何持牌人若變更營業地址、個人註冊住址或經理指派，均須於 31 天內以書面表格通知 EAA。',
-    explanationEn:
-      'Under Cap. 511 s.40, a licensee must notify the Authority in writing within 31 days of any change of business address, registered personal address, or manager designation.',
+    explanationZh: '根據 Cap. 511 第 40 條，任何持牌人若變更營業地址、個人註冊住址或經理指派，均須於 31 天內以書面表格通知 EAA。',
+    explanationEn: 'Under Cap. 511 s.40, a licensee must notify the Authority in writing within 31 days of any change of business address, registered personal address, or manager designation.',
     statuteRefZh: '《地產代理條例》Cap. 511 s.40',
     statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.40',
     isLocked: false
@@ -129,12 +174,11 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
   {
     id: 2,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '客戶款項規則 (Client Money)',
     topicEn: 'Client Money Accounts (Cap. 511)',
-    questionZh:
-      '地產代理行收受客戶託管訂金款項後，必須依據法規將該款項存入獨立之客戶信託戶口，且開立及開具收據的期限為多少天？相關款項紀錄須保存多久？',
-    questionEn:
-      'When an estate agency receives client deposits, within how many days must receipts be issued, and for how long must trust account records be preserved?',
+    questionZh: '地產代理行收受客戶託管訂金款項後，必須依據法規將該款項存入獨立之客戶信託戶口，且開立及開具收據的期限為多少天？相關款項紀錄須保存多久？',
+    questionEn: 'When an estate agency receives client deposits, within how many days must receipts be issued, and for how long must trust account records be preserved?',
     optionsZh: [
       'A. 7 天開具收據，保存 1 年',
       'B. 14 天開具收據，保存 3 年',
@@ -148,10 +192,8 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
       'D. Issue receipt in 30 days, retain for 7 years'
     ],
     answerIndex: 1,
-    explanationZh:
-      '口訣【3-2-14-3】：地產代理客戶存款規則要求，代理行收到客戶存款後須於 14 天內向客戶發出收據，相關帳冊及收據副本必須妥善保存至少 3 年。',
-    explanationEn:
-      'Mnemonic 3-2-14-3: Under the Estate Agents (Client Money) Rules, deposit receipts must be issued within 14 days and trust financial records must be kept for at least 3 years.',
+    explanationZh: '口訣【3-2-14-3】：地產代理客戶存款規則要求，代理行收到客戶存款後須於 14 天內向客戶發出收據，相關帳冊及收據副本必須妥善保存至少 3 年。',
+    explanationEn: 'Mnemonic 3-2-14-3: Under the Estate Agents (Client Money) Rules, deposit receipts must be issued within 14 days and trust financial records must be kept for at least 3 years.',
     statuteRefZh: '《地產代理 (客戶款項) 規例》第 4 及 8 條',
     statuteRefEn: 'Estate Agents (Client Money) Rules s.4 & s.8',
     isLocked: false
@@ -159,12 +201,11 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
   {
     id: 3,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '物業資料常規 (Practice Regs)',
     topicEn: 'Practice Regulations (Cap. 511A)',
-    questionZh:
-      '持牌地產代理在向二手住宅物業買家推介物業前，必須向買家提供並解釋哪一項法定資料表格？',
-    questionEn:
-      'Before introducing a second-hand residential property to a prospective purchaser, which prescribed form must the agent provide and explain?',
+    questionZh: '持牌地產代理在向二手住宅物業買家推介物業前，必須向買家提供並解釋哪一項法定資料表格？',
+    questionEn: 'Before introducing a second-hand residential property to a prospective purchaser, which prescribed form must the agent provide and explain?',
     optionsZh: [
       'A. 表格一 (Form 1 - 物業資料單)',
       'B. 表格三 (Form 3 - 出售地產代理協議)',
@@ -178,154 +219,21 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
       'D. Form 6 (Estate Agency Agreement for Leasing)'
     ],
     answerIndex: 0,
-    explanationZh:
-      '二手住宅推介規定必須提供 Form 1（物業資料單）附連土地查冊紀錄。Form 3/4/5/6 為代理協議，而非物業資料單。',
-    explanationEn:
-      'Under Cap. 511A, Form 1 (Property Information Form) with land search must be provided and explained to prospective purchasers.',
+    explanationZh: '二手住宅推介規定必須提供 Form 1（物業資料單）附連土地查冊紀錄。Form 3/4/5/6 為代理協議，而非物業資料單。',
+    explanationEn: 'Under Cap. 511A, Form 1 (Property Information Form) with land search must be provided and explained to prospective purchasers.',
     statuteRefZh: '《地產代理常規 (一般職責及香港住宅物業) 規例》Form 1',
     statuteRefEn: 'Estate Agents Practice (General & Residential) Regs Form 1',
     isLocked: false
   },
   {
-    id: 4,
-    part: 'I',
-    topicZh: '租務法定權益 (Cap. 7)',
-    topicEn: 'Landlord & Tenant Rights (Cap. 7)',
-    questionZh:
-      '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
-    questionEn:
-      'In the absence of an express forfeiture clause, after how many days of unpaid domestic rent can a landlord exercise the statutory implied right of forfeiture?',
-    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 15 天', 'D. 30 天'],
-    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 15 Days', 'D. 30 Days'],
-    answerIndex: 2,
-    explanationZh:
-      '《業主與租客（綜合）條例》(Cap. 7) 第 IV 部規定，住宅租賃中拖欠租金的法定沒收權門檻為 15 天。',
-    explanationEn:
-      'Under Cap. 7 Part IV, the statutory implied forfeiture threshold for non-payment of domestic rent is 15 days.',
-    statuteRefZh: '《業主與租客（綜合）條例》Cap. 7 Part IV',
-    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7',
-    isLocked: false
-  },
-  {
-    id: 5,
-    part: 'I',
-    topicZh: '劏房租務管制 (Cap. 7 Part IVA)',
-    topicEn: 'Subdivided Unit Control (Cap. 7 Part IVA)',
-    questionZh:
-      '根據《業主與租客（綜合）條例》第 IVA 部（劏房租管），規管租賃首期 2 年租期屆滿後，次期租賃（次期 2 年）租金加幅上限為何？',
-    questionEn:
-      'Under Cap. 7 Part IVA (Subdivided Units), upon expiry of the first 2-year term, what is the maximum statutory rent increase cap for the second 2-year term?',
-    optionsZh: [
-      'A. 5%',
-      'B. 10% 或差餉物業估價署同類物業租金指數變動百分率（以較低者為準）',
-      'C. 15%',
-      'D. 由業主單方面全權決定'
-    ],
-    optionsEn: [
-      'A. 5%',
-      'B. 10% or the RVD rental index change percentage, whichever is lower',
-      'C. 15%',
-      'D. At the landlord’s unilateral discretion'
-    ],
-    answerIndex: 1,
-    explanationZh:
-      'Cap. 7 Part IVA 明訂 2+2 保障期內，次期續租租金加幅不得超過差估署私樓租金指數變動百分率，並設有 10% 的法定上限封頂。',
-    explanationEn:
-      'Under Cap. 7 Part IVA, rent renewal increases are capped at the RVD private domestic rental index movement, subject to an absolute ceiling of 10%.',
-    statuteRefZh: '《業主與租客（綜合）條例》第 IVA 部 第 120AA 條',
-    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Part IVA s.120AA',
-    isLocked: false
-  },
-  {
-    id: 6,
-    part: 'I',
-    topicZh: '聯權共有與分權共有 (Cap. 219)',
-    topicEn: 'Joint Tenancy & Severance (Cap. 219)',
-    questionZh:
-      '若甲、乙兩人以「聯權共有 (Joint Tenancy)」形式持有香港物業，甲未經乙同意，依法將其權益轉讓予丙。此項轉讓對物業業權模式產生何種法律效果？',
-    questionEn:
-      'If A and B hold a property as Joint Tenants, and A conveys his interest to C without B’s consent, what is the legal effect on ownership structure?',
-    optionsZh: [
-      'A. 轉讓無效，因聯權共有未經全體同意不得處置',
-      'B. 聯權共有中斷 (Severance)，乙與丙將以「分權共有 (Tenancy in Common)」形式各佔一半權益',
-      'C. 乙自動獲得甲的全部業權 (Right of Survivorship)',
-      'D. 乙有權撤銷該買賣並沒收全部樓款'
-    ],
-    optionsEn: [
-      'A. The conveyance is void ab initio without unanimous consent',
-      'B. Joint tenancy is severed; B and C become Tenants in Common holding equal undivided shares',
-      'C. B automatically absorbs A’s share via right of survivorship',
-      'D. B can unilaterally rescind the assignment and forfeit sale proceeds'
-    ],
-    answerIndex: 1,
-    explanationZh:
-      '普通法及 Cap. 219 規定：聯權共有人轉讓其份額將破壞產權四同原則，導致聯權共有中斷 (Severance)，轉為分權共有 (Tenancy in Common)。',
-    explanationEn:
-      'Conveying a joint tenant share severs the joint tenancy, creating a tenancy in common between the remaining owner and new assignee.',
-    statuteRefZh: '《物業轉易及物業條例》(Cap. 219)',
-    statuteRefEn: 'Conveyancing and Property Ordinance (Cap. 219)',
-    isLocked: false
-  },
-  {
-    id: 7,
-    part: 'I',
-    topicZh: '土地註冊優先權 (Cap. 128)',
-    topicEn: 'Registration Priority (Cap. 128)',
-    questionZh:
-      '根據《土地註冊條例》(Cap. 128)，物業契約若在簽立後多少個月內交付土地註冊處註冊，其註冊效力可回溯至契約簽立當日生效？',
-    questionEn:
-      'Under the Land Registration Ordinance (Cap. 128), if a deed is registered within how many months of execution does its priority relate back to the date of execution?',
-    optionsZh: ['A. 1 個月', 'B. 2 個月', 'C. 3 個月', 'D. 6 個月'],
-    optionsEn: ['A. 1 Month', 'B. 2 Months', 'C. 3 Months', 'D. 6 Months'],
-    answerIndex: 0,
-    explanationZh:
-      '《土地註冊條例》第 5 條明訂契約於簽立日起 1 個月內交付註冊者，其優先權回溯至簽立日生效。超過 1 個月者，則僅以交付註冊之日起算優先權。',
-    explanationEn:
-      'Under Cap. 128 s.5, deeds registered within 1 month take priority from date of execution; otherwise from date of registration.',
-    statuteRefZh: '《土地註冊條例》Cap. 128 第 5 條',
-    statuteRefEn: 'Land Registration Ordinance Cap. 128 s.5',
-    isLocked: false
-  },
-  {
-    id: 8,
-    part: 'I',
-    topicZh: '防止賄賂條例 (Cap. 201 s.9)',
-    topicEn: 'Prevention of Bribery (Cap. 201 s.9)',
-    questionZh:
-      '地產代理在未得主事人（買方或賣方）事前書面同意及批准下，私下向對家收取非法利益或回佣，將觸犯香港法例哪一項刑事罪行？',
-    questionEn:
-      'If an estate agent solicits or accepts an undisclosed rebate or secret commission from the other party without the prior written consent of their principal, which criminal offence is committed?',
-    optionsZh: [
-      'A. 《防止賄賂條例》第 9 條（代理人的貪污交易罪）',
-      'B. 《盜竊罪條例》第 18 條（欺詐手段取得金錢）',
-      'C. 僅屬於民事合約違約，不涉刑事罪行',
-      'D. 《地產代理條例》簡易程序罰款 500 元'
-    ],
-    optionsEn: [
-      'A. Prevention of Bribery Ordinance Cap. 201 s.9 (Corrupt transactions with agents)',
-      'B. Theft Ordinance Cap. 210 s.18 (Deception)',
-      'C. Pure civil breach of contract with no criminal liability',
-      'D. Minor statutory administrative fine of HK$500'
-    ],
-    answerIndex: 0,
-    explanationZh:
-      '地產代理作為主事人之受信人，未得主事人明確許可收受利益，即構成《防止賄賂條例》(Cap. 201) 第 9 條之嚴重刑事罪行，最高可判監禁 7 年及罰款 50 萬元。',
-    explanationEn:
-      'Under Cap. 201 s.9, an agent accepting secret commission without the principal’s informed consent commits a serious criminal corrupt transaction.',
-    statuteRefZh: '《防止賄賂條例》Cap. 201 第 9 條',
-    statuteRefEn: 'Prevention of Bribery Ordinance Cap. 201 s.9',
-    isLocked: false
-  },
-  {
     id: 9,
     part: 'II',
+    trackApplicability: 'BOTH',
     caseScenarioId: 'case-1',
     topicZh: '土地查冊 (POIM 業主權限)',
     topicEn: 'Land Search (POIM Ownership & Probate)',
-    questionZh:
-      '【Part II 個案題 - 個案一】審視 Smart Mansion 查冊報告附件，物業目前由溫先生以「單獨遺囑執行人 (Sole Executor)」登記。在簽署臨時買賣合約及收取樓價訂金時，地產代理 Sunny 最符合法規要求的專業做法為何？',
-    questionEn:
-      '[Part II Case Study - Case 1] Reviewing the Smart Mansion Land Search Annex, the property is registered under Mr. Wan as Sole Executor. When arranging the PASP and deposit payment, which practice is legally correct for agent Sunny?',
+    questionZh: '【Part II 個案題 - 個案一】審視 Smart Mansion 查冊報告附件，物業目前由溫先生以「單獨遺囑執行人 (Sole Executor)」登記。在簽署臨時買賣合約及收取樓價訂金時，地產代理 Sunny 最符合法規要求的專業做法為何？',
+    questionEn: '[Part II Case Study - Case 1] Reviewing the Smart Mansion Land Search Annex, the property is registered under Mr. Wan as Sole Executor. When arranging the PASP and deposit payment, which practice is legally correct for agent Sunny?',
     optionsZh: [
       'A. 要求買方將所有首期訂金支票抬頭直接寫給地產代理個人，由代理轉交',
       'B. 查核已註冊之遺囑認證文件 (Letters of Probate)，確認執行人身份，並安排訂金由賣方律師樓以保證金 (Stakeholder) 方式託管',
@@ -339,43 +247,10 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
       'D. Release all initial deposit monies immediately into Mr. Wan’s personal bank account'
     ],
     answerIndex: 1,
-    explanationZh:
-      '單獨遺囑執行人有權處置物業，但因存在清拆命令與潛在債權人風險，地產代理必須查驗已於土地註冊處登記的遺囑認證文書，並極力建議所有訂金以 Stakeholder 方式由律師樓託管，以保障買方利益。',
-    explanationEn:
-      'A sole executor has statutory power of disposal, but given the UBW and estate debts, the agent must inspect the probate memorial and hold deposits in escrow via vendor solicitor as stakeholder.',
+    explanationZh: '單獨遺囑執行人有權處置物業，但因存在清拆命令與潛在債權人風險，地產代理必須查驗已於土地註冊處登記的遺囑認證文書，並極力建議所有訂金以 Stakeholder 方式由律師樓託管，以保障買方利益。',
+    explanationEn: 'A sole executor has statutory power of disposal, but given the UBW and estate debts, the agent must inspect the probate memorial and hold deposits in escrow via vendor solicitor as stakeholder.',
     statuteRefZh: '《遺囑認證及遺產管理條例》(Cap. 10) 及 EAA 操守守則',
     statuteRefEn: 'Probate and Administration Ordinance (Cap. 10) & EAA Code',
-    isLocked: false
-  },
-  {
-    id: 10,
-    part: 'II',
-    caseScenarioId: 'case-1',
-    topicZh: '違建命令揭示 (Cap. 123 s.24)',
-    topicEn: 'UBW Disclosure & Requisition (Cap. 123)',
-    questionZh:
-      '【Part II 個案題 - 個案一】查冊負擔欄 (Incumbrances) 登記有屋宇署第 24 條清拆命令。地產代理 Sunny 未於簽約前向買方鄧小姐披露並解釋此命令。Sunny 可能違反何項 EAA 操守規定？',
-    questionEn:
-      '[Part II Case Study - Case 1] The Incumbrances section registers a Buildings Dept s.24 Removal Order. Sunny failed to disclose or explain this order before signing. Which EAA statutory duty has Sunny breached?',
-    optionsZh: [
-      'A. 僅屬於無心之失，法例並無要求代理交代建築物命令',
-      'B. 違反《地產代理常規規例》，未盡應盡的努力 (Due Diligence) 查明並告知買方物業存在產權負擔及按揭風險',
-      'C. 只要買方委聘了律師，代理即完全免除所有物業查證責任',
-      'D. 屋宇署 s.24 清拆令不屬於土地查冊重要事項，無須向買方解釋'
-    ],
-    optionsEn: [
-      'A. Pure oversight; agents bear no statutory obligation to explain building orders',
-      'B. Breached Practice Regulations by failing to exercise due diligence to ascertain and disclose encumbrances affecting title and mortgageability',
-      'C. Complete exemption applies once the purchaser engages independent legal representation',
-      'D. Cap. 123 s.24 orders do not constitute material encumbrances under land search rules'
-    ],
-    answerIndex: 1,
-    explanationZh:
-      '《地產代理常規規例》第 9(2) 條及 EAA 執業通告明確規定：代理在安排簽約前必須向買方全面披露查冊中登記的未清拆令及 UBW 風險，未作揭示構成嚴重失職及紀律制裁處分。',
-    explanationEn:
-      'Under Cap. 511A s.9(2) and EAA Practice Circulars, failure to explain a registered s.24 removal order and potential defect in title constitutes gross professional misconduct.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)',
     isLocked: false
   }
 ];
@@ -391,53 +266,55 @@ export default function MockExamPage() {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(180 * 60);
   const [activeAnnexTab, setActiveAnnexTab] = useState<'property' | 'owner' | 'incumbrances' | 'narrative'>('incumbrances');
 
-  // Supabase Gating & API State initialized with safe fallback seed questions
+  // Supabase Gating & API State
   const [questionsList, setQuestionsList] = useState<MockQuestion[]>(CLIENT_FALLBACK_QUESTIONS);
   const [userTier, setUserTier] = useState<string>('ADMIN_BUILDER');
   const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
-  const [selectedLockedTopic, setSelectedLockedTopic] = useState<string>('');
+  const [selectedLockedQuestion, setSelectedLockedQuestion] = useState<MockQuestion | null>(null);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    async function loadQuestions() {
-      const hasHttpOrigin =
-        typeof window !== 'undefined' &&
-        Boolean(window.location) &&
-        typeof window.location.origin === 'string' &&
-        window.location.origin.startsWith('http');
+  const loadQuestions = useCallback(async (selectedTrack: 'EAQE' | 'SQE') => {
+    const hasHttpOrigin =
+      typeof window !== 'undefined' &&
+      Boolean(window.location) &&
+      typeof window.location.origin === 'string' &&
+      window.location.origin.startsWith('http');
 
-      if (!hasHttpOrigin) {
-        setIsLoadingQuestions(false);
-        return;
-      }
-
-      setIsLoadingQuestions(true);
-      try {
-        const targetUrl = new URL('/api/mock-exam', window.location.origin).toString();
-        const res = await fetch(targetUrl, {
-          headers: {
-            'x-user-email': 'imoh.ekarika@gmail.com'
-          }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-            setQuestionsList(data.questions);
-            setUserTier(data.userTier || 'ADMIN_BUILDER');
-          }
-        }
-      } catch (e) {
-        console.warn('Server API not reachable in current context, using fallback questions:', e);
-      } finally {
-        setIsLoadingQuestions(false);
-      }
+    if (!hasHttpOrigin) {
+      setIsLoadingQuestions(false);
+      return;
     }
 
-    loadQuestions();
+    setIsLoadingQuestions(true);
+    try {
+      const targetUrl = new URL('/api/mock-exam', window.location.origin);
+      targetUrl.searchParams.set('track', selectedTrack);
+
+      const res = await fetch(targetUrl.toString(), {
+        headers: {
+          'x-user-email': 'imoh.ekarika@gmail.com'
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+          setQuestionsList(data.questions);
+          setUserTier(data.userTier || 'ADMIN_BUILDER');
+        }
+      }
+    } catch (e) {
+      console.warn('Server API not reachable in current context, using fallback questions:', e);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadQuestions(track);
+  }, [track, loadQuestions]);
 
   const activeQuestions = questionsList.filter((q) => {
     if (activePartFilter === 'ALL') return true;
@@ -478,7 +355,7 @@ export default function MockExamPage() {
   const handleSelectOption = (qId: number, optIndex: number) => {
     if (examStage !== 'simulation') return;
     if (currentQ?.isLocked) {
-      setSelectedLockedTopic(isZh ? currentQ.topicZh : currentQ.topicEn);
+      setSelectedLockedQuestion(currentQ);
       setShowUpgradeModal(true);
       return;
     }
@@ -529,6 +406,8 @@ export default function MockExamPage() {
   const renderUpgradeModal = () => {
     if (!showUpgradeModal) return null;
 
+    const isEaqeUpgradeRequired = selectedLockedQuestion?.lockReason === 'REQUIRES_EAQE_UPGRADE';
+
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
         <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6">
@@ -539,10 +418,12 @@ export default function MockExamPage() {
               </span>
               <div>
                 <span className="text-[10px] font-mono font-black text-amber-800 uppercase px-2 py-0.5 rounded bg-amber-50 border border-amber-200 block w-fit">
-                  PRO SUBSCRIPTION REQUIRED
+                  {isEaqeUpgradeRequired ? 'EAQE MASTER UPGRADE REQUIRED' : 'PRO SUBSCRIPTION REQUIRED'}
                 </span>
                 <h3 className="text-xl font-extrabold text-slate-900 pt-0.5">
-                  {isZh ? '解鎖官方全真 50 題 EAQE 考卷' : 'Unlock Full 50-Question EAQE Exam'}
+                  {isEaqeUpgradeRequired
+                    ? (isZh ? '解鎖地產代理（大牌）全套考卷' : 'Upgrade to Full EAQE Agent License Paper')
+                    : (isZh ? `解鎖官方全真 ${track} 考卷` : `Unlock Full ${track} Examination Suite`)}
                 </h3>
               </div>
             </div>
@@ -558,27 +439,43 @@ export default function MockExamPage() {
           <div className="space-y-4 text-xs">
             <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 font-bold space-y-1">
               <span className="text-amber-800 font-mono text-[11px] block">{isZh ? '鎖定題目模組：' : 'Locked Section:'}</span>
-              <p className="text-sm font-black text-amber-900">{selectedLockedTopic || 'Part I Conveyancing / Part II POIM'}</p>
+              <p className="text-sm font-black text-amber-900">
+                {selectedLockedQuestion
+                  ? (isZh ? selectedLockedQuestion.topicZh : selectedLockedQuestion.topicEn)
+                  : `${track} Master Paper`}
+              </p>
             </div>
 
             <p className="text-slate-700 font-semibold leading-relaxed">
-              {isZh
-                ? '免費版僅供前 10 題體驗。升級至 AgentPass PRO 即可獲得完整雙階段計分題庫：'
-                : 'Free tier includes preview of the first 10 questions. Upgrade to AgentPass PRO to access:'}
+              {isEaqeUpgradeRequired
+                ? (isZh
+                    ? '您目前的權限為【SQE 營業員版】。EAQE 大牌試卷包含商業物業雙重查冊、浮動押記、經理控制及大廈管理條例 (Cap. 344) 深度考題：'
+                    : 'Your active account is SQE Salesperson tier. EAQE papers test senior agency controls, corporate charges, and commercial conveyance:')
+                : (isZh
+                    ? `免費版僅供前 10 題體驗。升級至 AgentPass ${track} PRO 即可解鎖：`
+                    : `Free preview covers the first 10 questions. Upgrade to AgentPass ${track} PRO to access:`)}
             </p>
 
             <div className="space-y-2 font-bold text-slate-800">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>{isZh ? '官方 50 題全真計時模擬（Part I 30 題 + Part II 20 題查冊個案）' : 'Official 50-Question Timed Simulation (Part I 30 Qs + Part II 20 Qs)'}</span>
+                <span>
+                  {isZh
+                    ? `官方 ${track === 'EAQE' ? '50 題 (Part I 30 + Part II 20 題查冊個案)' : '50 題 (Part I 40 + Part II 10 題查冊個案)'} 全真計時模擬`
+                    : `Official ${track} Paper with Full Part I & Part II POIM cases`}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>{isZh ? '3 大 IRIS 土地查冊個案庫（Smart Mansion、Central Tower、Harborview）' : '3 Full IRIS Land Search Cases (Smart Mansion, Central Tower, Harborview)'}</span>
+                <span>
+                  {isZh
+                    ? '完整 IRIS 土地查冊個案庫（Smart Mansion、Central Tower、Harborview）'
+                    : 'Complete IRIS Land Search Dossiers (Probate, Corporate Debentures, Powers of Attorney)'}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>{isZh ? 'EAA 官方 60% 雙門檻及格雷達診斷與條例剖析' : 'Official 60% Dual-Threshold Diagnostic Radar & Legal Analysis'}</span>
+                <span>{isZh ? 'EAA 官方 60% 雙門檻及格雷達診斷與條例剖析' : 'Official 60% Dual-Threshold Diagnostic Radar & Legal Citations'}</span>
               </div>
             </div>
           </div>
@@ -596,7 +493,7 @@ export default function MockExamPage() {
               href="/pricing"
               className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition flex items-center gap-2"
             >
-              <span>{isZh ? '立即升級 PRO' : 'Upgrade to PRO'}</span>
+              <span>{isZh ? (isEaqeUpgradeRequired ? '升級為 EAQE 大牌' : '立即升級 PRO') : (isEaqeUpgradeRequired ? 'Upgrade to EAQE' : 'Upgrade to PRO')}</span>
               <ChevronRight className="h-4 w-4 text-slate-950" />
             </a>
           </div>
@@ -737,7 +634,9 @@ export default function MockExamPage() {
               </div>
               <div className="space-y-1">
                 <span className="text-slate-500 block font-mono">{isZh ? 'Part II 個案庫' : 'Part II POIM Cases'}</span>
-                <span className="font-extrabold text-amber-800 text-sm">3 大官方 IRIS 個案</span>
+                <span className="font-extrabold text-amber-800 text-sm">
+                  {track === 'EAQE' ? '3 大官方 IRIS 個案' : '1 大官方 IRIS 個案'}
+                </span>
               </div>
             </div>
 
@@ -754,7 +653,7 @@ export default function MockExamPage() {
                 }}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isZh ? '進入全真模擬考場 (Start Simulation)' : 'Enter Timed Simulation'}</span>
+                <span>{isZh ? `進入全真 ${track} 模擬考場` : `Enter ${track} Timed Simulation`}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -949,7 +848,7 @@ export default function MockExamPage() {
                       {currentQ?.isLocked && (
                         <span className="text-xs font-mono font-black text-amber-800 px-2.5 py-0.5 rounded bg-amber-100 border border-amber-300 flex items-center gap-1">
                           <Lock className="h-3 w-3" />
-                          <span>PRO ONLY</span>
+                          <span>{currentQ.lockReason === 'REQUIRES_EAQE_UPGRADE' ? 'EAQE ONLY' : 'PRO ONLY'}</span>
                         </span>
                       )}
                       <span className="text-xs font-mono font-bold text-indigo-700 px-2.5 py-0.5 rounded bg-indigo-50 border border-indigo-100">
@@ -1022,7 +921,7 @@ export default function MockExamPage() {
               <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
-                    {isZh ? '試題導覽調色板 (Matrix)' : 'Question Palette Matrix'}
+                    {isZh ? `${track} 試題導覽調色板` : `${track} Palette Matrix`}
                   </h4>
                   <span className="text-xs font-mono font-bold text-slate-500">
                     {totalAnswered}/{questionsList.length}
@@ -1054,7 +953,7 @@ export default function MockExamPage() {
                         onClick={() => {
                           setCurrentQIndex(idx);
                           if (q.isLocked) {
-                            setSelectedLockedTopic(isZh ? q.topicZh : q.topicEn);
+                            setSelectedLockedQuestion(q);
                             setShowUpgradeModal(true);
                           }
                         }}
@@ -1104,12 +1003,12 @@ export default function MockExamPage() {
           <div className="space-y-2 text-center md:text-left">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900">
               <Award className="h-3.5 w-3.5 text-amber-600" />
-              <span>Diagnostic Performance Radar</span>
+              <span>{track} Diagnostic Performance Radar</span>
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
               {results.isPassed
-                ? (isZh ? '恭喜及格！達到法定持牌標準' : 'Congratulations! Passed Requirement')
+                ? (isZh ? `恭喜及格！達到 ${track} 法定持牌標準` : `Congratulations! Passed ${track} Standard`)
                 : (isZh ? '未達及格門檻，請針對弱項加強複習' : 'Below Passing Threshold, Needs Review')}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600">
