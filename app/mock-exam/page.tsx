@@ -1,33 +1,33 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Award, 
-  Clock, 
-  CheckCircle2, 
-  XCircle, 
-  ArrowRight, 
-  ArrowLeft, 
-  BookOpen, 
-  FileText, 
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Award,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+  ArrowLeft,
+  BookOpen,
+  FileText,
   AlertTriangle,
   RotateCcw,
   Sparkles,
   ShieldCheck,
   Building2,
-  Flag,
-  HelpCircle,
-  BarChart3,
-  ListOrdered,
-  Eye,
+  Compass,
+  Bookmark,
   Check,
-  ChevronRight,
-  Globe,
-  Compass
+  Eye,
+  Loader2,
+  Zap,
+  Globe
 } from 'lucide-react';
 
-
-export interface ExamQuestion {
+/* ========================================================
+   DATA CONTRACTS & INTERFACES
+   ======================================================== */
+interface MockQuestion {
   id: number;
   part: 'I' | 'II';
   caseScenarioId?: string;
@@ -44,12 +44,10 @@ export interface ExamQuestion {
   statuteRefEn: string;
 }
 
-export interface CaseScenario {
+interface CaseScenario {
   id: string;
   titleZh: string;
   titleEn: string;
-  badgeZh: string;
-  badgeEn: string;
   narrativeZh: string;
   narrativeEn: string;
   landSearch: {
@@ -59,536 +57,723 @@ export interface CaseScenario {
     ownerEn: string[];
     incumbrancesZh: string[];
     incumbrancesEn: string[];
+    memorialsZh: string[];
+    memorialsEn: string[];
   };
 }
 
-
+/* ========================================================
+   PART II POIM CASE SCENARIOS (LAND SEARCH ANNEX ENGINE)
+   ======================================================== */
 const CASE_SCENARIOS: Record<string, CaseScenario> = {
   'case-1': {
     id: 'case-1',
-    titleZh: '個案一：遺囑執行人與屋宇署清拆令 (Smart Mansion)',
-    titleEn: 'Case 1: Sole Executor & Buildings Dept Removal Order (Smart Mansion)',
-    badgeZh: '遺產物業 / Cap. 123 s.24 違建',
-    badgeEn: 'Probate Estate / Cap. 123 s.24 UBW',
-    narrativeZh: 'Mr. Wan 作為旺角聰明大廈 (Smart Mansion) 12 樓 B 室單位之單獨遺囑執行人 (Sole Executor)，委託 Smart Agency 地產代理 Sunny 以 $8,000,000 出售該物業。買方 Polly 經 Sunny 視察物業。Sunny 在查冊中知悉陽台設有未經批准之違例建築工程 (UBW) 及屋宇署清拆令，但向 Polly 聲稱「大廈普遍皆有，銀行按揭一般不受影響」。',
-    narrativeEn: 'Mr. Wan acts as the sole executor for Flat B, 12/F, Smart Mansion. Vendor instructed agent Sunny of Smart Agency to market the unit at $8,000,000. Purchaser Polly inspected the property via Sunny. Sunny noted an active Buildings Dept removal order for unauthorized balcony works on the land search, but represented to Polly that "everyone does it and banks rarely refuse mortgages".',
+    titleZh: '個案一：遺囑認證與清拆命令 (Smart Mansion)',
+    titleEn: 'Case 1: Probate Registration & UBW Removal Order (Smart Mansion)',
+    narrativeZh: '溫國強先生作為 Smart Mansion 12 樓 B 室之單獨遺囑執行人（已故業主胞弟之遺產代理人），委託保成地產代理 Sunny 以 800 萬港元出售物業。買方鄧小姐經 Sunny 視察單位。Sunny 知悉露台存在違例建築工程 (UBW) 及屋宇署 Cap. 123 第 24 條清拆命令，但未有主動於成交前書面告知鄧小姐按揭風險。',
+    narrativeEn: 'Mr. Wan acts as the sole executor for Flat B, 12/F, Smart Mansion. Vendor instructed agent Sunny of Poshing Agency to market the unit at HK$8,000,000. Purchaser Ms. Tang inspected the flat. Sunny knew of an unauthorized building work (UBW) on the balcony and a Cap. 123 s.24 removal order, but failed to warn Ms. Tang regarding mortgage restriction risks in writing prior to agreement.',
     landSearch: {
       propertyZh: [
         '地段編號：九龍內地段第 8842 號 (Kowloon Inland Lot No. 8842)',
-        '物業地址：九龍旺角彌敦道 688 號聰明大廈 12 樓 B 室',
-        '批約年期：自 1978 年 7 月 1 日起計 75 年 (附續期條款)'
+        '物業地址：九龍旺角聰明大廈 12 樓 B 室',
+        '批約年期：75 年自 1978 年起計（可續期）',
+        '政府地稅：每年地稅已繳清'
       ],
       propertyEn: [
         'Lot No.: Kowloon Inland Lot No. 8842',
-        'Address: Flat B, 12/F, Smart Mansion, 688 Nathan Road, Mong Kok, Kowloon',
-        'Lease Term: 75 years from 1 July 1978 with right of renewal'
+        'Property: Flat B, 12/F, Smart Mansion, Mong Kok, Kowloon',
+        'Lease Term: 75 years renewable from 1978',
+        'Government Rent: Fully cleared for current fiscal year'
       ],
       ownerZh: [
-        '登記業主：溫國強 (Wan Kwok Keung) — 以遺囑執行人身分登記',
-        '註冊摘要編號：UB99201 (遺囑認證登記 Date of Probate: 15/03/2023)'
+        '登記業主：溫國強 (Wan Kwok Keung) - 單獨遺囑執行人',
+        '註冊代價：遺囑認證登記 (Letters of Probate)',
+        '註冊摘要編號：UB99201'
       ],
       ownerEn: [
-        'Registered Owner: Wan Kwok Keung (as Sole Executor under Letters of Probate)',
-        'Memorial No.: UB99201 (Date of Instrument: 15/03/2023)'
+        'Registered Owner: Wan Kwok Keung (Sole Executor)',
+        'Consideration: Registration of Letters of Probate',
+        'Memorial No.: UB99201'
       ],
       incumbrancesZh: [
-        '1. 法定押記/按揭：滙豐銀行有限公司 (The Hongkong and Shanghai Banking Corporation Ltd) — 摘要編號 UB44012',
-        '2. 建築物命令：屋宇署署長依據《建築物條例》(Cap. 123) 第 24(1) 條發出之清拆令 (露台未經批准擴建物) — 摘要編號 UB88210'
+        '1. 法定押記：滙豐銀行有限公司按揭 (摘要編號 UB44012)',
+        '2. 屋宇署命令：建築物條例 (Cap. 123) 第 24 條拆卸命令 (露台搭建物 UBW)'
       ],
       incumbrancesEn: [
-        '1. Legal Charge / Mortgage: In favour of The Hongkong and Shanghai Banking Corporation Ltd (Memorial UB44012)',
-        '2. Building Order: Order under section 24(1) of the Buildings Ordinance (Cap. 123) by Building Authority (Unauthorized Balcony Structure) — Memorial UB88210'
+        '1. Legal Charge: Mortgage in favour of HSBC Bank Ltd (Memorial No. UB44012)',
+        '2. Building Order: Buildings Ordinance Cap. 123 s.24 Removal Order (Balcony UBW)'
+      ],
+      memorialsZh: [
+        'UB99201 - 遺囑認證文書',
+        'UB44012 - 法定押記 / 按揭',
+        'UB77341 - 建築事務監督清拆命令'
+      ],
+      memorialsEn: [
+        'UB99201 - Letters of Probate',
+        'UB44012 - Legal Charge / Mortgage',
+        'UB77341 - Building Authority Removal Order'
       ]
     }
   },
   'case-2': {
     id: 'case-2',
-    titleZh: '個案二：有限公司賣方與雙重查冊法則 (Central Commercial Tower)',
-    titleEn: 'Case 2: Corporate Vendor & Two-Search Rule (Central Commercial Tower)',
-    badgeZh: '有限公司 / 浮動押記風險',
-    badgeEn: 'Limited Company / Floating Charge',
-    narrativeZh: '賣方為「Apex Profits Limited」(一間於香港註冊之私人有限公司)，委託代理 Ken 出售中環商業大廈單位。Ken 為買方取得土地註冊處之查冊紀錄，查冊顯示無任何未償還之按揭或法院命令。Ken 隨即促成雙方簽署臨時買賣合約並收取訂金。簽約後買方律師在公司註冊處 (Companies Registry) 發現該公司於兩週前向財務機構設立了一項涵蓋全體資產之浮動押記 (Floating Charge) 且已登記。',
-    narrativeEn: 'Vendor is "Apex Profits Limited" (a private company incorporated in HK), instructing agent Ken to sell an office unit. Ken performed a Land Registry search showing clear title with no subsisting charges. Ken expedited PASP execution and deposit receipt. Afterwards, purchaser solicitors discovered an active corporate Floating Charge debenture registered at the Companies Registry.',
+    titleZh: '個案二：有限公司賣方與雙重查冊 (Central Commercial Tower)',
+    titleEn: 'Case 2: Company Vendor & Dual-Search Protocol (Central Commercial Tower)',
+    narrativeZh: '賣方為「卓越投資有限公司 (Apex Profits Limited)」，委託代理 Ken 出售中環商業大廈 20 樓 01 室。土地查冊顯示物業無按揭登記。Ken 僅提供土地註冊處查冊紀錄，未有辦理公司註冊處 (Companies Registry) 查冊。買方簽訂臨時買賣合約後，始發現該公司存在未解除之浮動押記 (Floating Charge)。',
+    narrativeEn: 'Vendor is "Apex Profits Limited", instructing agent Ken to sell Suite 01, 20/F, Central Commercial Tower. The Land Registry search shows no encumbrance. Ken provided only the land search without conducting a Companies Registry charge search. Buyer signed the PASP only to discover an outstanding floating charge debenture.',
     landSearch: {
       propertyZh: [
-        '地段編號：內地段第 102 號 (Inland Lot No. 102)',
-        '物業地址：香港中環皇后大道中 88 號中環商業大廈 20 樓 01 室',
-        '批約年期：999 年 (自 1865 年 12 月 25 日起算)'
+        '地段編號：海旁地段第 102 號 (Marine Lot No. 102)',
+        '物業地址：香港中環皇后大道中 20 號中環商業大廈 20 樓 01 室',
+        '批約年期：999 年自 1865 年起計'
       ],
       propertyEn: [
-        'Lot No.: Inland Lot No. 102',
-        'Address: Suite 01, 20/F, Central Commercial Tower, 88 Queen\'s Road Central, HK',
-        'Lease Term: 999 years from 25 December 1865'
+        'Lot No.: Marine Lot No. 102',
+        'Property: Suite 01, 20/F, Central Commercial Tower, Central, HK',
+        'Lease Term: 999 years from 1865'
       ],
       ownerZh: [
-        '登記業主：Apex Profits Limited',
-        '代價：HK$38,000,000 (轉讓契約 Memorial No. UB77291)'
+        '登記業主：Apex Profits Limited (卓越投資有限公司)',
+        '代價：HK$38,000,000',
+        '註冊摘要編號：UB88102'
       ],
       ownerEn: [
         'Registered Owner: Apex Profits Limited',
-        'Consideration: HK$38,000,000 (Assignment Memorial No. UB77291)'
+        'Consideration: HK$38,000,000',
+        'Memorial No.: UB88102'
       ],
       incumbrancesZh: [
-        '【土地註冊處查冊無任何已登記之法定押記或產權負擔】'
+        '【土地註冊處無未結清押記或命令登記紀錄】'
       ],
       incumbrancesEn: [
-        '[No subsisting legal charges or encumbrances registered at the Land Registry]'
+        '[No encumbrance or court order registered in Land Registry]'
+      ],
+      memorialsZh: [
+        'UB88102 - 轉讓契約 (Assignment)'
+      ],
+      memorialsEn: [
+        'UB88102 - Deed of Assignment'
       ]
     }
   }
 };
 
-const FULL_EXAM_QUESTIONS: ExamQuestion[] = [
-  // --- PART I: STATUTORY OBJECTIVE QUESTIONS ---
+/* ========================================================
+   MASTER EXAM QUESTION REPOSITORY
+   ======================================================== */
+const MASTER_QUESTIONS: MockQuestion[] = [
   {
     id: 1,
     part: 'I',
-    topicZh: 'Cap. 511 發牌資格與柱石',
-    topicEn: 'Cap. 511 Licensing Qualifications',
-    questionZh: '根據《地產代理條例》(Cap. 511) 第 15 條，下列哪一項「不屬於」申請個人地產代理牌照的法定先決資格？',
-    questionEn: 'Under section 15 of the Estate Agents Ordinance (Cap. 511), which of the following is NOT a statutory prerequisite for an individual estate agent license?',
-    optionsZh: [
-      'A. 年滿 18 歲',
-      'B. 完成中五學業或具同等學歷',
-      'C. 具備至少 2 年持牌營業員 (Salesperson) 全職實務工作經驗',
-      'D. 在緊接申請牌照前 12 個月內通過相關資格考試合格'
-    ],
-    optionsEn: [
-      'A. Reached the age of 18 years',
-      'B. Completed Form 5 secondary education or equivalent',
-      'C. Possesses at least 2 years full-time practical experience as a licensed salesperson',
-      'D. Passed the relevant qualifying licensing examination within 12 months prior to application'
-    ],
+    topicZh: '條例牌照要求 (Cap. 511)',
+    topicEn: 'Licensing Requirements (Cap. 511)',
+    questionZh: '根據《地產代理條例》(Cap. 511)，地產代理（個人）牌照持有人在變更其主要或分行營業地點後，必須於多少天內以書面通知地產代理監管局 (EAA)？',
+    questionEn: 'Under the Estate Agents Ordinance (Cap. 511), within how many days must an individual estate agent licensee notify the EAA in writing after a change in principal or branch place of business?',
+    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 31 天', 'D. 60 天'],
+    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 31 Days', 'D. 60 Days'],
     answerIndex: 2,
-    explanationZh: '✓ EAA 牌照四大柱石為【18 歲、中五學歷、12 個月考試有效、Fit & Proper 妥當人選】。法例完全不要求工作經驗！考官常設陷阱宣稱需要經驗。',
-    explanationEn: '✓ The 4 pillars of licensing are Age 18, Form 5 education, 12-month exam validity, and Fit & Proper status. Practical work experience is NOT a statutory condition.',
-    statuteRefZh: '《地產代理條例》Cap. 511 s.15 & s.19',
-    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.15 & s.19'
-  },
-  {
-    id: 2,
-    part: 'I',
-    topicZh: '營業地點與 31 天規則',
-    topicEn: 'Place of Business & 31-Day Rule',
-    questionZh: '持牌地產代理開立新分行或變更其營業地點時，必須在多少天內以書面通知地產代理監管局 (EAA)？',
-    questionEn: 'When an estate agent establishes a new branch or changes their place of business, within how many days must they notify the EAA in writing?',
-    optionsZh: [
-      'A. 7 天內',
-      'B. 14 天內',
-      'C. 31 天內',
-      'D. 60 天內'
-    ],
-    optionsEn: [
-      'A. Within 7 days',
-      'B. Within 14 days',
-      'C. Within 31 days',
-      'D. Within 60 days'
-    ],
-    answerIndex: 2,
-    explanationZh: '✓ 根據 Cap. 511 s.40，任何營業地址、公司董事或合夥人變更均有法定【31 天通知期】。注意：每間分行必須由持個人地產代理牌照之經理作獨立有效控制。',
-    explanationEn: '✓ Under Cap. 511 s.40, any change of place of business, director, or partner must be notified to EAA in writing within 31 days.',
+    explanationZh: '根據 Cap. 511 第 40 條，任何持牌人若變更營業地址、個人註冊住址或經理指派，均須於 31 天內以書面表格通知 EAA。',
+    explanationEn: 'Under Cap. 511 s.40, a licensee must notify the Authority in writing within 31 days of any change of business address, registered personal address, or manager designation.',
     statuteRefZh: '《地產代理條例》Cap. 511 s.40',
     statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.40'
   },
   {
+    id: 2,
+    part: 'I',
+    topicZh: '租務法定權益 (Cap. 7)',
+    topicEn: 'Landlord & Tenant Rights (Cap. 7)',
+    questionZh: '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
+    questionEn: 'In the absence of an express forfeiture clause, after how many days of unpaid domestic rent can a landlord exercise the statutory implied right of forfeiture?',
+    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 15 天', 'D. 30 天'],
+    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 15 Days', 'D. 30 Days'],
+    answerIndex: 2,
+    explanationZh: '《業主與租客（綜合）條例》(Cap. 7) 第 IV 部規定，住宅租賃中拖欠租金的法定沒收權門檻為 15 天（商用物業一般為 21 天，須依合約或普通法判定）。',
+    explanationEn: 'Under Cap. 7 Part IV, the statutory implied forfeiture threshold for non-payment of domestic rent is 15 days.',
+    statuteRefZh: '《業主與租客（綜合）條例》Cap. 7 Part IV',
+    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7'
+  },
+  {
     id: 3,
     part: 'I',
-    topicZh: '客戶款項與信託金庫 (3-2-14-3)',
-    topicEn: 'Client Money & Trust Account',
-    questionZh: '關於地產代理收取客戶訂金或款項的法定要求，下列哪項敘述「正確」？',
-    questionEn: 'Regarding statutory requirements for client money received by an estate agent, which of the following statements is CORRECT?',
+    topicZh: '客戶款項規則 (Client Money)',
+    topicEn: 'Client Money Accounts (Cap. 511)',
+    questionZh: '地產代理行收受客戶託管訂金款項後，必須依據法規將該款項存入獨立之客戶信託戶口，且開立及開具收據的期限為多少天？相關款項紀錄須保存多久？',
+    questionEn: 'When an estate agency receives client deposits, within how many days must receipts be issued, and for how long must trust account records be preserved?',
     optionsZh: [
-      'A. 代理可將客戶訂金存入代理之一般公司營運戶口，只要賬目清晰即可',
-      'B. 客戶款項必須存入在持牌銀行開設之獨立「客戶信託戶口」(Client Account)',
-      'C. 收到款項後代理有 30 天寬限期發出正式收據',
-      'D. 客戶款項收據副本只須在電腦存檔，無需保存紙本 3 年'
+      'A. 7 天開具收據，保存 1 年',
+      'B. 14 天開具收據，保存 3 年',
+      'C. 21 天開具收據，保存 5 年',
+      'D. 30 天開具收據，保存 7 年'
     ],
     optionsEn: [
-      'A. Client money may be deposited into agency general operating accounts provided ledger is clear',
-      'B. Client money must be deposited into a designated segregated "Client Account" in a licensed bank',
-      'C. The agent has a 30-day grace period to issue an official receipt to the client',
-      'D. Receipt copies only need computer filing without requiring 3 years retention'
+      'A. Issue receipt in 7 days, retain for 1 year',
+      'B. Issue receipt in 14 days, retain for 3 years',
+      'C. Issue receipt in 21 days, retain for 5 years',
+      'D. Issue receipt in 30 days, retain for 7 years'
     ],
     answerIndex: 1,
-    explanationZh: '✓ 記憶口訣【3-2-14-3】：3種法定用途、2個可付對象、14天內發出收據、收據及賬目必須妥善保存至少 3 年。客戶款項絕對禁止與代理營業戶口混合！',
-    explanationEn: '✓ Formula 3-2-14-3: 3 statutory purposes, 2 recipients, 14 days receipt issuance, 3 years record retention. Mingling client money with operating funds is strictly prohibited.',
-    statuteRefZh: '《地產代理(客戶款項)規例》Cap. 511A',
-    statuteRefEn: 'Estate Agents (Client Money) Regulation Cap. 511A'
+    explanationZh: '口訣【3-2-14-3】：地產代理客戶存款規則要求，代理行收到客戶存款後須於 14 天內向客戶發出收據，相關帳冊及收據副本必須妥善保存至少 3 年。',
+    explanationEn: 'Mnemonic 3-2-14-3: Under the Estate Agents (Client Money) Rules, deposit receipts must be issued within 14 days and trust financial records must be kept for at least 3 years.',
+    statuteRefZh: '《地產代理 (客戶款項) 規例》第 4 及 8 條',
+    statuteRefEn: 'Estate Agents (Client Money) Rules s.4 & s.8'
   },
   {
     id: 4,
     part: 'I',
-    topicZh: '法定協議 Form 3 至 Form 6',
-    topicEn: 'Prescribed Agency Agreements',
-    questionZh: '地產代理與客戶簽署法定代理協議時，下列哪一組表格配對完全正確？',
-    questionEn: 'When executing prescribed estate agency agreements with clients, which form pairing is entirely accurate?',
+    topicZh: '物業資料常規 (Practice Regs)',
+    topicEn: 'Practice Regulations (Cap. 511A)',
+    questionZh: '持牌地產代理在向二手住宅物業買家推介物業前，必須向買家提供並解釋哪一項法定資料表格？',
+    questionEn: 'Before introducing a second-hand residential property to a prospective purchaser, which prescribed form must the agent provide and explain?',
     optionsZh: [
-      'A. 出售住宅物業使用 Form 4；購買住宅物業使用 Form 3',
-      'B. 出售住宅物業使用 Form 3；購買住宅物業使用 Form 4',
-      'C. 出租商業寫字樓物業必須使用 Form 5',
-      'D. 租賃住宅物業協議之法定有效期最長可設定為 12 個月'
+      'A. 表格一 (Form 1 - 物業資料單)',
+      'B. 表格三 (Form 3 - 出售地產代理協議)',
+      'C. 表格四 (Form 4 - 購買地產代理協議)',
+      'D. 表格六 (Form 6 - 租賃代理協議)'
     ],
     optionsEn: [
-      'A. Form 4 for residential sale; Form 3 for residential purchase',
-      'B. Form 3 for residential sale; Form 4 for residential purchase',
-      'C. Leasing a commercial office requires mandatory Form 5',
-      'D. Residential leasing agreement statutory validity may extend up to 12 months'
+      'A. Form 1 (Property Information Form)',
+      'B. Form 3 (Estate Agency Agreement for Sale)',
+      'C. Form 4 (Estate Agency Agreement for Purchase)',
+      'D. Form 6 (Estate Agency Agreement for Leasing)'
     ],
-    answerIndex: 1,
-    explanationZh: '✓ 口訣：【單數賣、雙數買】。Form 3 賣方、Form 4 買方、Form 5 業主出租、Form 6 租客承租。法定表格有效期上限均為 3 個月，且僅適用於住宅物業。',
-    explanationEn: '✓ Mnemonic: Odd Sells, Even Buys. Form 3: Sale, Form 4: Purchase, Form 5: Landlord, Form 6: Tenant. Max validity is 3 months and applies solely to residential properties.',
-    statuteRefZh: '《地產代理協議規例》Cap. 511C',
-    statuteRefEn: 'Estate Agents (Agreements) Regulation Cap. 511C'
+    answerIndex: 0,
+    explanationZh: '二手住宅推介規定必須提供 Form 1（物業資料單）附連土地查冊紀錄。Form 3/4/5/6 為代理協議，而非物業資料單。',
+    explanationEn: 'Under Cap. 511A, Form 1 (Property Information Form) with land search must be provided and explained to prospective purchasers.',
+    statuteRefZh: '《地產代理常規 (一般職責及香港住宅物業) 規例》Form 1',
+    statuteRefEn: 'Estate Agents Practice (General & Residential) Regs Form 1'
   },
   {
     id: 5,
-    part: 'I',
-    topicZh: '住宅租務與沒收權 (Cap. 7)',
-    topicEn: 'Residential Tenancy & Forfeiture',
-    questionZh: '在無任何明文租約條款約定下，住宅租客若拖欠租金達多少天，業主即享有法定權利沒收該租賃 (Forfeiture for Non-payment)？',
-    questionEn: 'Absent express terms in a tenancy agreement, after how many days of unpaid rent does a landlord have statutory right to forfeit the lease?',
+    part: 'II',
+    caseScenarioId: 'case-1',
+    topicZh: '土地查冊 (POIM 業主權限)',
+    topicEn: 'Land Search (POIM Ownership & Probate)',
+    questionZh: '【Part II 個案題 - 個案一】審視 Smart Mansion 查冊報告附件，物業目前由溫先生以「單獨遺囑執行人 (Sole Executor)」登記。在簽署臨時買賣合約及收取樓價訂金時，地產代理 Sunny 最符合法規要求的專業做法為何？',
+    questionEn: '[Part II Case Study - Case 1] Reviewing the Smart Mansion Land Search Annex, the property is registered under Mr. Wan as Sole Executor. When arranging the PASP and deposit payment, which practice is legally correct for agent Sunny?',
     optionsZh: [
-      'A. 7 天',
-      'B. 14 天',
-      'C. 15 天',
-      'D. 30 天'
+      'A. 要求買方將所有首期訂金支票抬頭直接寫給地產代理個人，由代理轉交',
+      'B. 查核已註冊之遺囑認證文件 (Letters of Probate)，確認執行人身份，並安排訂金由賣方律師樓以保證金 (Stakeholder) 方式託管',
+      'C. 遺囑執行人無權出售物業，代理必須直接拒絕簽約',
+      'D. 無需核實遺囑，直接將訂金全數交付溫先生個人銀行戶口'
     ],
     optionsEn: [
-      'A. 7 days',
-      'B. 14 days',
-      'C. 15 days',
-      'D. 30 days'
+      'A. Direct the purchaser to draw the deposit cheque directly in Sunny’s personal name',
+      'B. Verify the registered Letters of Probate to confirm executor authority, and mandate that initial deposits be held by the vendor’s solicitor as stakeholder',
+      'C. Refuse to execute the transaction, claiming an executor has no statutory capacity to convey title',
+      'D. Release all initial deposit monies immediately into Mr. Wan’s personal bank account'
     ],
-    answerIndex: 2,
-    explanationZh: '✓ 根據《業主與租客(綜合)條例》第 7 章第 IV 部，欠租沒收權之法定門檻為【15 天】。注意：14 天是常設陷阱選項！住宅租約簽立後亦須於 1 個月內提交 Form CR109。',
-    explanationEn: '✓ Under Cap. 7 Part IV, the statutory threshold for unpaid rent forfeiture is 15 days. 14 days is a classic exam distractor.',
-    statuteRefZh: '《業主與租客(綜合)條例》Cap. 7 Part IV',
-    statuteRefEn: 'Landlord and Tenant (Consolidation) Ordinance Cap. 7 Part IV'
+    answerIndex: 1,
+    explanationZh: '單獨遺囑執行人有權處置物業，但因存在清拆命令與潛在債權人風險，地產代理必須查驗已於土地註冊處登記的遺囑認證文書，並極力建議所有訂金以 Stakeholder 方式由律師樓託管，以保障買方利益。',
+    explanationEn: 'A sole executor has statutory power of disposal, but given the UBW and estate debts, the agent must inspect the probate memorial and hold deposits in escrow via vendor solicitor as stakeholder.',
+    statuteRefZh: '《遺囑認證及遺產管理條例》(Cap. 10) 及 EAA 操守守則',
+    statuteRefEn: 'Probate and Administration Ordinance (Cap. 10) & EAA Code'
   },
-
-  // --- PART II: CASE STUDY POIM LAND SEARCH QUESTIONS ---
   {
     id: 6,
     part: 'II',
     caseScenarioId: 'case-1',
-    topicZh: '個案一：產權審查與遺產代理',
-    topicEn: 'Case 1: Title Verification & Probate',
-    questionZh: '【Part II 個案題】參考聰明大廈土地查冊 (Annex)，本物業當前法定登記業主為溫先生。買方律師在查驗業權時，必須要求賣方提供下列哪一項核心文件以確立其合法出售權？',
-    questionEn: '[Part II Case Study] Referring to the Smart Mansion Land Search (Annex), Mr. Wan is registered as sole executor. Which primary legal document must purchaser solicitors inspect to confirm his title to sell?',
+    topicZh: '違建命令揭示 (Cap. 123 s.24)',
+    topicEn: 'UBW Disclosure & Requisition (Cap. 123)',
+    questionZh: '【Part II 個案題 - 個案一】查冊負擔欄 (Incumbrances) 登記有屋宇署第 24 條清拆命令。地產代理 Sunny 未於簽約前向買方鄧小姐披露並解釋此命令。Sunny 可能違反何項 EAA 操守規定？',
+    questionEn: '[Part II Case Study - Case 1] The Incumbrances section registers a Buildings Dept s.24 Removal Order. Sunny failed to disclose or explain this order before signing. Which EAA statutory duty has Sunny breached?',
     optionsZh: [
-      'A. 原業主之死亡證 (Death Certificate) 正本即足夠，無需其他法庭文件',
-      'B. 高等法院遺囑認證處頒發之遺囑認證書 (Letters of Probate) 及認證遺囑正本或官方法庭核證副本',
-      'C. 溫先生個人之香港永久性居民身份證及商業登記證',
-      'D. 溫先生與全體受益人簽署之家庭分配協議書'
+      'A. 僅屬於無心之失，法例並無要求代理交代建築物命令',
+      'B. 違反《地產代理常規規例》，未盡應盡的努力 (Due Diligence) 查明並告知買方物業存在產權負擔及按揭風險',
+      'C. 只要買方委聘了律師，代理即完全免除所有物業查證責任',
+      'D. 屋宇署 s.24 清拆令不屬於土地查冊重要事項，無須向買方解釋'
     ],
     optionsEn: [
-      'A. Original Death Certificate of the deceased owner is sufficient without court instruments',
-      'B. Grant of Probate issued by the High Court probate registry together with official certified copy of the probated Will',
-      'C. Mr. Wan personal HKID card and Business Registration Certificate',
-      'D. Family deed of distribution executed by all named beneficiaries'
+      'A. Pure oversight; agents bear no statutory obligation to explain building orders',
+      'B. Breached Practice Regulations by failing to exercise due diligence to ascertain and disclose encumbrances affecting title and mortgageability',
+      'C. Complete exemption applies once the purchaser engages independent legal representation',
+      'D. Cap. 123 s.24 orders do not constitute material encumbrances under land search rules'
     ],
     answerIndex: 1,
-    explanationZh: '✓ 當物業由遺囑執行人以個人名義登記時，必須出示高等法院正式頒發之遺囑認證書 (Grant of Probate) 證明執行人身分及處分遺產之法定權能。',
-    explanationEn: '✓ Title verification for properties held by an executor mandates production of the High Court Grant of Probate establishing legal power to convey estate property.',
-    statuteRefZh: '《遺囑認證及遺產管理條例》Cap. 10 & 土地查冊 P-O-I-M',
-    statuteRefEn: 'Probate and Administration Ordinance Cap. 10 & POIM'
+    explanationZh: '《地產代理常規規例》第 9(2) 條及 EAA 執業通告明確規定：代理在安排簽約前必須向買方全面披露查冊中登記的未清拆令及 UBW 風險，未作揭示構成嚴重失職及紀律制裁處分。',
+    explanationEn: 'Under Cap. 511A s.9(2) and EAA Practice Circulars, failure to explain a registered s.24 removal order and potential defect in title constitutes gross professional misconduct.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
+    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)'
   },
   {
     id: 7,
     part: 'II',
-    caseScenarioId: 'case-1',
-    topicZh: '個案一：建築物清拆令與披露義務',
-    topicEn: 'Case 1: Building Orders & Due Diligence',
-    questionZh: '【Part II 個案題】查冊 Incumbrances 欄註冊有屋宇署依據《建築物條例》第 24 條發出的清拆令。代理 Sunny 向買方 Polly 聲稱「銀行按揭不受影響」，Sunny 的行為違反了 EAA 哪項規定？',
-    questionEn: '[Part II Case Study] The Land Search Incumbrances section shows an active Building Authority order under section 24. Agent Sunny claimed mortgages would be unaffected. Sunny has breached which statutory duty?',
-    optionsZh: [
-      'A. 並無違規，因清拆令只屬屋宇署與業主之間的事務，不影響物業買賣',
-      'B. 違反《操守守則》及未盡盡職審查 (Due Diligence) 義務，因未完成之清拆令屬物業瑕疵，直接影響銀行估價與按揭批核，代理不得作誤導性陳述',
-      'C. 只要買賣雙方在臨約中加簽「按現狀 (As-is)」條款，代理即獲法律豁免',
-      'D. 代理只要在簽約後 14 天內口頭告知買方律師即屬合規'
-    ],
-    optionsEn: [
-      'A. No breach occurred as building orders only concern Landlord and BD without impacting conveyancing',
-      'B. Breached Code of Ethics and due diligence obligations by making misleading representations regarding title incumbrances affecting bank mortgage valuations',
-      'C. Executing an "As-Is" condition clause in the PASP automatically indemnifies the agent',
-      'D. Providing verbal advice to buyer solicitors within 14 days post-signing satisfies compliance'
-    ],
-    answerIndex: 1,
-    explanationZh: '✓ EAA 操守規約明確規定，代理必須查明並向買家準確披露清拆令等註冊產權負擔。未解除之命令可導致銀行拒批按揭甚至釘契，代理謊稱無影響構成嚴重專業失德。',
-    explanationEn: '✓ Under EAA practice guidelines, failure to disclose subsisting section 24 orders or misrepresenting mortgage viability constitutes professional misconduct and misrepresentation.',
-    statuteRefZh: '《地產代理常規(一般職責及香港住宅物業)規例》第 3 條',
-    statuteRefEn: 'Estate Agents Practice (General Duties) Regulation s.3'
-  },
-  {
-    id: 8,
-    part: 'II',
     caseScenarioId: 'case-2',
-    topicZh: '個案二：公司賣方與雙重查冊',
-    topicEn: 'Case 2: Corporate Vendor & Two-Search Rule',
-    questionZh: '【Part II 個案題】在個案二中，賣方為「Apex Profits Limited」。地產代理 Ken 僅進行了土地註冊處查冊而未進行公司註冊處查冊，導致買方簽約後才發現浮動押記。此情況下：',
-    questionEn: '[Part II Case Study] In Case 2, the vendor is Apex Profits Limited. Agent Ken conducted only a Land Registry search and omitted the Companies Registry charge search. In this situation:',
+    topicZh: '公司賣方雙重查冊 (Cap. 622)',
+    topicEn: 'Corporate Charges & Dual Search (Cap. 622)',
+    questionZh: '【Part II 個案題 - 個案二】在中環商業大廈個案中，賣方為 Apex Profits Limited。代理 Ken 僅進行了土地查冊而省略公司註冊處查冊。為何在香港物業買賣實務中，公司賣方必須遵循「雙重查冊原則 (Dual Search Rule)」？',
+    questionEn: '[Part II Case Study - Case 2] In the Central Commercial Tower case, vendor is Apex Profits Limited. Ken only pulled land search and skipped Companies Registry search. Why is the "Dual Search Rule" mandatory for corporate vendors in HK conveyancing?',
     optionsZh: [
-      'A. Ken 的做法完全合規，因地產代理條例只要求提供土地註冊處查冊',
-      'B. Ken 違反了「雙重查冊法則 (Two-Search Rule)」，因有限公司之債權證浮動押記通常登記於公司註冊處，土地查冊無法顯示，代理必須同時查冊公司處',
-      'C. 買方有義務自行查冊，代理無需承擔任何責任',
-      'D. 該浮動押記只要未在土地註冊處登記，在法律上即對買方完全無效'
+      'A. 因為公司註冊處收費比土地註冊處便宜',
+      'B. 公司發行之浮動押記 (Floating Charge) 及未解除抵押負擔可能僅登記於公司註冊處，土地查冊無法顯示，浮動押記一旦結晶化將嚴重威脅買方業權',
+      'C. 商業登記證 (BR) 可完全取代公司註冊處查冊',
+      'D. 雙重查冊僅適用於住宅物業，商業物業無需進行'
     ],
     optionsEn: [
-      'A. Ken fully complied because the Estate Agents Ordinance only mandates Land Registry searches',
-      'B. Ken breached the "Two-Search Rule" because corporate floating charges/debentures are registered at the Companies Registry and omitted from Land Registry records',
-      'C. The buyer holds sole responsibility to conduct company searches; the agent incurs no liability',
-      'D. Any floating charge not registered at the Land Registry is void against the buyer as a matter of law'
+      'A. Companies Registry search fees are cheaper than the Land Registry',
+      'B. Corporate floating charges and debentures may be registered solely at the Companies Registry without land registry registration; once crystallized, they severely impair title',
+      'C. A Business Registration (BR) certificate automatically replaces the need for corporate search',
+      'D. Dual searches apply only to domestic residential properties'
     ],
     answerIndex: 1,
-    explanationZh: '✓ 【雙重查冊黃金法則】：當賣家為有限公司時，代理必須同時查閱【土地註冊處】與【公司註冊處】。浮動押記 (Floating Charge) 僅在公司處登記，一旦晶化 (crystallize) 即可對物業行使抵押權，威脅買方業權！',
-    explanationEn: '✓ The Two-Search Golden Rule: Corporate vendors mandate searches at both Land Registry and Companies Registry. Debentures with floating charges are recorded at Companies Registry and bind corporate assets upon crystallization.',
-    statuteRefZh: '《公司條例》(Cap. 622) s.335 及 EAA 執業通告',
-    statuteRefEn: 'Companies Ordinance (Cap. 622) s.335 & EAA Practice Circular'
+    explanationZh: '根據《公司條例》(Cap. 622) 及 EAA 執業指引，有限公司的浮動押記（Floating Charge）在結晶化前通常不會在土地註冊處登記。若代理不查閱公司註冊處抵押登記冊，買方可能購入附帶未解除清償負擔的物業。',
+    explanationEn: 'Under Cap. 622 and EAA Guidelines, corporate floating charges are recorded at the Companies Registry. Omitting this search exposes purchasers to encumbered titles upon debenture crystallization.',
+    statuteRefZh: '《公司條例》(Cap. 622) 第 335 條及 EAA 執業指引',
+    statuteRefEn: 'Companies Ordinance Cap. 622 s.335 & EAA Guidelines'
   }
 ];
 
-
-export default function App() {
+/* ========================================================
+   MAIN COMPONENT: FULL MOCK EXAM SUITE
+   ======================================================== */
+export default function MockExamPage() {
   const [isZh, setIsZh] = useState<boolean>(true);
-  
-  // Exam phases: 'briefing' | 'active' | 'review'
-  const [examPhase, setExamPhase] = useState<'briefing' | 'active' | 'review'>('briefing');
-  const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
-  
-  // Active questions subset based on track
-  const currentQuestions = useMemo(() => {
-    return FULL_EXAM_QUESTIONS;
-  }, []);
-
+  const [examStage, setExamStage] = useState<'briefing' | 'simulation' | 'report'>('briefing');
+  const [track, setTrack] = useState<'EAQE' | 'SQE'>('EAQE');
+  const [activePartFilter, setActivePartFilter] = useState<'ALL' | 'I' | 'II'>('ALL');
   const [currentQIndex, setCurrentQIndex] = useState<number>(0);
   const [userAnswers, setUserAnswers] = useState<Record<number, number>>({});
-  const [flaggedIds, setFlaggedIds] = useState<Set<number>>(new Set());
-  
-  // Timer state: 3 Hours (10800 seconds)
-  const [timeLeft, setTimeLeft] = useState<number>(3 * 60 * 60);
-  const [activeAnnexTab, setActiveAnnexTab] = useState<'search' | 'facts'>('search');
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Record<number, boolean>>({});
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(180 * 60);
+  const [activeAnnexTab, setActiveAnnexTab] = useState<'property' | 'owner' | 'incumbrances' | 'narrative'>('incumbrances');
 
-  // Filter tab for active exam: 'all' | 'part1' | 'part2'
-  const [activePartFilter, setActivePartFilter] = useState<'ALL' | 'I' | 'II'>('ALL');
+  // AI Cognitive Synthesizer state
+  const [showAiModal, setShowAiModal] = useState<boolean>(false);
+  const [aiGenerating, setAiGenerating] = useState<boolean>(false);
+  const [aiTopic, setAiTopic] = useState<string>('Cap. 511 & Form 1-6');
+  const [aiTargetPart, setAiTargetPart] = useState<'I' | 'II'>('I');
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [questionsList, setQuestionsList] = useState<MockQuestion[]>(MASTER_QUESTIONS);
 
-  const currentQ = currentQuestions[currentQIndex] || currentQuestions[0];
-  const currentScenario = currentQ.caseScenarioId ? CASE_SCENARIOS[currentQ.caseScenarioId] : null;
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
+  /* Filter questions based on active part filter */
+  const activeQuestions = questionsList.filter((q) => {
+    if (activePartFilter === 'ALL') return true;
+    return q.part === activePartFilter;
+  });
 
+  const currentQ = activeQuestions[currentQIndex] || activeQuestions[0];
+  const activeScenario = currentQ?.caseScenarioId ? CASE_SCENARIOS[currentQ.caseScenarioId] : null;
+
+  /* Timer logic */
   useEffect(() => {
-    if (examPhase !== 'active') return;
+    if (examStage === 'simulation') {
+      timerRef.current = setInterval(() => {
+        setTimeLeftSeconds((prev) => {
+          if (prev <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            setExamStage('report');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setExamPhase('review');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [examStage]);
 
-    return () => clearInterval(timer);
-  }, [examPhase]);
-
-  const formatTimer = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  const formatTimer = (totalSecs: number) => {
+    const hrs = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleSelectOption = (optIdx: number) => {
-    if (examPhase === 'review') return;
-    setUserAnswers((prev) => ({
-      ...prev,
-      [currentQ.id]: optIdx
-    }));
+  const handleSelectOption = (qId: number, optIndex: number) => {
+    if (examStage !== 'simulation') return;
+    setUserAnswers((prev) => ({ ...prev, [qId]: optIndex }));
   };
 
-  const toggleFlag = (id: number) => {
-    setFlaggedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  const toggleFlag = (qId: number) => {
+    setFlaggedQuestions((prev) => ({ ...prev, [qId]: !prev[qId] }));
   };
 
+  const calculateResults = () => {
+    let correctCount = 0;
+    let partICorrect = 0;
+    let partITotal = 0;
+    let partIICorrect = 0;
+    let partIITotal = 0;
 
-  const scoreStats = useMemo(() => {
-    let totalScore = 0;
-    let part1Score = 0;
-    let part2Score = 0;
-    let part1Total = 0;
-    let part2Total = 0;
-
-    currentQuestions.forEach((q) => {
+    questionsList.forEach((q) => {
       const isCorrect = userAnswers[q.id] === q.answerIndex;
+      if (isCorrect) correctCount++;
+
       if (q.part === 'I') {
-        part1Total += 1;
-        if (isCorrect) part1Score += 1;
+        partITotal++;
+        if (isCorrect) partICorrect++;
       } else {
-        part2Total += 1;
-        if (isCorrect) part2Score += 1;
+        partIITotal++;
+        if (isCorrect) partIICorrect++;
       }
-      if (isCorrect) totalScore += 1;
     });
 
-    const percent = Math.round((totalScore / currentQuestions.length) * 100);
-    const isPass = percent >= 60;
+    const totalQuestions = questionsList.length;
+    const scorePct = Math.round((correctCount / totalQuestions) * 100);
+    const isPassed = scorePct >= 60;
 
     return {
-      totalScore,
-      totalCount: currentQuestions.length,
-      part1Score,
-      part1Total,
-      part2Score,
-      part2Total,
-      percent,
-      isPass
+      correctCount,
+      totalQuestions,
+      scorePct,
+      isPassed,
+      partICorrect,
+      partITotal,
+      partIICorrect,
+      partIITotal
     };
-  }, [currentQuestions, userAnswers]);
+  };
 
+  /* AI Synthesizer trigger via backend OpenRouter API */
+  const handleGenerateAiQuestions = async () => {
+    setAiGenerating(true);
+    setAiError(null);
 
-  if (examPhase === 'briefing') {
+    try {
+      const response = await fetch('/api/generate-exam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          track,
+          part: aiTargetPart,
+          count: 3,
+          topic: aiTopic,
+          isZh
+        })
+      });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error || `Server responded with ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        const formattedQs: MockQuestion[] = data.questions.map((q: any, i: number) => ({
+          id: Date.now() + i,
+          part: aiTargetPart,
+          caseScenarioId: aiTargetPart === 'II' ? 'case-1' : undefined,
+          topicZh: q.topicZh || aiTopic,
+          topicEn: q.topicEn || aiTopic,
+          questionZh: q.questionZh,
+          questionEn: q.questionEn,
+          optionsZh: q.optionsZh,
+          optionsEn: q.optionsEn,
+          answerIndex: typeof q.answerIndex === 'number' ? q.answerIndex : 0,
+          explanationZh: q.explanationZh || '依據香港地產代理條例及執業指引核定。',
+          explanationEn: q.explanationEn || 'Determined under HK Estate Agents Ordinance & regulatory circulars.',
+          statuteRefZh: q.statuteRefZh || '《地產代理條例》Cap. 511',
+          statuteRefEn: q.statuteRefEn || 'Estate Agents Ordinance Cap. 511'
+        }));
+
+        setQuestionsList((prev) => [...prev, ...formattedQs]);
+        setShowAiModal(false);
+      } else {
+        throw new Error('No valid questions received from synthesis engine.');
+      }
+    } catch (err: any) {
+      setAiError(err.message || 'Failed to synthesize questions. Please check API Key configuration.');
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  /* ========================================================
+     MODAL: AI QUESTION SYNTHESIZER
+     ======================================================== */
+  const renderAiModal = () => {
+    if (!showAiModal) return null;
+
     return (
-      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors duration-300">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="w-full max-w-xl rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-black text-amber-800 uppercase px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200">
+                COGNITIVE EXAM SYNTHESIZER
+              </span>
+              <h3 className="text-xl font-extrabold text-slate-900">
+                {isZh ? '動態法規試題生成引擎' : 'Cognitive Exam Synthesizer'}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setShowAiModal(false);
+                setAiError(null);
+              }}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 block">
+                {isZh ? '選取試卷部分 (Exam Part)' : 'Target Examination Part'}
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setAiTargetPart('I')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                    aiTargetPart === 'I'
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  <span>{isZh ? 'Part I 法規選擇題' : 'Part I Statutory MCQs'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAiTargetPart('II')}
+                  className={`p-3 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                    aiTargetPart === 'II'
+                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-sm'
+                      : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  <FileText className="h-4 w-4" />
+                  <span>{isZh ? 'Part II 查冊實務題' : 'Part II POIM Case Qs'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-700 block">
+                {isZh ? '核心法規主題 (Statutory Topic)' : 'Statutory Topic Domain'}
+              </label>
+              <select
+                value={aiTopic}
+                onChange={(e) => setAiTopic(e.target.value)}
+                className="w-full p-3 rounded-2xl border border-slate-200 bg-slate-50 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+              >
+                <option value="Cap. 511 & Form 1-6">Cap. 511 地產代理條例與法定協議表格 (Form 1-6)</option>
+                <option value="Cap. 128 Land Registration & POIM">Cap. 128 土地註冊條例與 POIM 查冊分析</option>
+                <option value="Cap. 7 Landlord and Tenant & Part IVA">Cap. 7 業主與租客條例及劏房租管</option>
+                <option value="Cap. 123 Buildings Ordinance & UBW Orders">Cap. 123 建築物條例第 24 條清拆命令與僭建</option>
+                <option value="Cap. 622 Companies Ordinance Floating Charges">Cap. 622 公司條例與浮動押記雙重查冊</option>
+              </select>
+            </div>
+
+            {aiError && (
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600 mt-0.5" />
+                <span>{aiError}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => setShowAiModal(false)}
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold cursor-pointer transition"
+            >
+              {isZh ? '取消' : 'Cancel'}
+            </button>
+            <button
+              type="button"
+              disabled={aiGenerating}
+              onClick={handleGenerateAiQuestions}
+              className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black shadow-sm transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {aiGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-950" />
+                  <span>{isZh ? '正在調用引擎生成中...' : 'Synthesizing Questions...'}</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-slate-950" />
+                  <span>{isZh ? '開始動態生成 (3 題)' : 'Synthesize 3 Questions'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  /* ========================================================
+     STAGE 1: BRIEFING & PRE-EXAM CONFIGURATION
+     ======================================================== */
+  if (examStage === 'briefing') {
+    return (
+      <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
+        {renderAiModal()}
         <div className="max-w-4xl mx-auto space-y-6">
 
           {/* Header Card */}
-          <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="space-y-2.5">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <div className="inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-3.5 py-1 text-xs font-bold text-amber-900">
-                  <Award className="h-4 w-4 text-amber-600" />
-                  <span>EAA Official Simulation Architecture</span>
-                </div>
+          <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900">
+                  <Award className="h-3.5 w-3.5 text-amber-600" />
+                  <span>EAA Official Simulation Mode</span>
+                </span>
                 <button
                   type="button"
                   onClick={() => setIsZh(!isZh)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-slate-200 bg-slate-50 text-slate-800 hover:border-amber-500 hover:text-amber-700 transition cursor-pointer"
+                  className="px-3 py-1 rounded-full text-xs font-bold border border-slate-200 bg-slate-50 text-slate-800 hover:border-amber-500 transition cursor-pointer flex items-center gap-1"
                 >
-                  <Globe className="h-3.5 w-3.5 text-amber-600" />
+                  <Globe className="h-3 w-3 text-amber-600" />
                   <span>{isZh ? 'EN' : '繁體中文'}</span>
                 </button>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-slate-900">
-                {isZh ? '全真模擬考試準備考場' : 'Official Full Mock Examination Suite'}
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+                {isZh ? '香港地產代理資格全真模擬試場' : 'HK EAA Professional Licensing Mock Suite'}
               </h1>
-              <p className="text-xs sm:text-sm text-slate-600 max-w-xl leading-relaxed">
-                {isZh 
-                  ? '雙卷全真計時考核：Part I 客觀選擇題 + Part II 土地查冊個案實務題。及格分數線為 60%。'
-                  : 'Full 3-hour dual-part simulation: Part I Statutory Multiple Choice + Part II POIM Case Studies. Passing mark: 60%.'}
+              <p className="text-xs sm:text-sm text-slate-600 max-w-xl">
+                {isZh
+                  ? '官方雙階段計分架構：Part I 法規選擇題 + Part II 土地查冊個案實務題。'
+                  : 'Official dual-part exam architecture: Part I Statutory MCQs & Part II POIM Case Studies.'}
               </p>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0">
-              <a
-                href="/course"
-                className="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 shadow-sm transition flex items-center gap-2"
-              >
-                <BookOpen className="h-4 w-4 text-indigo-600" />
-                <span>{isZh ? '返回課程大綱' : 'Syllabus'}</span>
-              </a>
-            </div>
+            <a
+              href="/course"
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2"
+            >
+              <BookOpen className="h-4 w-4 text-indigo-600" />
+              <span>{isZh ? '返回課程' : 'Syllabus'}</span>
+            </a>
           </div>
 
-          {/* Exam Configuration Card */}
+          {/* Track Selection Card */}
           <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
-              <ShieldCheck className="h-5 w-5 text-indigo-600" />
-              <span>{isZh ? '選擇報考考試類別與規則' : 'Select Examination Track & Settings'}</span>
-            </h2>
+            <div className="space-y-1">
+              <span className="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider block">
+                {isZh ? 'STEP 1: 選擇應考牌照級別' : 'STEP 1: Select Examination Track'}
+              </span>
+              <h2 className="text-xl font-bold text-slate-900">
+                {isZh ? '地產代理 (大牌 EAQE) 或 營業員 (細牌 SQE)' : 'Estate Agent (EAQE) or Salesperson (SQE)'}
+              </h2>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div 
-                onClick={() => setSelectedTrack('EAQE')}
-                className={`p-5 rounded-2xl border cursor-pointer transition flex flex-col justify-between gap-3 ${
-                  selectedTrack === 'EAQE'
-                    ? 'border-amber-500 bg-amber-50/70 shadow-sm ring-1 ring-amber-400'
-                    : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'
+              <button
+                type="button"
+                onClick={() => setTrack('EAQE')}
+                className={`p-5 rounded-2xl border text-left transition flex flex-col justify-between gap-3 cursor-pointer ${
+                  track === 'EAQE'
+                    ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-400/30'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-extrabold px-2.5 py-1 rounded-md bg-amber-200/80 text-amber-950">
-                    EAQE (Estate Agent)
+                  <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-md ${
+                    track === 'EAQE' ? 'bg-slate-950 text-amber-300' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    FULL AGENT • EAQE
                   </span>
-                  <CheckCircle2 className={`h-5 w-5 ${selectedTrack === 'EAQE' ? 'text-amber-600' : 'text-slate-300'}`} />
+                  <Building2 className={`h-5 w-5 ${track === 'EAQE' ? 'text-slate-950' : 'text-amber-600'}`} />
                 </div>
                 <div>
-                  <h3 className="font-extrabold text-slate-900 text-sm">
-                    {isZh ? '地產代理資格考試 (EAQE 大牌)' : 'Estate Agent Qualifying Exam'}
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {isZh ? '涵蓋 20 個完整單元，包括 Part II 土地查冊雙重查冊與浮動押記深度考核。' : 'Covers full 20 Topic Blocks including advanced POIM corporate charges.'}
+                  <h3 className="text-sm font-extrabold">{isZh ? '地產代理資格考試 (EAQE)' : 'Estate Agent Qualifying Exam'}</h3>
+                  <p className={`text-xs mt-1 ${track === 'EAQE' ? 'text-slate-900' : 'text-slate-500'}`}>
+                    {isZh ? '共 100 題（Part I 80 題 + Part II 20 題查冊個案）' : '100 Questions (Part I 80 Qs + Part II 20 Qs)'}
                   </p>
                 </div>
-              </div>
-
-              <div 
-                onClick={() => setSelectedTrack('SQE')}
-                className={`p-5 rounded-2xl border cursor-pointer transition flex flex-col justify-between gap-3 ${
-                  selectedTrack === 'SQE'
-                    ? 'border-indigo-500 bg-indigo-50/70 shadow-sm ring-1 ring-indigo-400'
-                    : 'border-slate-200 bg-slate-50/50 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-extrabold px-2.5 py-1 rounded-md bg-indigo-200/80 text-indigo-950">
-                    SQE (Salesperson)
-                  </span>
-                  <CheckCircle2 className={`h-5 w-5 ${selectedTrack === 'SQE' ? 'text-indigo-600' : 'text-slate-300'}`} />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-slate-900 text-sm">
-                    {isZh ? '營業員資格考試 (SQE 細牌)' : 'Salesperson Qualifying Exam'}
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-1">
-                    {isZh ? '涵蓋 16 個重點實務單元，重點測試法定表格簽署與客戶訂金信託。' : 'Focuses on 16 core syllabus modules, statutory forms, and client trust rules.'}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Exam Parameters Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-                <span className="text-[11px] font-mono text-slate-500 font-bold block">{isZh ? '考試時限' : 'Duration'}</span>
-                <span className="text-lg font-black text-slate-900">180 {isZh ? '分鐘' : 'Mins'}</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-                <span className="text-[11px] font-mono text-slate-500 font-bold block">{isZh ? '考核題數' : 'Questions'}</span>
-                <span className="text-lg font-black text-slate-900">{currentQuestions.length} {isZh ? '題精選' : 'Qs'}</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-                <span className="text-[11px] font-mono text-slate-500 font-bold block">{isZh ? '及格標準' : 'Passing Mark'}</span>
-                <span className="text-lg font-black text-emerald-700">60%</span>
-              </div>
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-center space-y-1">
-                <span className="text-[11px] font-mono text-slate-500 font-bold block">{isZh ? '計分規則' : 'Scoring'}</span>
-                <span className="text-lg font-black text-slate-900">{isZh ? '答錯不倒扣' : 'No Negative'}</span>
-              </div>
-            </div>
-
-            {/* Action CTA */}
-            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-xs text-slate-500 font-mono">
-                {isZh ? '※ 進入考場後計時器將立即啟動' : '※ The 3-hour timer starts immediately upon clicking'}
-              </span>
+              </button>
 
               <button
                 type="button"
-                onClick={() => {
-                  setTimeLeft(3 * 60 * 60);
-                  setExamPhase('active');
-                }}
-                className="px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-sm shadow-md transition flex items-center gap-2 cursor-pointer"
+                onClick={() => setTrack('SQE')}
+                className={`p-5 rounded-2xl border text-left transition flex flex-col justify-between gap-3 cursor-pointer ${
+                  track === 'SQE'
+                    ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md ring-2 ring-amber-400/30'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
+                }`}
               >
-                <Sparkles className="h-4 w-4" />
-                <span>{isZh ? '開始全真模擬考試' : 'Launch Mock Examination'}</span>
+                <div className="flex items-center justify-between">
+                  <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded-md ${
+                    track === 'SQE' ? 'bg-slate-950 text-amber-300' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    SALESPERSON • SQE
+                  </span>
+                  <ShieldCheck className={`h-5 w-5 ${track === 'SQE' ? 'text-slate-950' : 'text-indigo-600'}`} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold">{isZh ? '營業員資格考試 (SQE)' : 'Salesperson Qualifying Exam'}</h3>
+                  <p className={`text-xs mt-1 ${track === 'SQE' ? 'text-slate-900' : 'text-slate-500'}`}>
+                    {isZh ? '共 60 題（Part I 50 題 + Part II 10 題查冊個案）' : '60 Questions (Part I 50 Qs + Part II 10 Qs)'}
+                  </p>
+                </div>
+              </button>
+            </div>
+
+            {/* Exam Parameters Overview */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="space-y-1">
+                <span className="text-slate-500 block font-mono">{isZh ? '考試時限' : 'Time Allowed'}</span>
+                <span className="font-extrabold text-slate-900 text-sm">3 小時 (180 分鐘)</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-500 block font-mono">{isZh ? '及格標準' : 'Passing Mark'}</span>
+                <span className="font-extrabold text-emerald-700 text-sm">60% 及格率</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-500 block font-mono">{isZh ? '倒扣機制' : 'Negative Marking'}</span>
+                <span className="font-extrabold text-slate-900 text-sm">{isZh ? '無答錯倒扣' : 'None (No penalty)'}</span>
+              </div>
+              <div className="space-y-1">
+                <span className="text-slate-500 block font-mono">{isZh ? '查冊附件' : 'Land Search Annex'}</span>
+                <span className="font-extrabold text-amber-800 text-sm">{isZh ? '官方 IRIS 樣式' : 'Official IRIS'}</span>
+              </div>
+            </div>
+
+            {/* AI Synthesizer Promo Box */}
+            <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold shrink-0">
+                  <Sparkles className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="font-mono text-amber-800 font-bold block">
+                    {isZh ? '智能試題生成引擎' : 'Cognitive Exam Synthesizer'}
+                  </span>
+                  <span className="text-slate-900 font-black block">
+                    {isZh ? '動態生成 Part I / Part II 最新真題' : 'Synthesize Authentic Part I & Part II Questions'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAiModal(true)}
+                  className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>{isZh ? '啟動智能生成' : 'Launch Synthesizer'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Launch Button */}
+            <div className="pt-2 flex items-center justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setTimeLeftSeconds(180 * 60);
+                  setCurrentQIndex(0);
+                  setUserAnswers({});
+                  setFlaggedQuestions({});
+                  setExamStage('simulation');
+                }}
+                className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>{isZh ? '進入全真模擬考場 (Start Simulation)' : 'Enter Timed Simulation'}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -599,182 +784,320 @@ export default function App() {
     );
   }
 
+  /* ========================================================
+     STAGE 2: ACTIVE EXAM SIMULATION
+     ======================================================== */
+  if (examStage === 'simulation') {
+    const isCurrentFlagged = !!flaggedQuestions[currentQ.id];
+    const totalAnswered = Object.keys(userAnswers).length;
 
-  if (examPhase === 'review') {
     return (
-      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors duration-300">
-        <div className="max-w-5xl mx-auto space-y-6">
+      <div className="min-h-screen py-5 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
+        {renderAiModal()}
+        <div className="max-w-7xl mx-auto space-y-4">
 
-          {/* Results Summary Banner */}
-          <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="space-y-2 text-center md:text-left">
-              <div className="inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold border border-slate-200 bg-slate-50">
-                <BarChart3 className="h-4 w-4 text-indigo-600" />
-                <span>{isZh ? '官方全真模擬考試成績報告' : 'Official Performance Diagnostic Report'}</span>
+          {/* Top Control Bar */}
+          <div className="p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono font-black uppercase px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+                    {track} • {currentQ.part === 'I' ? 'Part I Statutory' : 'Part II POIM Case'}
+                  </span>
+                  <span className="text-xs font-bold text-slate-500">
+                    {isZh ? `第 ${currentQIndex + 1} / ${activeQuestions.length} 題` : `Q ${currentQIndex + 1} of ${activeQuestions.length}`}
+                  </span>
+                </div>
+                <div className="text-xs font-extrabold text-slate-800">
+                  {isZh ? currentQ.topicZh : currentQ.topicEn}
+                </div>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-                {scoreStats.isPass 
-                  ? (isZh ? '恭喜考試合格！具備高分通關實力' : 'Congratulations! Passed with Distinction') 
-                  : (isZh ? '未達合格標準，請針對弱項單元重點複習' : 'Did Not Pass - Targeted Review Required')}
-              </h1>
-              <p className="text-xs text-slate-600">
-                {isZh 
-                  ? `及格標準為 60%。本次得分：${scoreStats.percent}% (${scoreStats.totalScore} / ${scoreStats.totalCount} 題)` 
-                  : `Passing Mark is 60%. Your Score: ${scoreStats.percent}% (${scoreStats.totalScore} / ${scoreStats.totalCount} Qs)`}
-              </p>
+
+              {/* Part Filter Toggles */}
+              <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200 text-xs">
+                {(['ALL', 'I', 'II'] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setActivePartFilter(p);
+                      setCurrentQIndex(0);
+                    }}
+                    className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
+                      activePartFilter === p
+                        ? 'bg-white text-slate-900 shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {p === 'ALL' ? (isZh ? '全部' : 'All') : `Part ${p}`}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex items-center gap-4 shrink-0">
-              <div className={`p-5 rounded-3xl border text-center min-w-[130px] ${
-                scoreStats.isPass 
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-950' 
-                  : 'bg-rose-50 border-rose-200 text-rose-950'
-              }`}>
-                <span className="text-xs font-bold uppercase block">{isZh ? '考試合格狀態' : 'Result'}</span>
-                <span className="text-3xl font-black">{scoreStats.percent}%</span>
-                <span className="text-[11px] font-bold block mt-0.5">
-                  {scoreStats.isPass ? (isZh ? '✓ 合格 PASS' : '✓ PASS') : (isZh ? '✗ 未達標 FAIL' : '✗ FAIL')}
-                </span>
+            {/* Timer & Submit Controls */}
+            <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+              <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-mono text-xs font-bold">
+                <Clock className="h-4 w-4 text-amber-600" />
+                <span>{formatTimer(timeLeftSeconds)}</span>
               </div>
-            </div>
-          </div>
 
-          {/* Part I vs Part II Breakdown Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-500">
-                <span>Part I 客觀選擇題 (Statutory Law)</span>
-                <span className="text-slate-900 font-extrabold">{scoreStats.part1Score} / {scoreStats.part1Total}</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div 
-                  className="bg-indigo-600 h-full rounded-full transition-all"
-                  style={{ width: `${Math.round((scoreStats.part1Score / scoreStats.part1Total) * 100)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                {isZh ? '涵蓋 Cap. 511 發牌柱石、31天分行管理、客戶信託及租賃條例。' : 'Covers Cap. 511, licensing, 31-day notice, client money, and tenancy rules.'}
-              </p>
-            </div>
-
-            <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-2">
-              <div className="flex items-center justify-between text-xs font-mono font-bold text-slate-500">
-                <span>Part II 土地查冊個案實務 (POIM Case Studies)</span>
-                <span className="text-slate-900 font-extrabold">{scoreStats.part2Score} / {scoreStats.part2Total}</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                <div 
-                  className="bg-amber-500 h-full rounded-full transition-all"
-                  style={{ width: `${Math.round((scoreStats.part2Score / scoreStats.part2Total) * 100)}%` }}
-                />
-              </div>
-              <p className="text-[11px] text-slate-500 font-medium">
-                {isZh ? '涵蓋遺產遺囑執行人身分核對、違建清拆令及公司賣家雙重查冊。' : 'Covers probate verification, UBW removal orders, and corporate charge searches.'}
-              </p>
-            </div>
-          </div>
-
-          {/* Action CTAs */}
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <button
-              type="button"
-              onClick={() => {
-                setUserAnswers({});
-                setFlaggedIds(new Set());
-                setTimeLeft(3 * 60 * 60);
-                setCurrentQIndex(0);
-                setExamPhase('active');
-              }}
-              className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-2 cursor-pointer"
-            >
-              <RotateCcw className="h-4 w-4" />
-              <span>{isZh ? '重新挑戰全真模考' : 'Retake Full Mock Exam'}</span>
-            </button>
-
-            <div className="flex items-center gap-2">
-              <a
-                href="/memory-palace"
-                className="px-5 py-3 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 shadow-sm transition flex items-center gap-2"
+              <button
+                type="button"
+                onClick={() => toggleFlag(currentQ.id)}
+                className={`px-3.5 py-1.5 rounded-xl border text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  isCurrentFlagged
+                    ? 'bg-amber-500 text-slate-950 border-amber-500'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-amber-400'
+                }`}
               >
-                <Compass className="h-4 w-4 text-amber-600" />
-                <span>{isZh ? '進入記憶宮殿複習' : 'Memory Palace'}</span>
-              </a>
+                <Bookmark className="h-3.5 w-3.5" />
+                <span>{isZh ? (isCurrentFlagged ? '已標記' : '標記覆查') : (isCurrentFlagged ? 'Flagged' : 'Flag')}</span>
+              </button>
 
-              <a
-                href="/case-study"
-                className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm transition flex items-center gap-2"
+              <button
+                type="button"
+                onClick={() => setExamStage('report')}
+                className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition cursor-pointer"
               >
-                <FileText className="h-4 w-4 text-slate-950" />
-                <span>{isZh ? '專項加強 Part II 查冊' : 'Part II POIM Drills'}</span>
-              </a>
+                {isZh ? '提早交卷' : 'Submit Exam'}
+              </button>
             </div>
           </div>
 
-          {/* Question Breakdown Analysis List */}
-          <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
-            <h2 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-3">
-              {isZh ? '試題逐題深度診斷與官方解析' : 'Question-by-Question Analysis & Statutory References'}
-            </h2>
+          {/* Main Workspace Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
-            <div className="space-y-6">
-              {currentQuestions.map((q, idx) => {
-                const userChoice = userAnswers[q.id];
-                const isCorrect = userChoice === q.answerIndex;
+            {/* Left 7 Columns: Question Engine or Split Annex */}
+            <div className={`${currentQ.part === 'II' ? 'lg:col-span-8' : 'lg:col-span-8'} space-y-4`}>
 
-                return (
-                  <div key={q.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-3">
-                    <div className="flex items-center justify-between flex-wrap gap-2">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-bold ${
-                          isCorrect ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'
-                        }`}>
-                          {isCorrect ? '✓ CORRECT' : '✗ INCORRECT'}
-                        </span>
-                        <span className="text-xs font-mono text-slate-500 font-bold">
-                          Q{idx + 1} • {isZh ? q.topicZh : q.topicEn}
-                        </span>
-                      </div>
-                      <span className="text-xs font-mono text-slate-500 font-bold">
-                        {isZh ? q.statuteRefZh : q.statuteRefEn}
+              {/* Part II Land Search Annex Box */}
+              {currentQ.part === 'II' && activeScenario && (
+                <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+                    <div className="space-y-0.5">
+                      <span className="text-[10px] font-mono font-bold text-amber-800 uppercase px-2 py-0.5 rounded bg-amber-50 border border-amber-200">
+                        LAND SEARCH ANNEX (IRIS 查冊附件)
                       </span>
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        {isZh ? activeScenario.titleZh : activeScenario.titleEn}
+                      </h4>
                     </div>
 
-                    <p className="text-sm font-extrabold text-slate-900">
-                      {isZh ? q.questionZh : q.questionEn}
-                    </p>
-
-                    <div className="space-y-1.5 text-xs">
-                      {(isZh ? q.optionsZh : q.optionsEn).map((opt, oIdx) => {
-                        const isSelected = userChoice === oIdx;
-                        const isAnswer = oIdx === q.answerIndex;
-
-                        return (
-                          <div 
-                            key={oIdx}
-                            className={`p-2.5 rounded-xl border flex items-center justify-between ${
-                              isAnswer
-                                ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-bold'
-                                : isSelected
-                                ? 'bg-rose-50 border-rose-300 text-rose-950 font-bold'
-                                : 'bg-white border-slate-200 text-slate-700'
-                            }`}
-                          >
-                            <span>{opt}</span>
-                            {isAnswer && <span className="text-[10px] font-bold text-emerald-700 uppercase">正確答案 Correct Answer</span>}
-                            {isSelected && !isAnswer && <span className="text-[10px] font-bold text-rose-700 uppercase">考生作答 Your Answer</span>}
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div className="p-3.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs text-amber-950 font-medium leading-relaxed">
-                      <span className="font-bold block mb-1">💡 {isZh ? '官方解析與法律考點：' : 'Statutory Rationale:'}</span>
-                      {isZh ? q.explanationZh : q.explanationEn}
+                    {/* Annex View Tabs */}
+                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-[11px] font-bold">
+                      <button
+                        type="button"
+                        onClick={() => setActiveAnnexTab('incumbrances')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          activeAnnexTab === 'incumbrances' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        (I) Incumbrances
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveAnnexTab('owner')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          activeAnnexTab === 'owner' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        (O) Owner
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveAnnexTab('property')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          activeAnnexTab === 'property' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        (P) Property
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setActiveAnnexTab('narrative')}
+                        className={`px-2.5 py-1 rounded-lg transition cursor-pointer ${
+                          activeAnnexTab === 'narrative' ? 'bg-white text-slate-950 shadow-sm' : 'text-slate-600'
+                        }`}
+                      >
+                        {isZh ? '個案情節' : 'Facts'}
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Annex Content Viewer */}
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono leading-relaxed space-y-2">
+                    {activeAnnexTab === 'incumbrances' && (
+                      <div className="space-y-1.5">
+                        <span className="font-bold text-rose-700 block">SECTION (I): INCUMBRANCES (產權負擔與命令)</span>
+                        {(isZh ? activeScenario.landSearch.incumbrancesZh : activeScenario.landSearch.incumbrancesEn).map((item, idx) => (
+                          <p key={idx} className="text-slate-800 font-semibold">• {item}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeAnnexTab === 'owner' && (
+                      <div className="space-y-1.5">
+                        <span className="font-bold text-amber-800 block">SECTION (O): OWNER PARTICULARS (業主欄位)</span>
+                        {(isZh ? activeScenario.landSearch.ownerZh : activeScenario.landSearch.ownerEn).map((item, idx) => (
+                          <p key={idx} className="text-slate-800 font-semibold">• {item}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeAnnexTab === 'property' && (
+                      <div className="space-y-1.5">
+                        <span className="font-bold text-indigo-800 block">SECTION (P): PROPERTY PARTICULARS (物業資料)</span>
+                        {(isZh ? activeScenario.landSearch.propertyZh : activeScenario.landSearch.propertyEn).map((item, idx) => (
+                          <p key={idx} className="text-slate-800 font-semibold">• {item}</p>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeAnnexTab === 'narrative' && (
+                      <div className="font-sans space-y-1">
+                        <span className="font-bold text-slate-900 block font-mono text-xs">{isZh ? '個案情節與事實：' : 'Case Narrative & Facts:'}</span>
+                        <p className="text-slate-700 font-medium">{isZh ? activeScenario.narrativeZh : activeScenario.narrativeEn}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Main Question Card */}
+              <div className="p-6 sm:p-7 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <span className="text-xs font-mono font-bold text-slate-500">
+                      {isZh ? `試題序號 #${currentQ.id}` : `Question ID #${currentQ.id}`}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-indigo-700 px-2.5 py-0.5 rounded bg-indigo-50 border border-indigo-100">
+                      {isZh ? currentQ.statuteRefZh : currentQ.statuteRefEn}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+                    {isZh ? currentQ.questionZh : currentQ.questionEn}
+                  </h3>
+                </div>
+
+                {/* Answer Options */}
+                <div className="space-y-3">
+                  {(isZh ? currentQ.optionsZh : currentQ.optionsEn).map((optionText, optIdx) => {
+                    const isSelected = userAnswers[currentQ.id] === optIdx;
+
+                    return (
+                      <button
+                        key={optIdx}
+                        type="button"
+                        onClick={() => handleSelectOption(currentQ.id, optIdx)}
+                        className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-3 cursor-pointer ${
+                          isSelected
+                            ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm ring-1 ring-amber-400'
+                            : 'bg-white border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-slate-50'
+                        }`}
+                      >
+                        <span>{optionText}</span>
+                        {isSelected && <Check className="h-4 w-4 shrink-0 text-slate-950" />}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Navigation Footer */}
+                <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    disabled={currentQIndex === 0}
+                    onClick={() => setCurrentQIndex((prev) => Math.max(0, prev - 1))}
+                    className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 disabled:opacity-40 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    <span>{isZh ? '上一題' : 'Previous'}</span>
+                  </button>
+
+                  <span className="text-xs font-mono text-slate-500 font-semibold">
+                    {currentQIndex + 1} / {activeQuestions.length}
+                  </span>
+
+                  <button
+                    type="button"
+                    disabled={currentQIndex === activeQuestions.length - 1}
+                    onClick={() => setCurrentQIndex((prev) => Math.min(activeQuestions.length - 1, prev + 1))}
+                    className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-sm disabled:opacity-40 transition flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <span>{isZh ? '下一題' : 'Next'}</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+
             </div>
+
+            {/* Right 4 Columns: Question Palette Matrix */}
+            <div className="lg:col-span-4 space-y-4">
+              <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                    {isZh ? '試題導覽調色板 (Matrix)' : 'Question Palette Matrix'}
+                  </h4>
+                  <span className="text-xs font-mono font-bold text-slate-500">
+                    {totalAnswered}/{questionsList.length}
+                  </span>
+                </div>
+
+                {/* Grid Numbers */}
+                <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2">
+                  {activeQuestions.map((q, idx) => {
+                    const isAnswered = typeof userAnswers[q.id] === 'number';
+                    const isFlagged = !!flaggedQuestions[q.id];
+                    const isCurrent = idx === currentQIndex;
+
+                    let bgClass = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if (isCurrent) {
+                      bgClass = 'bg-slate-950 text-white border-slate-950 ring-2 ring-amber-400';
+                    } else if (isFlagged) {
+                      bgClass = 'bg-amber-400 text-slate-950 border-amber-500 font-extrabold';
+                    } else if (isAnswered) {
+                      bgClass = 'bg-emerald-100 text-emerald-900 border-emerald-300 font-bold';
+                    }
+
+                    return (
+                      <button
+                        key={q.id}
+                        type="button"
+                        onClick={() => setCurrentQIndex(idx)}
+                        className={`h-9 rounded-xl border text-xs font-mono transition flex items-center justify-center cursor-pointer ${bgClass}`}
+                        title={`Question ${idx + 1}`}
+                      >
+                        {idx + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Legend */}
+                <div className="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-[10px] font-mono text-slate-600">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>{isZh ? '已作答' : 'Answered'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                    <span>{isZh ? '已標記' : 'Flagged'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-950"></span>
+                    <span>{isZh ? '當前題目' : 'Current'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-slate-200 border border-slate-300"></span>
+                    <span>{isZh ? '未作答' : 'Empty'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>
@@ -782,285 +1105,175 @@ export default function App() {
     );
   }
 
+  /* ========================================================
+     STAGE 3: COMPREHENSIVE SCORE REPORT & DIAGNOSTIC
+     ======================================================== */
+  const results = calculateResults();
 
   return (
-    <div className="min-h-screen py-6 sm:py-8 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto space-y-5">
+    <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
+      <div className="max-w-4xl mx-auto space-y-6">
 
-        {/* Top Floating Control Bar */}
-        <div className="p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="px-3 py-1 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-mono font-extrabold">
-              {selectedTrack} {isZh ? '全真考試中' : 'Exam Active'}
+        {/* Score Hero Card */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="space-y-2 text-center md:text-left">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900">
+              <Award className="h-3.5 w-3.5 text-amber-600" />
+              <span>Diagnostic Performance Radar</span>
             </span>
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-100 border border-slate-200 text-xs font-mono font-bold text-slate-800">
-              <Clock className="h-3.5 w-3.5 text-amber-600" />
-              <span>{isZh ? '倒數計時: ' : 'Time Left: '}</span>
-              <span className="text-slate-950 font-black">{formatTimer(timeLeft)}</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setIsZh(!isZh)}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-800 hover:border-amber-500 cursor-pointer"
-            >
-              <Globe className="h-3 w-3 text-amber-600" />
-              <span>{isZh ? 'EN' : '繁中'}</span>
-            </button>
+
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+              {results.isPassed
+                ? (isZh ? '恭喜及格！達到法定持牌標準' : 'Congratulations! Passed Requirement')
+                : (isZh ? '未達及格門檻，請針對弱項加強複習' : 'Below Passing Threshold, Needs Review')}
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600">
+              {isZh
+                ? `及格門檻為 60%。你獲得了 ${results.scorePct}%，共答對 ${results.correctCount} / ${results.totalQuestions} 題。`
+                : `Passing mark is 60%. You achieved ${results.scorePct}% (${results.correctCount}/${results.totalQuestions} correct).`}
+            </p>
           </div>
 
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            <button
-              type="button"
-              onClick={() => toggleFlag(currentQ.id)}
-              className={`px-4 py-2 rounded-2xl text-xs font-bold border transition flex items-center gap-1.5 cursor-pointer ${
-                flaggedIds.has(currentQ.id)
-                  ? 'bg-rose-50 border-rose-300 text-rose-700 font-extrabold'
-                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              <Flag className={`h-3.5 w-3.5 ${flaggedIds.has(currentQ.id) ? 'fill-rose-500 text-rose-500' : 'text-slate-400'}`} />
-              <span>{flaggedIds.has(currentQ.id) ? (isZh ? '已標記覆核' : 'Flagged') : (isZh ? '標記本題' : 'Flag Question')}</span>
-            </button>
+          <div className="p-5 rounded-2xl border border-slate-200 bg-slate-50 text-center min-w-[150px]">
+            <span className="text-[10px] font-mono font-bold text-slate-500 uppercase block">FINAL SCORE</span>
+            <div className={`text-4xl font-black ${results.isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {results.scorePct}%
+            </div>
+            <span className={`text-xs font-extrabold ${results.isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
+              {results.isPassed ? 'QUALIFIED (合格)' : 'NOT YET PASSED'}
+            </span>
+          </div>
+        </div>
 
+        {/* Breakdown by Parts */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-800">Part I Statutory Law MCQs</span>
+              <span className="font-mono font-bold text-slate-500">
+                {results.partICorrect}/{results.partITotal}
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-indigo-600 rounded-full"
+                style={{ width: `${results.partITotal > 0 ? (results.partICorrect / results.partITotal) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+
+          <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-extrabold text-slate-800">Part II POIM Land Search Case Study</span>
+              <span className="font-mono font-bold text-slate-500">
+                {results.partIICorrect}/{results.partIITotal}
+              </span>
+            </div>
+            <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-amber-500 rounded-full"
+                style={{ width: `${results.partIITotal > 0 ? (results.partIICorrect / results.partIITotal) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <button
+            type="button"
+            onClick={() => {
+              setExamStage('simulation');
+              setCurrentQIndex(0);
+            }}
+            className="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 transition flex items-center gap-1.5 cursor-pointer"
+          >
+            <RotateCcw className="h-4 w-4 text-indigo-600" />
+            <span>{isZh ? '檢視所有答卷' : 'Review Answers'}</span>
+          </button>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/dashboard"
+              className="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 transition"
+            >
+              {isZh ? '學員進度儀表板' : 'Dashboard'}
+            </a>
             <button
               type="button"
-              onClick={() => setExamPhase('review')}
-              className="px-5 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+              onClick={() => {
+                setExamStage('briefing');
+                setUserAnswers({});
+                setFlaggedQuestions({});
+              }}
+              className="px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition"
             >
-              <Check className="h-4 w-4 text-slate-950" />
-              <span>{isZh ? '交卷 (Submit)' : 'Submit Exam'}</span>
+              {isZh ? '重設並重新應試' : 'Retake New Exam'}
             </button>
           </div>
         </div>
 
-        {/* Split Screen Workspace: Left (Content/POIM), Right (Palette & Nav) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        {/* Detailed Item-by-Item Review */}
+        <div className="space-y-4 pt-4">
+          <h3 className="text-sm font-mono font-bold text-slate-700 uppercase tracking-wider">
+            {isZh ? '試題逐題法規深度分析 (Item Analysis):' : 'Item-by-Item Legal Analysis:'}
+          </h3>
 
-          {/* Main Question & Content Card (8 Columns) */}
-          <div className="lg:col-span-8 space-y-5">
+          <div className="space-y-4">
+            {questionsList.map((q, idx) => {
+              const userOpt = userAnswers[q.id];
+              const isCorrect = userOpt === q.answerIndex;
 
-            {/* If Part II, Embed the Full POIM Split-Viewer */}
-            {currentQ.part === 'II' && currentScenario && (
-              <div className="p-5 sm:p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setActiveAnnexTab('search')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        activeAnnexTab === 'search'
-                          ? 'bg-amber-500 text-slate-950 shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {isZh ? '土地查冊附件 (Annex PDF)' : 'Land Search Annex'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveAnnexTab('facts')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                        activeAnnexTab === 'facts'
-                          ? 'bg-amber-500 text-slate-950 shadow-sm'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                      }`}
-                    >
-                      {isZh ? '個案事實背景' : 'Transaction Facts'}
-                    </button>
+              return (
+                <div
+                  key={q.id}
+                  className={`p-5 sm:p-6 rounded-3xl border bg-white shadow-sm space-y-3 ${
+                    isCorrect ? 'border-emerald-200' : 'border-rose-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <span className="text-xs font-mono font-bold text-slate-500">
+                      #{idx + 1} • Part {q.part} • {isZh ? q.topicZh : q.topicEn}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-indigo-700 px-2 py-0.5 rounded bg-indigo-50 border border-indigo-100">
+                      {isZh ? q.statuteRefZh : q.statuteRefEn}
+                    </span>
                   </div>
-                  <span className="text-[11px] font-mono text-amber-800 font-bold px-2 py-0.5 rounded-md bg-amber-50 border border-amber-200">
-                    {isZh ? currentScenario.badgeZh : currentScenario.badgeEn}
-                  </span>
-                </div>
 
-                {activeAnnexTab === 'search' ? (
-                  <div className="space-y-3 text-xs font-mono">
-                    <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                      <span className="text-amber-800 font-bold block">(P) PROPERTY PARTICULARS 物業資料</span>
-                      {(isZh ? currentScenario.landSearch.propertyZh : currentScenario.landSearch.propertyEn).map((line, i) => (
-                        <p key={i} className="text-slate-700">{line}</p>
-                      ))}
-                    </div>
-                    <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                      <span className="text-amber-800 font-bold block">(O) OWNER PARTICULARS 業主資料</span>
-                      {(isZh ? currentScenario.landSearch.ownerZh : currentScenario.landSearch.ownerEn).map((line, i) => (
-                        <p key={i} className="text-slate-700">{line}</p>
-                      ))}
-                    </div>
-                    <div className="p-3 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-1">
-                      <span className="text-rose-900 font-bold block">(I) INCUMBRANCES 產權負擔 (關鍵考點)</span>
-                      {(isZh ? currentScenario.landSearch.incumbrancesZh : currentScenario.landSearch.incumbrancesEn).map((line, i) => (
-                        <p key={i} className="text-rose-950 font-bold">{line}</p>
-                      ))}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-800 leading-relaxed space-y-2">
-                    <h4 className="font-extrabold text-slate-900">
-                      {isZh ? currentScenario.titleZh : currentScenario.titleEn}
-                    </h4>
-                    <p>{isZh ? currentScenario.narrativeZh : currentScenario.narrativeEn}</p>
-                  </div>
-                )}
-              </div>
-            )}
+                  <h4 className="text-sm font-bold text-slate-900">
+                    {isZh ? q.questionZh : q.questionEn}
+                  </h4>
 
-            {/* Current Question Box */}
-            <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-900 text-xs font-mono font-extrabold">
-                    {currentQ.part === 'I' ? 'Part I 客觀選擇題' : 'Part II POIM 個案題'} • Q{currentQIndex + 1}
-                  </span>
-                  <span className="text-xs font-bold text-slate-600">
-                    {isZh ? currentQ.topicZh : currentQ.topicEn}
-                  </span>
-                </div>
-                <span className="text-xs font-mono text-slate-500 font-bold">
-                  {isZh ? currentQ.statuteRefZh : currentQ.statuteRefEn}
-                </span>
-              </div>
-
-              <h2 className="text-base sm:text-lg font-extrabold text-slate-900 leading-relaxed">
-                {isZh ? currentQ.questionZh : currentQ.questionEn}
-              </h2>
-
-              {/* Options Stack */}
-              <div className="space-y-3">
-                {(isZh ? currentQ.optionsZh : currentQ.optionsEn).map((opt, oIdx) => {
-                  const isSelected = userAnswers[currentQ.id] === oIdx;
-
-                  return (
-                    <button
-                      type="button"
-                      key={oIdx}
-                      onClick={() => handleSelectOption(oIdx)}
-                      className={`w-full text-left p-4 rounded-2xl border text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center justify-between ${
-                        isSelected
-                          ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 font-bold shadow-sm ring-1 ring-indigo-500'
-                          : 'border-slate-200 bg-slate-50/60 text-slate-800 hover:border-slate-300 hover:bg-slate-100/60'
-                      }`}
-                    >
-                      <span>{opt}</span>
-                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 ml-3 ${
-                        isSelected 
-                          ? 'border-indigo-600 bg-indigo-600 text-white' 
-                          : 'border-slate-300 bg-white'
-                      }`}>
-                        {isSelected && <span className="w-2 h-2 rounded-full bg-white" />}
+                  <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-slate-500">{isZh ? '你的回答:' : 'Your Answer:'}</span>
+                      <span className={`font-bold ${isCorrect ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {typeof userOpt === 'number'
+                          ? (isZh ? q.optionsZh[userOpt] : q.optionsEn[userOpt])
+                          : (isZh ? '未作答' : 'Not answered')}
                       </span>
-                    </button>
-                  );
-                })}
-              </div>
+                    </div>
+                    {!isCorrect && (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-slate-500">{isZh ? '法定正確答案:' : 'Correct Statutory Answer:'}</span>
+                        <span className="font-bold text-emerald-700">
+                          {isZh ? q.optionsZh[q.answerIndex] : q.optionsEn[q.answerIndex]}
+                        </span>
+                      </div>
+                    )}
+                  </div>
 
-              {/* Step Navigation Controls */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
-                <button
-                  type="button"
-                  disabled={currentQIndex === 0}
-                  onClick={() => setCurrentQIndex((prev) => Math.max(0, prev - 1))}
-                  className="px-5 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  <span>{isZh ? '上一題' : 'Previous'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={currentQIndex === currentQuestions.length - 1}
-                  onClick={() => setCurrentQIndex((prev) => Math.min(currentQuestions.length - 1, prev + 1))}
-                  className="px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-sm disabled:opacity-30 disabled:pointer-events-none transition flex items-center gap-1.5 cursor-pointer"
-                >
-                  <span>{isZh ? '下一題' : 'Next Question'}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
+                  {/* Legal Explanation */}
+                  <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 font-medium leading-relaxed">
+                    <span className="font-bold block text-amber-900 uppercase font-mono text-[10px] mb-1">
+                      {isZh ? '【 官方評分依據與條例解析 】' : '[ Statutory Explanation ]'}
+                    </span>
+                    <p>{isZh ? q.explanationZh : q.explanationEn}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-
-          {/* Right Question Palette & Navigator (4 Columns) */}
-          <div className="lg:col-span-4 space-y-5">
-
-            <div className="p-5 sm:p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h3 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
-                  <ListOrdered className="h-4 w-4 text-indigo-600" />
-                  <span>{isZh ? '試題答題矩陣 (Question Palette)' : 'Question Palette Matrix'}</span>
-                </h3>
-                <span className="text-[11px] font-mono text-slate-500 font-bold">
-                  {Object.keys(userAnswers).length} / {currentQuestions.length} {isZh ? '已完成' : 'Done'}
-                </span>
-              </div>
-
-              {/* Legend */}
-              <div className="grid grid-cols-3 gap-2 text-[10px] font-mono font-semibold text-slate-600 pb-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-md bg-indigo-600 inline-block" />
-                  <span>{isZh ? '已答' : 'Done'}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-md bg-rose-100 border border-rose-300 inline-block" />
-                  <span>{isZh ? '標記' : 'Flag'}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded-md bg-slate-100 border border-slate-200 inline-block" />
-                  <span>{isZh ? '未答' : 'Empty'}</span>
-                </div>
-              </div>
-
-              {/* Number Buttons Grid */}
-              <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                {currentQuestions.map((q, idx) => {
-                  const isCurrent = idx === currentQIndex;
-                  const isAnswered = userAnswers[q.id] !== undefined;
-                  const isFlagged = flaggedIds.has(q.id);
-
-                  let cellStyle = 'bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300';
-                  if (isCurrent) {
-                    cellStyle = 'bg-amber-500 text-slate-950 border-amber-500 font-black shadow-md scale-105';
-                  } else if (isFlagged) {
-                    cellStyle = 'bg-rose-50 text-rose-800 border-rose-300 font-bold';
-                  } else if (isAnswered) {
-                    cellStyle = 'bg-indigo-600 text-white border-indigo-600 font-bold';
-                  }
-
-                  return (
-                    <button
-                      type="button"
-                      key={q.id}
-                      onClick={() => setCurrentQIndex(idx)}
-                      className={`h-10 rounded-xl border text-xs font-mono transition flex items-center justify-center relative cursor-pointer ${cellStyle}`}
-                    >
-                      <span>Q{idx + 1}</span>
-                      {isFlagged && (
-                        <span className="w-2 h-2 rounded-full bg-rose-500 absolute top-1 right-1" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Track Summary Box */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs space-y-1.5 text-slate-700">
-                <div className="flex justify-between font-bold text-slate-900">
-                  <span>Part I 客觀選擇題:</span>
-                  <span>5 題</span>
-                </div>
-                <div className="flex justify-between font-bold text-slate-900">
-                  <span>Part II 土地查冊題:</span>
-                  <span>3 題 (雙個案)</span>
-                </div>
-                <div className="pt-2 border-t border-slate-200 text-[11px] text-slate-500 font-medium leading-relaxed">
-                  {isZh 
-                    ? '隨時點選題目編號跳題。交卷前可透過「標記」過濾不確定的答案。' 
-                    : 'Jump to any question anytime. Flagged items can be reviewed before submitting.'}
-                </div>
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
       </div>
