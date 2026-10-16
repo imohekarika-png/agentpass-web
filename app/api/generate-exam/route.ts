@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-// Model configuration using OpenRouter endpoint
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'meta-llama/llama-3.3-70b-instruct';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
 
@@ -61,7 +60,7 @@ export async function POST(req: NextRequest) {
     const { 
       track = 'EAQE', 
       domainBatch = 'CAP511', 
-      count = 3, 
+      count = 4, 
       isZh = true, 
       caseScenarioId = 'case-1', 
       caseContext 
