@@ -304,6 +304,7 @@ export default function MockExamPage() {
   const [targetExamSize, setTargetExamSize] = useState<number>(50);
   const isStreamingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [launchNotification, setLaunchNotification] = useState<string | null>(null);
 
   const loadQuestions = useCallback(async (selectedTrack: 'EAQE' | 'SQE') => {
     const hasHttpOrigin =
@@ -442,6 +443,26 @@ export default function MockExamPage() {
     setIsGeneratingBatch(true);
     setSynthesizerError(null);
 
+    // 1. Close modal and transition directly to live simulation
+    setShowSynthesizerModal(false);
+    if (examStage !== 'simulation') {
+      setTimeLeftSeconds(180 * 60);
+      setCurrentQIndex(0);
+      setUserAnswers({});
+      setFlaggedQuestions({});
+      setExamStage('simulation');
+    }
+
+    // 2. Show brief confirmation banner in the exam view
+    setLaunchNotification(
+      isZh 
+        ? `⚡ 已啟動智能試題合成！系統正於後台實時載入最新題目，考試時鐘已啟動...` 
+        : `⚡ Autonomous Synthesis Initiated! Streaming questions in background, exam clock started...`
+    );
+    setTimeout(() => {
+      setLaunchNotification(null);
+    }, 4500);
+
     try {
       const caseCtx = activeScenario ? {
         title: activeScenario.titleZh,
@@ -470,20 +491,18 @@ export default function MockExamPage() {
 
       const data = await res.json();
       if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-        const highestId = Math.max(...questionsList.map((q) => q.id), 0);
-        const augmented = data.questions.map((q: any, i: number) => ({
-          ...q,
-          id: highestId + i + 1,
-          isLocked: false
-        }));
-
-        setQuestionsList((prev) => [...prev, ...augmented]);
-        setShowSynthesizerModal(false);
-      } else {
-        throw new Error('Synthesizer returned empty question array.');
+        setQuestionsList((prev) => {
+          const highestId = Math.max(...prev.map((q) => q.id), 0);
+          const augmented = data.questions.map((q: any, i: number) => ({
+            ...q,
+            id: highestId + i + 1,
+            isLocked: false
+          }));
+          return [...prev, ...augmented];
+        });
       }
     } catch (err: any) {
-      setSynthesizerError(err.message || 'An error occurred during AI synthesis.');
+      console.warn('Synthesis error:', err);
     } finally {
       setIsGeneratingBatch(false);
     }
@@ -991,6 +1010,23 @@ export default function MockExamPage() {
         {renderUpgradeModal()}
         {renderSynthesizerModal()}
         <div className="max-w-7xl mx-auto space-y-4">
+          {/* Autonomous Synthesis Notification Banner */}
+          {launchNotification && (
+            <div className="p-3.5 rounded-2xl bg-indigo-600 text-white shadow-lg flex items-center justify-between gap-3 text-xs font-bold animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-amber-300 animate-spin" />
+                <span>{launchNotification}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setLaunchNotification(null)}
+                className="text-indigo-200 hover:text-white px-2 py-0.5 rounded-lg text-xs"
+              >
+                ✕
+              </button>
+            </div>
+          )}
+
           {/* Top Control Bar */}
           <div className="p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
