@@ -18,7 +18,9 @@ import {
   ChevronRight,
   Sparkles,
   Layers,
-  Compass
+  Zap,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 
 export type ExamDomainBatch =
@@ -146,7 +148,7 @@ const CASE_SCENARIOS: Record<string, CaseScenarioMeta> = {
         '2. 公司註冊處登記 - 浮動押記 (Floating Charge in favour of HSBC with Negative Pledge)'
       ],
       incumbrancesEn: [
-        '1. 22 Mar 2019 - Legal Charge in favour of Standard Chartered Bank (Memorial UB55123)',
+        '1. 22 Mar 2019 - Legal Charge in favour of Standard Commercial Bank (Memorial UB55123)',
         '2. Registered at Companies Registry - Debenture & Floating Charge with Negative Pledge Clause'
       ]
     }
@@ -226,6 +228,23 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = [
     isLocked: false
   },
   {
+    id: 4,
+    part: 'I',
+    trackApplicability: 'BOTH',
+    topicZh: '租務法定權益 (Cap. 7)',
+    topicEn: 'Landlord & Tenant Rights (Cap. 7)',
+    questionZh: '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
+    questionEn: 'In the absence of an express forfeiture clause, after how many days of unpaid domestic rent can a landlord exercise the statutory implied right of forfeiture?',
+    optionsZh: ['A. 7 天', 'B. 14 天', 'C. 15 天', 'D. 30 天'],
+    optionsEn: ['A. 7 Days', 'B. 14 Days', 'C. 15 Days', 'D. 30 Days'],
+    answerIndex: 2,
+    explanationZh: '《業主與租客（綜合）條例》(Cap. 7) 第 IV 部規定，住宅租賃中拖欠租金的法定沒收權門檻為 15 天。',
+    explanationEn: 'Under Cap. 7 Part IV, the statutory implied forfeiture threshold for non-payment of domestic rent is 15 days.',
+    statuteRefZh: '《業主與租客（綜合）條例》Cap. 7 Part IV',
+    statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7',
+    isLocked: false
+  },
+  {
     id: 9,
     part: 'II',
     trackApplicability: 'BOTH',
@@ -266,13 +285,24 @@ export default function MockExamPage() {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(180 * 60);
   const [activeAnnexTab, setActiveAnnexTab] = useState<'property' | 'owner' | 'incumbrances' | 'narrative'>('incumbrances');
 
-  // Supabase Gating & API State
+  // Supabase Auth & Gating State
   const [questionsList, setQuestionsList] = useState<MockQuestion[]>(CLIENT_FALLBACK_QUESTIONS);
-  const [userTier, setUserTier] = useState<string>('ADMIN_BUILDER');
+  const [userTier, setUserTier] = useState<string>('FREE_PREVIEW');
   const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
   const [selectedLockedQuestion, setSelectedLockedQuestion] = useState<MockQuestion | null>(null);
 
+  // Cognitive Synthesizer & Progressive Background Streamer
+  const [showSynthesizerModal, setShowSynthesizerModal] = useState<boolean>(false);
+  const [selectedBatchDomain, setSelectedBatchDomain] = useState<ExamDomainBatch>('CAP511');
+  const [batchQuestionCount, setBatchQuestionCount] = useState<number>(4);
+  const [isGeneratingBatch, setIsGeneratingBatch] = useState<boolean>(false);
+  const [synthesizerError, setSynthesizerError] = useState<string | null>(null);
+  
+  // Background assembly telemetry
+  const [isBackgroundStreaming, setIsBackgroundStreaming] = useState<boolean>(false);
+  const [targetExamSize, setTargetExamSize] = useState<number>(50);
+  const isStreamingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const loadQuestions = useCallback(async (selectedTrack: 'EAQE' | 'SQE') => {
@@ -292,17 +322,34 @@ export default function MockExamPage() {
       const targetUrl = new URL('/api/mock-exam', window.location.origin);
       targetUrl.searchParams.set('track', selectedTrack);
 
-      const res = await fetch(targetUrl.toString(), {
-        headers: {
-          'x-user-email': 'imoh.ekarika@gmail.com'
+      let dynamicEmail = '';
+      let dynamicToken = '';
+      let dynamicTier = '';
+
+      try {
+        const storedAuth = localStorage.getItem('agentpass_auth') || localStorage.getItem('supabase.auth.token');
+        if (storedAuth) {
+          const parsed = JSON.parse(storedAuth);
+          dynamicEmail = parsed?.user?.email || parsed?.currentSession?.user?.email || '';
+          dynamicToken = parsed?.access_token || parsed?.currentSession?.access_token || '';
+          dynamicTier = parsed?.user?.user_metadata?.subscription_tier || '';
         }
-      });
+      } catch {
+        // Fallback to anonymous guest if local storage is uninitialized
+      }
+
+      const headers: Record<string, string> = {};
+      if (dynamicEmail) headers['x-user-email'] = dynamicEmail;
+      if (dynamicToken) headers['authorization'] = `Bearer ${dynamicToken}`;
+      if (dynamicTier) headers['x-user-tier'] = dynamicTier;
+
+      const res = await fetch(targetUrl.toString(), { headers });
 
       if (res.ok) {
         const data = await res.json();
         if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
           setQuestionsList(data.questions);
-          setUserTier(data.userTier || 'ADMIN_BUILDER');
+          setUserTier(data.userTier || 'FREE_PREVIEW');
         }
       }
     } catch (e) {
@@ -315,6 +362,132 @@ export default function MockExamPage() {
   useEffect(() => {
     loadQuestions(track);
   }, [track, loadQuestions]);
+
+  const triggerAutomatedAssembly = useCallback(async (targetTotal: number) => {
+    const isAuthorized = userTier === 'ADMIN_BUILDER' || userTier.includes('PRO');
+    if (!isAuthorized) return; // Only run progressive streamer for authorized paid/admin users
+
+    if (isStreamingRef.current) return;
+    isStreamingRef.current = true;
+    setIsBackgroundStreaming(true);
+    setTargetExamSize(targetTotal);
+
+    const domainsSequence: ExamDomainBatch[] = [
+      'CAP511',
+      'CONVEYANCING',
+      'TENANCY_BUILDINGS',
+      'AGENCY_TORT',
+      'POIM_CASE'
+    ];
+
+    let currentDomainIdx = 0;
+
+    while (isStreamingRef.current) {
+      const currentCount = questionsList.length;
+      if (currentCount >= targetTotal) {
+        break;
+      }
+
+      const domain = domainsSequence[currentDomainIdx % domainsSequence.length];
+      currentDomainIdx++;
+
+      try {
+        const caseCtx = domain === 'POIM_CASE' ? {
+          title: CASE_SCENARIOS['case-1'].titleZh,
+          narrative: CASE_SCENARIOS['case-1'].narrativeZh,
+          incumbrances: CASE_SCENARIOS['case-1'].landSearch.incumbrancesZh,
+          owner: CASE_SCENARIOS['case-1'].landSearch.ownerZh
+        } : undefined;
+
+        const res = await fetch('/api/generate-exam', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            track,
+            domainBatch: domain,
+            count: 4,
+            isZh,
+            caseScenarioId: domain === 'POIM_CASE' ? 'case-1' : undefined,
+            caseContext: caseCtx
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+            setQuestionsList((prev) => {
+              const highestId = Math.max(...prev.map((q) => q.id), 0);
+              const augmented = data.questions.map((q: any, i: number) => ({
+                ...q,
+                id: highestId + i + 1,
+                isLocked: false
+              }));
+              return [...prev, ...augmented];
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('Progressive assembly batch error:', err);
+      }
+
+      // Small throttle pause between batches to protect OpenRouter rate limits
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+    }
+
+    isStreamingRef.current = false;
+    setIsBackgroundStreaming(false);
+  }, [userTier, track, isZh, questionsList.length]);
+
+  const handleSynthesizeBatch = async () => {
+    setIsGeneratingBatch(true);
+    setSynthesizerError(null);
+
+    try {
+      const caseCtx = activeScenario ? {
+        title: activeScenario.titleZh,
+        narrative: activeScenario.narrativeZh,
+        incumbrances: activeScenario.landSearch.incumbrancesZh,
+        owner: activeScenario.landSearch.ownerZh
+      } : undefined;
+
+      const res = await fetch('/api/generate-exam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          track,
+          domainBatch: selectedBatchDomain,
+          count: batchQuestionCount,
+          isZh,
+          caseScenarioId: selectedBatchDomain === 'POIM_CASE' ? 'case-1' : undefined,
+          caseContext: caseCtx
+        })
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || `Synthesis Failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        const highestId = Math.max(...questionsList.map((q) => q.id), 0);
+        const augmented = data.questions.map((q: any, i: number) => ({
+          ...q,
+          id: highestId + i + 1,
+          isLocked: false
+        }));
+
+        setQuestionsList((prev) => [...prev, ...augmented]);
+        setShowSynthesizerModal(false);
+      } else {
+        throw new Error('Synthesizer returned empty question array.');
+      }
+    } catch (err: any) {
+      setSynthesizerError(err.message || 'An error occurred during AI synthesis.');
+    } finally {
+      setIsGeneratingBatch(false);
+    }
+  };
 
   const activeQuestions = questionsList.filter((q) => {
     if (activePartFilter === 'ALL') return true;
@@ -389,7 +562,11 @@ export default function MockExamPage() {
 
     const activeAnswerable = questionsList.filter((q) => !q.isLocked).length;
     const scorePct = activeAnswerable > 0 ? Math.round((correctCount / activeAnswerable) * 100) : 0;
-    const isPassed = scorePct >= 60;
+    
+    // Official EAA Dual Passing Threshold: Must score >= 60% in BOTH Part I and Part II
+    const partIPct = partITotal > 0 ? (partICorrect / partITotal) * 100 : 0;
+    const partIIPct = partIITotal > 0 ? (partIICorrect / partIITotal) * 100 : 0;
+    const isPassed = partIPct >= 60 && partIIPct >= 60;
 
     return {
       correctCount,
@@ -398,8 +575,10 @@ export default function MockExamPage() {
       isPassed,
       partICorrect,
       partITotal,
+      partIPct: Math.round(partIPct),
       partIICorrect,
-      partIITotal
+      partIITotal,
+      partIIPct: Math.round(partIIPct)
     };
   };
 
@@ -461,8 +640,8 @@ export default function MockExamPage() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>
                   {isZh
-                    ? `官方 ${track === 'EAQE' ? '50 題 (Part I 30 + Part II 20 題查冊個案)' : '50 題 (Part I 40 + Part II 10 題查冊個案)'} 全真計時模擬`
-                    : `Official ${track} Paper with Full Part I & Part II POIM cases`}
+                    ? `官方 ${track === 'EAQE' ? '100 題全真考卷 (Part I 80 + Part II 20 題查冊個案)' : '60 題全真考卷 (Part I 50 + Part II 10 題查冊個案)'}`
+                    : `Official Full ${track === 'EAQE' ? '100-Question' : '60-Question'} Paper`}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -502,10 +681,130 @@ export default function MockExamPage() {
     );
   };
 
+  const renderSynthesizerModal = () => {
+    if (!showSynthesizerModal) return null;
+
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-indigo-600 text-white font-bold">
+                <Sparkles className="h-5 w-5" />
+              </span>
+              <div>
+                <span className="text-[10px] font-mono font-bold text-indigo-700 uppercase px-2 py-0.5 rounded bg-indigo-50 border border-indigo-200 block w-fit">
+                  COGNITIVE EXAM SYNTHESIZER
+                </span>
+                <h3 className="text-xl font-extrabold text-slate-900 pt-0.5">
+                  {isZh ? `動態擴展 ${track} 試卷題庫` : `Synthesize New ${track} Questions`}
+                </h3>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSynthesizerModal(false)}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="space-y-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">{isZh ? '選擇法定範疇 (Domain):' : 'Select Statutory Domain:'}</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {[
+                  { id: 'CAP511', zh: 'Cap. 511 代理條例與常規', en: 'Cap. 511 Licensing & Practice' },
+                  { id: 'CONVEYANCING', zh: 'Cap. 219 & 128 轉易查冊', en: 'Conveyancing & Land Search' },
+                  { id: 'TENANCY_BUILDINGS', zh: 'Cap. 7 租務與 Cap. 123 僭建', en: 'Tenancy & Building Control' },
+                  { id: 'AGENCY_TORT', zh: '普通法代理與防賄條例', en: 'Agency Law & Bribery Ordinance' },
+                  { id: 'POIM_CASE', zh: 'Part II 查冊實務個案題', en: 'Part II POIM Case Studies' }
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedBatchDomain(item.id as ExamDomainBatch)}
+                    className={`p-3 rounded-xl border text-left font-bold transition flex items-center justify-between cursor-pointer ${
+                      selectedBatchDomain === item.id
+                        ? 'bg-indigo-50 text-indigo-900 border-indigo-500 ring-1 ring-indigo-500'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-indigo-300'
+                    }`}
+                  >
+                    <span>{isZh ? item.zh : item.en}</span>
+                    {selectedBatchDomain === item.id && <Check className="h-4 w-4 text-indigo-600 shrink-0" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 block">{isZh ? '生成題數 (Tokens Optimization):' : 'Batch Count:'}</label>
+              <div className="flex items-center gap-2">
+                {[3, 4, 5].map((cnt) => (
+                  <button
+                    key={cnt}
+                    type="button"
+                    onClick={() => setBatchQuestionCount(cnt)}
+                    className={`flex-1 py-2 rounded-xl border font-bold text-xs transition cursor-pointer ${
+                      batchQuestionCount === cnt
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white border-slate-200 text-slate-700 hover:border-slate-400'
+                    }`}
+                  >
+                    +{cnt} {isZh ? '題' : 'Qs'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {synthesizerError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-600" />
+                <span>{synthesizerError}</span>
+              </div>
+            )}
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100">
+            <button
+              type="button"
+              disabled={isGeneratingBatch}
+              onClick={() => setShowSynthesizerModal(false)}
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs"
+            >
+              {isZh ? '取消' : 'Cancel'}
+            </button>
+
+            <button
+              type="button"
+              disabled={isGeneratingBatch}
+              onClick={handleSynthesizeBatch}
+              className="px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs shadow-md transition flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {isGeneratingBatch ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  <span>{isZh ? '正在嚴謹合成試題...' : 'Synthesizing...'}</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  <span>{isZh ? '開始動態生成' : 'Generate Now'}</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (examStage === 'briefing') {
     return (
       <div className="min-h-screen py-6 sm:py-10 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
         {renderUpgradeModal()}
+        {renderSynthesizerModal()}
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header Card */}
           <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -515,8 +814,14 @@ export default function MockExamPage() {
                   <Award className="h-3.5 w-3.5 text-amber-600" />
                   <span>EAA Official Simulation Mode</span>
                 </span>
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-50 border border-indigo-200 text-indigo-900">
-                  {userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS (BUILDER)' : userTier}
+                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-bold ${
+                  userTier === 'ADMIN_BUILDER'
+                    ? 'bg-purple-50 border border-purple-200 text-purple-900'
+                    : userTier === 'FREE_PREVIEW'
+                    ? 'bg-slate-100 border border-slate-200 text-slate-700'
+                    : 'bg-emerald-50 border border-emerald-200 text-emerald-900'
+                }`}>
+                  {userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS (BUILDER)' : userTier.replace('_', ' ')}
                 </span>
                 <button
                   type="button"
@@ -538,13 +843,24 @@ export default function MockExamPage() {
               </p>
             </div>
 
-            <a
-              href="/course"
-              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2"
-            >
-              <BookOpen className="h-4 w-4 text-indigo-600" />
-              <span>{isZh ? '返回課程' : 'Syllabus'}</span>
-            </a>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowSynthesizerModal(true)}
+                className="px-4 py-2.5 rounded-2xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-xs font-bold text-indigo-900 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Sparkles className="h-4 w-4 text-indigo-600" />
+                <span>{isZh ? '智能題庫合成器' : 'Synthesizer'}</span>
+              </button>
+
+              <a
+                href="/course"
+                className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4 text-indigo-600" />
+                <span>{isZh ? '返回課程' : 'Syllabus'}</span>
+              </a>
+            </div>
           </div>
 
           {/* Track Selection Card */}
@@ -582,8 +898,8 @@ export default function MockExamPage() {
                   <h3 className="text-sm font-extrabold">{isZh ? '地產代理資格考試 (EAQE)' : 'Estate Agent Qualifying Exam'}</h3>
                   <p className={`text-xs mt-1 ${track === 'EAQE' ? 'text-slate-900' : 'text-slate-500'}`}>
                     {isZh
-                      ? '官方 50 題標準卷（Part I 30 題 + Part II 20 題查冊個案）'
-                      : '50 Questions (Part I 30 Qs + Part II 20 Qs)'}
+                      ? '全真 100 題完整標準卷（Part I 80 題 + Part II 20 題查冊個案）'
+                      : '100 Questions Paper (Part I 80 Qs + Part II 20 Qs)'}
                   </p>
                 </div>
               </button>
@@ -611,8 +927,8 @@ export default function MockExamPage() {
                   <h3 className="text-sm font-extrabold">{isZh ? '營業員資格考試 (SQE)' : 'Salesperson Qualifying Exam'}</h3>
                   <p className={`text-xs mt-1 ${track === 'SQE' ? 'text-slate-900' : 'text-slate-500'}`}>
                     {isZh
-                      ? '官方 50 題標準卷（Part I 40 題 + Part II 10 題查冊個案）'
-                      : '50 Questions (Part I 40 Qs + Part II 10 Qs)'}
+                      ? '全真 60 題完整標準卷（Part I 50 題 + Part II 10 題查冊個案）'
+                      : '60 Questions Paper (Part I 50 Qs + Part II 10 Qs)'}
                   </p>
                 </div>
               </button>
@@ -629,19 +945,19 @@ export default function MockExamPage() {
                 <span className="font-extrabold text-emerald-700 text-sm">雙部分皆須 60%</span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-500 block font-mono">{isZh ? '伺服器題庫' : 'Server Items'}</span>
-                <span className="font-extrabold text-slate-900 text-sm">{questionsList.length} 題就緒</span>
+                <span className="text-slate-500 block font-mono">{isZh ? '即時就緒' : 'Immediate Questions'}</span>
+                <span className="font-extrabold text-slate-900 text-sm">{questionsList.length} 題</span>
               </div>
               <div className="space-y-1">
-                <span className="text-slate-500 block font-mono">{isZh ? 'Part II 個案庫' : 'Part II POIM Cases'}</span>
+                <span className="text-slate-500 block font-mono">{isZh ? '全真模擬目標' : 'Full Sim Target'}</span>
                 <span className="font-extrabold text-amber-800 text-sm">
-                  {track === 'EAQE' ? '3 大官方 IRIS 個案' : '1 大官方 IRIS 個案'}
+                  {track === 'EAQE' ? '100 題全真卷' : '60 題全真卷'}
                 </span>
               </div>
             </div>
 
-            {/* Launch Button */}
-            <div className="pt-2 flex items-center justify-end">
+            {/* Launch Buttons: Standard Entry vs Full Automated 100/60 Pipeline */}
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
               <button
                 type="button"
                 onClick={() => {
@@ -650,10 +966,13 @@ export default function MockExamPage() {
                   setUserAnswers({});
                   setFlaggedQuestions({});
                   setExamStage('simulation');
+                  // Trigger background progressive streamer to assemble full paper (100 for EAQE, 60 for SQE)
+                  const targetCount = track === 'EAQE' ? 100 : 60;
+                  triggerAutomatedAssembly(targetCount);
                 }}
                 className="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>{isZh ? `進入全真 ${track} 模擬考場` : `Enter ${track} Timed Simulation`}</span>
+                <span>{isZh ? `進入全真 ${track === 'EAQE' ? '100 題' : '60 題'} 模擬考場` : `Start Full ${track === 'EAQE' ? '100-Q' : '60-Q'} Simulation`}</span>
                 <ArrowRight className="h-4 w-4" />
               </button>
             </div>
@@ -670,6 +989,7 @@ export default function MockExamPage() {
     return (
       <div className="min-h-screen py-5 px-3 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
         {renderUpgradeModal()}
+        {renderSynthesizerModal()}
         <div className="max-w-7xl mx-auto space-y-4">
           {/* Top Control Bar */}
           <div className="p-4 sm:p-5 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
@@ -682,6 +1002,12 @@ export default function MockExamPage() {
                   <span className="text-xs font-bold text-slate-500">
                     {isZh ? `第 ${currentQIndex + 1} / ${activeQuestions.length} 題` : `Q ${currentQIndex + 1} of ${activeQuestions.length}`}
                   </span>
+                  {isBackgroundStreaming && (
+                    <span className="text-[10px] font-mono font-bold text-indigo-700 px-2 py-0.5 rounded-full bg-indigo-50 border border-indigo-200 flex items-center gap-1 animate-pulse">
+                      <RefreshCw className="h-3 w-3 animate-spin" />
+                      <span>{questionsList.length}/{targetExamSize} Assembling...</span>
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs font-extrabold text-slate-800">
                   {isZh ? currentQ?.topicZh : currentQ?.topicEn}
@@ -710,8 +1036,17 @@ export default function MockExamPage() {
               </div>
             </div>
 
-            {/* Timer & Submit Controls */}
+            {/* Timer & Controls */}
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+              <button
+                type="button"
+                onClick={() => setShowSynthesizerModal(true)}
+                className="px-3.5 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50 hover:bg-indigo-100 text-xs font-bold text-indigo-900 transition flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                <span>{isZh ? '動態生成' : 'Synthesizer'}</span>
+              </button>
+
               <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 font-mono text-xs font-bold">
                 <Clock className="h-4 w-4 text-amber-600" />
                 <span>{formatTimer(timeLeftSeconds)}</span>
@@ -732,7 +1067,10 @@ export default function MockExamPage() {
 
               <button
                 type="button"
-                onClick={() => setExamStage('report')}
+                onClick={() => {
+                  isStreamingRef.current = false;
+                  setExamStage('report');
+                }}
                 className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition cursor-pointer"
               >
                 {isZh ? '提早交卷' : 'Submit Exam'}
@@ -916,19 +1254,26 @@ export default function MockExamPage() {
               </div>
             </div>
 
-            {/* Right 4 Columns: Question Palette Matrix */}
+            {/* Right 4 Columns: Palette Matrix with streaming node counts */}
             <div className="lg:col-span-4 space-y-4">
               <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
-                    {isZh ? `${track} 試題導覽調色板` : `${track} Palette Matrix`}
-                  </h4>
+                  <div className="space-y-0.5">
+                    <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
+                      {isZh ? `${track} 試題導覽調色板` : `${track} Palette Matrix`}
+                    </h4>
+                    {isBackgroundStreaming && (
+                      <span className="text-[10px] text-indigo-600 font-mono font-bold block">
+                        Streaming {questionsList.length} of {targetExamSize} Qs
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs font-mono font-bold text-slate-500">
                     {totalAnswered}/{questionsList.length}
                   </span>
                 </div>
 
-                {/* Grid Numbers */}
+                {/* Grid Numbers: Dynamically expands as background synthesis delivers batches */}
                 <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1">
                   {activeQuestions.map((q, idx) => {
                     const isAnswered = typeof userAnswers[q.id] === 'number';
@@ -1003,7 +1348,7 @@ export default function MockExamPage() {
           <div className="space-y-2 text-center md:text-left">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900">
               <Award className="h-3.5 w-3.5 text-amber-600" />
-              <span>{track} Diagnostic Performance Radar</span>
+              <span>{track} Official Diagnostic Performance Radar</span>
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
@@ -1013,8 +1358,8 @@ export default function MockExamPage() {
             </h1>
             <p className="text-xs sm:text-sm text-slate-600">
               {isZh
-                ? `及格門檻為 60%。你獲得了 ${results.scorePct}%，共答對 ${results.correctCount} / ${results.totalQuestions} 題。`
-                : `Passing mark is 60%. You achieved ${results.scorePct}% (${results.correctCount}/${results.totalQuestions} correct).`}
+                ? `官方規定雙部分皆須達 60%。你獲得了 ${results.scorePct}%，共答對 ${results.correctCount} / ${results.totalQuestions} 題。`
+                : `Official rule requires 60% in BOTH parts. You achieved ${results.scorePct}% (${results.correctCount}/${results.totalQuestions} correct).`}
             </p>
           </div>
 
@@ -1024,18 +1369,18 @@ export default function MockExamPage() {
               {results.scorePct}%
             </div>
             <span className={`text-xs font-extrabold ${results.isPassed ? 'text-emerald-700' : 'text-rose-700'}`}>
-              {results.isPassed ? 'QUALIFIED (合格)' : 'NOT YET PASSED'}
+              {results.isPassed ? 'QUALIFIED (雙部分及格)' : 'NOT YET PASSED'}
             </span>
           </div>
         </div>
 
-        {/* Breakdown by Parts */}
+        {/* Breakdown by Parts with 60% Passing Indicators */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-extrabold text-slate-800">Part I Statutory Law MCQs</span>
-              <span className="font-mono font-bold text-slate-500">
-                {results.partICorrect}/{results.partITotal}
+              <span className={`font-mono font-bold ${results.partIPct >= 60 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                {results.partICorrect}/{results.partITotal} ({results.partIPct}%) {results.partIPct >= 60 ? '✓' : '✗'}
               </span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -1049,8 +1394,8 @@ export default function MockExamPage() {
           <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-extrabold text-slate-800">Part II POIM Land Search Case Study</span>
-              <span className="font-mono font-bold text-slate-500">
-                {results.partIICorrect}/{results.partIITotal}
+              <span className={`font-mono font-bold ${results.partIIPct >= 60 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                {results.partIICorrect}/{results.partIITotal} ({results.partIIPct}%) {results.partIIPct >= 60 ? '✓' : '✗'}
               </span>
             </div>
             <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
@@ -1097,7 +1442,7 @@ export default function MockExamPage() {
           </div>
         </div>
 
-        {/* Detailed Item-by-Item Review */}
+        {/* Detailed Item Analysis */}
         <div className="space-y-4 pt-4">
           <h3 className="text-sm font-mono font-bold text-slate-700 uppercase tracking-wider">
             {isZh ? '試題逐題法規深度分析 (Item Analysis):' : 'Item-by-Item Legal Analysis:'}
