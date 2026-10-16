@@ -2,15 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-// List of Admin/Builder emails with permanent full access bypass
+// Authorized Admin/Builder accounts with full testing bypass
 const ADMIN_EMAILS = [
-  'imoh.ekarika@gmail.com',
-  'imoh.ekarika@savantnex.com'
+  'imoh.ekarika@savantnex.com',
+  'imoh.ekarika@gmail.com'
 ];
 
-interface MockQuestionMaster {
+export type UserSubscriptionTier =
+  | 'ADMIN_BUILDER'
+  | 'EAQE_PRO'
+  | 'SQE_PRO'
+  | 'ALL_ACCESS_PRO'
+  | 'FREE_PREVIEW';
+
+export interface MockQuestionServer {
   id: number;
   part: 'I' | 'II';
+  trackApplicability: 'BOTH' | 'EAQE_ONLY' | 'SQE_ONLY';
   caseScenarioId?: string;
   topicZh: string;
   topicEn: string;
@@ -25,15 +33,12 @@ interface MockQuestionMaster {
   statuteRefEn: string;
 }
 
-/* ========================================================
-   SERVER-SIDE PROPRIETARY MASTER EXAM (50 QUESTIONS)
-   Protected: Free users only receive Q1 - Q10
-   ======================================================== */
-const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
-  // PART I - CAP 511 & LICENSING (Free Tier Sample: Q1 - Q3)
+const MASTER_QUESTIONS: MockQuestionServer[] = [
+  // --- PART I: FOUNDATIONAL (BOTH EAQE & SQE) ---
   {
     id: 1,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '條例牌照要求 (Cap. 511)',
     topicEn: 'Licensing Requirements (Cap. 511)',
     questionZh: '根據《地產代理條例》(Cap. 511)，地產代理（個人）牌照持有人在變更其主要或分行營業地點後，必須於多少天內以書面通知地產代理監管局 (EAA)？',
@@ -49,6 +54,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 2,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '客戶款項規則 (Client Money)',
     topicEn: 'Client Money Accounts (Cap. 511)',
     questionZh: '地產代理行收受客戶託管訂金款項後，必須依據法規將該款項存入獨立之客戶信託戶口，且開立及開具收據的期限為多少天？相關款項紀錄須保存多久？',
@@ -74,6 +80,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 3,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '物業資料常規 (Practice Regs)',
     topicEn: 'Practice Regulations (Cap. 511A)',
     questionZh: '持牌地產代理在向二手住宅物業買家推介物業前，必須向買家提供並解釋哪一項法定資料表格？',
@@ -96,11 +103,10 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefZh: '《地產代理常規 (一般職責及香港住宅物業) 規例》Form 1',
     statuteRefEn: 'Estate Agents Practice (General & Residential) Regs Form 1'
   },
-
-  // PART I - TENANCY & BUILDINGS (Free Tier Sample: Q4 - Q5)
   {
     id: 4,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '租務法定權益 (Cap. 7)',
     topicEn: 'Landlord & Tenant Rights (Cap. 7)',
     questionZh: '在雙方未有明訂沒收條款的情況下，住宅租客拖欠租金達多少天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture for Non-Payment of Rent)？',
@@ -116,6 +122,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 5,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '劏房租務管制 (Cap. 7 Part IVA)',
     topicEn: 'Subdivided Unit Control (Cap. 7 Part IVA)',
     questionZh: '根據《業主與租客（綜合）條例》第 IVA 部（劏房租管），規管租賃首期 2 年租期屆滿後，次期租賃（次期 2 年）租金加幅上限為何？',
@@ -138,11 +145,10 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefZh: '《業主與租客（綜合）條例》第 IVA 部 第 120AA 條',
     statuteRefEn: 'Landlord & Tenant (Consolidation) Ordinance Part IVA s.120AA'
   },
-
-  // PART I - CONVEYANCING (Free Tier Sample: Q6)
   {
     id: 6,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '聯權共有與分權共有 (Cap. 219)',
     topicEn: 'Joint Tenancy & Severance (Cap. 219)',
     questionZh: '若甲、乙兩人以「聯權共有 (Joint Tenancy)」形式持有香港物業，甲未經乙同意，依法將其權益轉讓予丙。此項轉讓對物業業權模式產生何種法律效果？',
@@ -165,11 +171,10 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefZh: '《物業轉易及物業條例》(Cap. 219)',
     statuteRefEn: 'Conveyancing and Property Ordinance (Cap. 219)'
   },
-
-  // PART I - LAND REGISTRATION & MISREPRESENTATION (Free Tier Sample: Q7 - Q8)
   {
     id: 7,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '土地註冊優先權 (Cap. 128)',
     topicEn: 'Registration Priority (Cap. 128)',
     questionZh: '根據《土地註冊條例》(Cap. 128)，物業契約若在簽立後多少個月內交付土地註冊處註冊，其註冊效力可回溯至契約簽立當日生效？',
@@ -185,6 +190,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 8,
     part: 'I',
+    trackApplicability: 'BOTH',
     topicZh: '防止賄賂條例 (Cap. 201 s.9)',
     topicEn: 'Prevention of Bribery (Cap. 201 s.9)',
     questionZh: '地產代理在未得主事人（買方或賣方）事前書面同意及批准下，私下向對家收取非法利益或回佣，將觸犯香港法例哪一項刑事罪行？',
@@ -208,10 +214,11 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefEn: 'Prevention of Bribery Ordinance Cap. 201 s.9'
   },
 
-  // PART II - CASE 1 SAMPLES (Free Tier Sample: Q9 - Q10)
+  // --- PART II: CASE 1 (RESIDENTIAL PROBATE - BOTH EAQE & SQE) ---
   {
     id: 9,
     part: 'II',
+    trackApplicability: 'BOTH',
     caseScenarioId: 'case-1',
     topicZh: '土地查冊 (POIM 業主權限)',
     topicEn: 'Land Search (POIM Ownership & Probate)',
@@ -238,6 +245,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 10,
     part: 'II',
+    trackApplicability: 'BOTH',
     caseScenarioId: 'case-1',
     topicZh: '違建命令揭示 (Cap. 123 s.24)',
     topicEn: 'UBW Disclosure & Requisition (Cap. 123)',
@@ -262,10 +270,11 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)'
   },
 
-  // PART I - EXTENDED PROFESSIONAL BANK (Paid / Admin Gated: Q11 - Q30)
+  // --- PART I: EAQE ADVANCED / COMMERCIAL / MANAGEMENT (EAQE_ONLY) ---
   {
     id: 11,
     part: 'I',
+    trackApplicability: 'EAQE_ONLY',
     topicZh: '一手住宅銷售條例 (Cap. 621)',
     topicEn: 'First-hand Residential Sales (Cap. 621)',
     questionZh: '根據《一手住宅物業銷售條例》(Cap. 621)，發展商在指明住宅物業開售前至少多少天，必須向公眾公佈售樓說明書 (Sales Brochure)？價單 (Price List) 則須提前至少幾天公佈？',
@@ -291,6 +300,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 12,
     part: 'I',
+    trackApplicability: 'EAQE_ONLY',
     topicZh: '冷靜期與沒收訂金 (Cap. 621 s.53)',
     topicEn: 'Cooling-off Period & Deposit (Cap. 621 s.53)',
     questionZh: '在購買香港一手住宅物業簽署臨時買賣合約 (PASP) 後，買方享有 5 個工作天的冷靜期。若買方決定放棄交易而不簽署正式合約，賣方有權沒收多少訂金？',
@@ -316,81 +326,7 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
   {
     id: 13,
     part: 'I',
-    topicZh: '實用面積定義 (Saleable Area)',
-    topicEn: 'Saleable Area Definition (Cap. 621 & EAA)',
-    questionZh: '在香港二手與一手物業推廣中，法定「實用面積 (Saleable Area)」的量度範圍應包含下列何者？',
-    questionEn: 'Under HK conveyancing practice and EAA directives, what is included in the statutory calculation of "Saleable Area"?',
-    optionsZh: [
-      'A. 僅指單位內部地台面積，完全不含圍封牆',
-      'B. 該樓面面積連同露台 (Balcony)、工作平台 (Utility Platform) 及陽台 (Verandah) 的樓面面積，計至圍封牆的外圍或共用牆的中線',
-      'C. 必須計入大廈公用電梯大堂、會所及停車位之分攤面積',
-      'D. 包含窗台但剔除露台'
-    ],
-    optionsEn: [
-      'A. Solely internal carpet floor area excluding all perimeter walls',
-      'B. Floor area of the unit including balcony, utility platform, and verandah, measured to external wall face or shared party wall centerline',
-      'C. Apportioned common lift lobby, clubhouse, and parking space areas',
-      'D. Bay windows included while balconies are excluded'
-    ],
-    answerIndex: 1,
-    explanationZh: '根據差估署標準及 Cap. 621，實用面積量度至圍封牆外圍（共用牆量至中線），並包括露台、工作平台及陽台。窗台 (Bay window) 及天井不計入實用面積。',
-    explanationEn: 'Saleable area measures to the exterior of enclosing walls (centerline for party walls) and explicitly includes balconies and utility platforms.',
-    statuteRefZh: 'EAA 執業通告及 Cap. 621 第 8 條',
-    statuteRefEn: 'EAA Practice Circular & Cap. 621 s.8'
-  },
-  {
-    id: 14,
-    part: 'I',
-    topicZh: '廣告常規守則 (Advertising Code)',
-    topicEn: 'Advertising Regulations (Cap. 511A s.9)',
-    questionZh: '地產代理在發佈物業廣告（包括網上社交媒體盤源）前，必須取得下列哪項法律授權？',
-    questionEn: 'Before publishing a property advertisement (including online social media listings), which legal authorization must an estate agent obtain?',
-    optionsZh: [
-      'A. 口頭通知業主即可發佈',
-      'B. 取得賣方或業主簽署的地產代理協議（Form 3 或 Form 5）並取得書面明確授權',
-      'C. 只要已在網上進行土地查冊，無需業主授權即可宣傳',
-      'D. 經地產代理公司董事口頭批准'
-    ],
-    optionsEn: [
-      'A. Verbal informal telephone notification from the owner is sufficient',
-      'B. Valid executed Estate Agency Agreement (Form 3 or Form 5) with express written marketing authorization',
-      'C. Conducting a land search confers automatic authority to market publicly',
-      'D. Internal verbal clearance from the agency branch director'
-    ],
-    answerIndex: 1,
-    explanationZh: '《地產代理常規規例》第 9(1) 條嚴格規定：持牌人未獲業主書面授權（通常載於 Form 3/5 內）不得發佈物業廣告，否則構成違規吊銷牌照處分。',
-    explanationEn: 'Under Cap. 511A s.9(1), marketing without prior written authorization from the vendor/landlord (via Form 3/5) is a statutory disciplinary breach.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 9(1) 條',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(1)'
-  },
-  {
-    id: 15,
-    part: 'I',
-    topicZh: '個人資料私隱條例 (Cap. 486)',
-    topicEn: 'Personal Data (Privacy) (Cap. 486)',
-    questionZh: '地產代理使用查冊取得的業主電話或個人姓名進行未經同意的「冷知識推銷電話 (Cold Calling)」，直接違反香港哪一項法規原則？',
-    questionEn: 'If an estate agent uses owner names or phone numbers retrieved from land search records for unsolicited marketing "cold calls", which statutory principle is breached?',
-    optionsZh: [
-      'A. 違反《個人資料（私隱）條例》(Cap. 486) 保障資料第 3 原則（不得將個人資料用於非原始收集目的）',
-      'B. 違反《商品說明條例》',
-      'C. 土地查冊資料屬公眾領域，代理可任意作商業促銷使用',
-      'D. 違反《競爭條例》第一行為守則'
-    ],
-    optionsEn: [
-      'A. Breaches Data Protection Principle 3 under Cap. 486 (Use of personal data for unrelated new purposes)',
-      'B. Breaches the Trade Descriptions Ordinance',
-      'C. Land Registry records are public domain and can be commercialized freely',
-      'D. Breaches First Conduct Rule under the Competition Ordinance'
-    ],
-    answerIndex: 0,
-    explanationZh: '土地查冊之法定目的為確認物業權益及防範欺詐。將查冊所得業主個人資料轉作直接促銷或推銷電話，嚴重違背 DPP 3，可遭私隱專員公署檢控及 EAA 紀律處分。',
-    explanationEn: 'Using Land Registry personal data for unsolicited marketing breaches DPP 3 of Cap. 486, as marketing is outside the statutory purpose of the Land Register.',
-    statuteRefZh: '《個人資料（私隱）條例》(Cap. 486) DPP 3 及 EAA 指引',
-    statuteRefEn: 'Personal Data (Privacy) Ordinance Cap. 486 DPP 3'
-  },
-  {
-    id: 16,
-    part: 'I',
+    trackApplicability: 'EAQE_ONLY',
     topicZh: '競爭條例合規 (Cap. 619)',
     topicEn: 'Competition Ordinance (Cap. 619)',
     questionZh: '數間主要地產代理商經高層協商後，公開發布聯合通告規定全體二手住宅成交必須收取固定 2% 佣金，不得給予客戶折扣。此舉觸犯《競爭條例》哪一項規定？',
@@ -414,58 +350,9 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefEn: 'Competition Ordinance Cap. 619 First Conduct Rule'
   },
   {
-    id: 17,
+    id: 14,
     part: 'I',
-    topicZh: '失實陳述救濟 (Cap. 284)',
-    topicEn: 'Misrepresentation Remedies (Cap. 284)',
-    questionZh: '若代理明知物業曾發生兇殺案（非自然死亡命案），但在買家多次明確查問時斷然否認，誘使買方簽署合約。買方事後可根據《失實陳述條例》行使何種法定權利？',
-    questionEn: 'If an agent falsely denies a known suicide/unnatural death in a flat despite repeated explicit queries from the purchaser, what statutory remedy can the purchaser claim?',
-    optionsZh: [
-      'A. 僅可向 EAA 投訴，不可撤銷買賣合約',
-      'B. 構成欺詐性或疏忽失實陳述，買方可主張撤銷合約 (Rescission) 並要求退還訂金及賠償損失',
-      'C. 合約一經簽署即不可推翻（Caveat Emptor 買家自負原則）',
-      'D. 買方僅能要求差餉物業估價署減免差餉'
-    ],
-    optionsEn: [
-      'A. Only administrative complaints to EAA are permitted; contract cannot be rescinded',
-      'B. Constitutes fraudulent or negligent misrepresentation; buyer can rescind contract, recover deposit, and claim damages',
-      'C. Caveat emptor applies unconditionally once contracts are signed',
-      'D. The buyer is limited to requesting a rates reduction'
-    ],
-    answerIndex: 1,
-    explanationZh: '積極失實陳述否定了「買家自負」原則。買方受欺詐或疏忽陳述誘導入約，有權依據 Cap. 284 要求撤銷合約 (Rescission) 及索償損害賠償。',
-    explanationEn: 'Under the Misrepresentation Ordinance (Cap. 284), actionable misrepresentation entitles the innocent party to rescind the contract and claim damages.',
-    statuteRefZh: '《失實陳述條例》(Cap. 284) 第 2 及 3 條',
-    statuteRefEn: 'Misrepresentation Ordinance (Cap. 284) s.2 & s.3'
-  },
-  {
-    id: 18,
-    part: 'I',
-    topicZh: '印花稅條例最新規定 (Cap. 117)',
-    topicEn: 'Stamp Duty Regulations (Cap. 117)',
-    questionZh: '根據香港《印花稅條例》(Cap. 117) 撤辣後的現行法規，香港永久性居民購買第一間住宅物業時，應按哪一附表稅率繳納從價印花稅 (AVD)？',
-    questionEn: 'Under current Cap. 117 rules following market measure adjustments, which rate scale applies to HK permanent residents acquiring their sole residential property?',
-    optionsZh: [
-      'A. 第 1 標準第 1 部稅率（7.5%）',
-      'B. 第 2 標準稅率（Scale 2，最高 4.25%）',
-      'C. 一律免繳印花稅',
-      'D. 劃一徵收 15% 買家印花稅 (BSD)'
-    ],
-    optionsEn: [
-      'A. Scale 1 Part 1 Rate (7.5%)',
-      'B. Scale 2 Standard Rates (Progressive up to 4.25%)',
-      'C. Complete stamp duty exemption applies to all locals',
-      'D. Uniform 15% Buyer Stamp Duty applies'
-    ],
-    answerIndex: 1,
-    explanationZh: '香港永久性居民首置名下無其他住宅時，按第 2 標準稅率（Scale 2，舊稱第二標準）繳納 AVD，稅率由 100 元至最高 4.25% 不等。',
-    explanationEn: 'HKPRs purchasing their only residential property pay ad valorem stamp duty at Scale 2 rates, progressively capped at 4.25%.',
-    statuteRefZh: '《印花稅條例》(Cap. 117) 第 2 標準稅率',
-    statuteRefEn: 'Stamp Duty Ordinance Cap. 117 Scale 2'
-  },
-  {
-    id: 19,
-    part: 'I',
+    trackApplicability: 'EAQE_ONLY',
     topicZh: '公契與大廈管理 (Cap. 344)',
     topicEn: 'Building Management (Cap. 344 & DMC)',
     questionZh: '業主立案法團 (Owners\' Corporation) 是依據香港法例哪一項條例註冊成立的法定法人組織？公契 (DMC) 對其全體業主具何種法律效力？',
@@ -488,36 +375,12 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefZh: '《建築物管理條例》(Cap. 344) 及 Cap. 219 s.41',
     statuteRefEn: 'Building Management Ordinance Cap. 344'
   },
-  {
-    id: 20,
-    part: 'I',
-    topicZh: '雙重代理披露責任 (Dual Agency)',
-    topicEn: 'Dual Agency Disclosure (Cap. 511A s.13)',
-    questionZh: '若同一地產代理在同一宗物業買賣中同時代表買賣雙方（Dual Agency），法律與 EAA 規例對佣金與身份披露有何嚴格要求？',
-    questionEn: 'If an estate agent acts for both vendor and purchaser in the same transaction (Dual Agency), what statutory disclosure is mandated under Cap. 511A s.13?',
-    optionsZh: [
-      'A. 只要成交即自動合法，無需書面申報',
-      'B. 代理必須在協議 Form 3 及 Form 4 內明確向雙方披露雙重代理身份，並披露向對家所收取的佣金金額或比率',
-      'C. 代理不可向任何一方收取佣金',
-      'D. 雙重代理在香港法律下屬絕對違法，代理會被直接吊銷牌照'
-    ],
-    optionsEn: [
-      'A. Legal automatically upon closing without written notification',
-      'B. Agent must disclose dual agency capacity in Form 3 and Form 4 to both parties and state the commission amount/rate charged to the counterparty',
-      'C. The agent is prohibited from charging commissions to either principal',
-      'D. Dual agency is illegal per se under HK law and triggers automatic revocation'
-    ],
-    answerIndex: 1,
-    explanationZh: '《地產代理常規規例》第 13(1) 條規定：雙重代理必須在代理協議內書面披露，並必須向買賣雙方如實披露各自向對家收取的佣金款額。隱瞞雙重代理構成違反受信責任及紀律處分。',
-    explanationEn: 'Under Cap. 511A s.13(1), dual agency is permitted only with full informed written consent and disclosure of commission payable by both sides.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 13 條',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.13'
-  },
 
-  // PART II - CASE 2 QUESTIONS (Paid / Admin Gated: Q21 - Q30)
+  // --- PART II: CASE 2 (COMMERCIAL FLOATING CHARGE - EAQE_ONLY) ---
   {
-    id: 21,
+    id: 15,
     part: 'II',
+    trackApplicability: 'EAQE_ONLY',
     caseScenarioId: 'case-2',
     topicZh: '公司賣方雙重查冊 (Cap. 622)',
     topicEn: 'Corporate Charges & Dual Search (Cap. 622)',
@@ -542,8 +405,9 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefEn: 'Companies Ordinance Cap. 622 s.335 & EAA Guidelines'
   },
   {
-    id: 22,
+    id: 16,
     part: 'II',
+    trackApplicability: 'EAQE_ONLY',
     caseScenarioId: 'case-2',
     topicZh: '公司簽署契約法規 (Cap. 622 s.127)',
     topicEn: 'Execution by Company (Cap. 622 s.127)',
@@ -567,294 +431,179 @@ const MASTER_QUESTIONS_SERVER: MockQuestionMaster[] = [
     statuteRefZh: '《公司條例》(Cap. 622) 第 127 條',
     statuteRefEn: 'Companies Ordinance Cap. 622 s.127'
   },
-  {
-    id: 23,
-    part: 'II',
-    caseScenarioId: 'case-2',
-    topicZh: '浮動押記優先權 (Debentures)',
-    topicEn: 'Floating Charge Priority (Cap. 622)',
-    questionZh: '【Part II 個案題 - 個案二】若 Apex Profits Limited 在公司註冊處登記有一項包含「消極擔保條款 (Negative Pledge Clause)」的浮動押記，此條款對物業買賣有何重大法律後果？',
-    questionEn: '[Part II Case Study - Case 2] If the floating charge includes a Negative Pledge Clause, what is the conveyancing impact on the transaction?',
-    optionsZh: [
-      'A. 買方完全不受影響，消極擔保僅屬內部通知',
-      'B. 限制公司未經押記持有人同意出售或押記該物業；若買方律師已作查冊則被推定具推定知悉 (Constructive Notice)，物業業權可能受債權人追討',
-      'C. 該物業地契年期自動縮短',
-      'D. 買方無需繳付任何物業成交印花稅'
-    ],
-    optionsEn: [
-      'A. The buyer is unaffected as negative pledges are purely internal matters',
-      'B. Restricts disposal without debenture holder consent; registered search creates constructive notice, leaving title vulnerable to creditor enforcement',
-      'C. The government lease automatically expires',
-      'D. The purchaser is exempt from stamp duty obligations'
-    ],
-    answerIndex: 1,
-    explanationZh: '消極擔保條款禁止公司處置物業或設定後續押記。經公司註冊處登記後，所有各方被視為具有法定知悉，違規出售無法向買家交付無產權負擔之良好業權 (Good Title)。',
-    explanationEn: 'A registered negative pledge puts third parties on constructive notice. Conveying title without debenture consent breaches the vendor’s duty to give good title.',
-    statuteRefZh: '《公司條例》(Cap. 622) 及普通法業權法理',
-    statuteRefEn: 'Companies Ordinance Cap. 622'
-  },
-  {
-    id: 24,
-    part: 'II',
-    caseScenarioId: 'case-2',
-    topicZh: '商業物業佣金與表格適用 (Forms)',
-    topicEn: 'Prescribed Forms for Non-Domestic Property',
-    questionZh: '【Part II 個案題 - 個案二】中環商業大廈為純非住宅寫字樓。代理 Ken 在安排買賣時，是否必須使用法定 Form 3 或 Form 4 地產代理協議？',
-    questionEn: '[Part II Case Study - Case 2] Central Commercial Tower is a non-domestic commercial property. Is agent Ken statutorily required to use Form 3 or Form 4 prescribed agreements?',
-    optionsZh: [
-      'A. 是，全香港所有物業買賣均強制使用 Form 3 / Form 4',
-      'B. 否，《地產代理常規規例》第 3 條明訂法定表格一至六僅適用於住宅物業；非住宅物業可自由訂立普通法代理合約',
-      'C. 商業物業禁止簽署任何地產代理協議',
-      'D. 商業物業必須使用 Form CR109'
-    ],
-    optionsEn: [
-      'A. Yes, all property sales in HK require Form 3 or 4 unconditionally',
-      'B. No, Cap. 511A s.3 expressly limits Forms 1-6 to residential properties; commercial transactions use tailored non-statutory agency contracts',
-      'C. Commercial properties are prohibited from using agency agreements',
-      'D. Commercial sales mandate the use of Form CR109'
-    ],
-    answerIndex: 1,
-    explanationZh: '核心考點：法定表格 1 至 6 嚴格僅適用於「香港住宅物業」。商業、工廈或農地不受法定 Form 限制，代理行可採用自訂之商業代理合約。',
-    explanationEn: 'Under Cap. 511A s.3, prescribed Forms 1 to 6 apply exclusively to residential properties. Commercial transactions are not subject to statutory form requirements.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 3 條',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.3'
-  },
-  {
-    id: 25,
-    part: 'II',
-    caseScenarioId: 'case-2',
-    topicZh: '公司決議案驗證 (Board Resolution)',
-    topicEn: 'Vendor Board Resolution Requirement',
-    questionZh: '【Part II 個案題 - 個案二】代表買方洽購時，代理應促請買方律師索取賣方 Apex Profits Limited 的何種內部法定文件，以確認董事獲授權出售該高達 3800 萬的物業？',
-    questionEn: '[Part II Case Study - Case 2] Which corporate governance document must the purchaser’s solicitor requisition to confirm director authority to sell the HK$38M asset?',
-    optionsZh: [
-      'A. 賣方董事會決議案 (Board Resolution) 批准出售並授權簽字人',
-      'B. 公司員工通訊錄',
-      'C. 只需要查看公司周年申報表 (NAR1)',
-      'D. 商業登記證副本即可'
-    ],
-    optionsEn: [
-      'A. Duly passed Board Resolution approving the disposal and empowering the signatories',
-      'B. Corporate internal staff directory',
-      'C. Annual Return (Form NAR1) alone is sufficient',
-      'D. A copy of the Business Registration Certificate'
-    ],
-    answerIndex: 0,
-    explanationZh: '物業轉易實務規定：處置公司主要固定資產必須通過董事會決議案 (Board Resolution) 明確授權，否則交易面臨超出權限 (Ultra Vires) 或股東挑戰風險。',
-    explanationEn: 'Conveyancing practice requires a formal Board Resolution confirming approval of disposal and signatory authorization to establish good title.',
-    statuteRefZh: '《公司條例》(Cap. 622) 及香港物業轉易實務守則',
-    statuteRefEn: 'Companies Ordinance Cap. 622 & Conveyancing Practice'
-  },
 
-  // PART II - CASE 3 SAMPLES (Paid / Admin Gated: Q26 - Q30)
+  // --- PART I: SQE ADDITIONAL MCQS (SQE_ONLY / BOTH EXPANSION) ---
   {
-    id: 26,
-    part: 'II',
-    caseScenarioId: 'case-3',
-    topicZh: '海外授權書時效 (Cap. 31)',
-    topicEn: 'Power of Attorney Validity (Cap. 31)',
-    questionZh: '【Part II 個案題 - 個案三】在海景花園個案中，表妹李小姐持有陳先生的授權書簽約。代理 Rachel 指示買方直接將 100 萬訂金支票抬頭寫給李小姐個人。此做法有何重大法律與操守缺失？',
-    questionEn: '[Part II Case Study - Case 3] In the Harborview Garden case, Ms. Li signed via Power of Attorney. Rachel instructed the buyer to draw a HK$1M cheque directly to Ms. Li. What is the fatal professional and legal flaw?',
+    id: 17,
+    part: 'I',
+    trackApplicability: 'SQE_ONLY',
+    topicZh: '營業員從業權限 (Cap. 511 s.16)',
+    topicEn: 'Salesperson Authority (Cap. 511 s.16)',
+    questionZh: '持牌營業員 (Salesperson Licensee) 在香港地產代理日常執業過程中，下列哪一項行為屬於條例所明確禁止的越權行為？',
+    questionEn: 'Under Cap. 511 s.16, which of the following acts is strictly prohibited for a licensed salesperson acting in that capacity?',
     optionsZh: [
-      'A. 表妹李小姐無權收取任何款項，除非授權書有明文特別授權 (Express Authority)，且因存在現存按揭及撤銷風險，訂金必須由賣方律師樓作為 Stakeholder 託管',
-      'B. 支票必須抬頭寫給地產代理公司由代理轉發',
-      'C. 授權書一旦登記在土地註冊處即永遠有效，無須理會按揭狀況',
-      'D. 只要李小姐提供身份證，便可任意以個人名義收取所有樓價'
+      'A. 陪同準買家進行現場實地視察單位',
+      'B. 以獨資經營人 (Sole Proprietor) 或合夥人身分自行經營地產代理業務',
+      'C. 協助客戶填寫 Form 1 物業資料單',
+      'D. 介紹二手租賃盤源予準租客'
     ],
     optionsEn: [
-      'A. An attorney has no implied authority to receive purchase monies personally unless expressly conferred; given the existing mortgage and revocation risk, deposits must be held by the vendor solicitor as stakeholder',
-      'B. The cheque must be drawn payable to the estate agency company for onward transmission',
-      'C. Registered powers of attorney remain valid indefinitely regardless of underlying mortgages',
-      'D. Possessing an HKID card automatically confers full rights to collect sale proceeds personally'
-    ],
-    answerIndex: 0,
-    explanationZh: '《授權書條例》(Cap. 31) 及 EAA 執業通告明確規定：獲授權人除非獲明文具體授權收取樓款，否則不可個人接收訂金。且物業尚有按揭登記 (UB71203)，所有訂金必須由賣方律師以保證金 (Stakeholder) 託管以確保能贖樓清繳。',
-    explanationEn: 'Under Cap. 31 and EAA circulars, an attorney cannot receive monies personally without express power. With a subsisting mortgage, deposits must be held by the vendor solicitor as stakeholder.',
-    statuteRefZh: '《授權書條例》(Cap. 31) 第 5 條及 EAA 執業通告',
-    statuteRefEn: 'Powers of Attorney Ordinance (Cap. 31) s.5 & EAA Practice Circular'
-  },
-  {
-    id: 27,
-    part: 'II',
-    caseScenarioId: 'case-3',
-    topicZh: '授權書法定不撤銷誓章 (Statutory Declaration)',
-    topicEn: 'Non-Revocation Statutory Declaration (Cap. 31)',
-    questionZh: '【Part II 個案題 - 個案三】根據《授權書條例》(Cap. 31) 第 5 條，若授權書已簽立超過 12 個月，為保護買方免受授權人早已死亡或破產撤銷授權之風險，買方律師必須要求賣方提供何項法定文件？',
-    questionEn: '[Part II Case Study - Case 3] Under Cap. 31 s.5, if a Power of Attorney is over 12 months old, which document must be provided to protect against revocation by death or bankruptcy?',
-    optionsZh: [
-      'A. 獲授權人簽署的「未撤銷法定誓章 (Statutory Declaration of Non-Revocation)」',
-      'B. 授權人的出生證明書副本',
-      'C. 授權人最新水電費單',
-      'D. 獲授權人的工作履歷表'
-    ],
-    optionsEn: [
-      'A. Statutory Declaration of Non-Revocation executed by the attorney',
-      'B. Certified copy of the donor’s birth certificate',
-      'C. Recent utility bill from the donor',
-      'D. Curriculum vitae of the attorney'
-    ],
-    answerIndex: 0,
-    explanationZh: '授權書簽署超過 12 個月時，買方必須取得授權人尚未撤銷該授權之法定誓章，否則無法證明授權有效，買方律師可提出業權質詢 (Requisition on Title)。',
-    explanationEn: 'Under Cap. 31 s.5, if over 12 months have elapsed, a statutory declaration of non-revocation is essential to confer conclusive protection on purchasers.',
-    statuteRefZh: '《授權書條例》(Cap. 31) 第 5 條',
-    statuteRefEn: 'Powers of Attorney Ordinance Cap. 31 s.5'
-  },
-  {
-    id: 28,
-    part: 'II',
-    caseScenarioId: 'case-3',
-    topicZh: '破產查冊要求 (Bankruptcy Search Cap. 6)',
-    topicEn: 'Bankruptcy Search Protocol (Cap. 6)',
-    questionZh: '【Part II 個案題 - 個案三】代理 Rachel 未有替買方進行破產查冊 (Bankruptcy Search)。若登記業主陳先生在簽署臨時買賣合約前已被高等法院頒布破產令 (Bankruptcy Order)，該物業交易將產生何種法律後果？',
-    questionEn: '[Part II Case Study - Case 3] Rachel omitted a Bankruptcy Search against Mr. Chan. If Mr. Chan was adjudicated bankrupt prior to the PASP, what is the legal consequence?',
-    optionsZh: [
-      'A. 交易不受影響，買方可直接接收物業',
-      'B. 陳先生的所有物業業權已依法自動歸屬破產管理署署長 (Official Receiver) 或受託人；陳先生及李小姐均無權處置物業，該買賣合約完全無效',
-      'C. 只要何先生支付了 100 萬訂金，何先生即自動成為法定業主',
-      'D. 破產令只影響其銀行現金，不影響物業權益'
-    ],
-    optionsEn: [
-      'A. The sale is completely unaffected and proceeds normally',
-      'B. Title vests automatically in the Official Receiver/Trustee in Bankruptcy; both vendor and attorney have lost legal capacity, rendering the PASP void',
-      'C. Paying HK$1M deposit automatically confers legal title onto the purchaser',
-      'D. Bankruptcy orders only freeze cash deposits and have no bearing on landed real estate'
+      'A. Accompanying prospective purchasers to conduct site inspections',
+      'B. Carrying on estate agency business on one’s own account as a sole proprietor or partner',
+      'C. Assisting clients to complete Form 1 Property Information Forms',
+      'D. Introducing secondary rental listings to prospective tenants'
     ],
     answerIndex: 1,
-    explanationZh: '《破產條例》(Cap. 6) 第 58 條明訂破產令頒布後，破產人全部財產即時歸屬受託人。未作破產查冊導致買方支付訂金予無權處置物業者，代理構成嚴重疏忽 (Professional Negligence)。',
-    explanationEn: 'Under Cap. 6 s.58, bankruptcy divests the owner of title, vesting it in the Trustee. Omitting a bankruptcy search is gross negligence.',
-    statuteRefZh: '《破產條例》(Cap. 6) 第 58 條及 EAA 執業指引',
-    statuteRefEn: 'Bankruptcy Ordinance Cap. 6 s.58'
+    explanationZh: '《地產代理條例》第 16 條規定：營業員牌照持有人僅可受聘於持牌地產代理行工作，嚴禁以獨資或合夥人身分自立門戶經營地產代理業務。',
+    explanationEn: 'Under Cap. 511 s.16, a salesperson is only permitted to perform estate agency work as an employee of a licensed agent and cannot practice on their own account.',
+    statuteRefZh: '《地產代理條例》Cap. 511 第 16 條',
+    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.16'
   },
   {
-    id: 29,
-    part: 'II',
-    caseScenarioId: 'case-3',
-    topicZh: '現存按揭與贖樓保證 (Mortgage Discharge)',
-    topicEn: 'Existing Legal Charge & Stakeholder Duty',
-    questionZh: '【Part II 個案題 - 個案三】查冊顯示物業尚有中銀香港按揭 (UB71203)。在香港標準臨時買賣合約條款中，為保障買方能順利取得「無產權負擔之業權」，訂金為何絕不能由賣方直接提取？',
-    questionEn: '[Part II Case Study - Case 3] The Land Register displays an undischarged mortgage (UB71203). Why must all deposit monies be retained by the stakeholder rather than released to the vendor?',
-    optionsZh: [
-      'A. 保證律師樓有足夠利息收入',
-      'B. 確保在正式成交時有足夠款項全數清繳現有銀行按揭欠款 (Redemption)，以取得法定解除按揭契約 (Discharge)，防止賣方挾款潛逃',
-      'C. 銀行法例規定買家必須替賣方供款',
-      'D. 商業合約並無此項慣例'
-    ],
-    optionsEn: [
-      'A. To guarantee interest income for the stakeholder law firm',
-      'B. To ensure sufficient funds are held in escrow to fully discharge the subsisting mortgage upon completion, safeguarding title from mortgagee repossession',
-      'C. Banking regulations require purchasers to service the vendor’s mortgage',
-      'D. There is no such stakeholder custom in Hong Kong conveyancing'
-    ],
+    id: 18,
+    part: 'I',
+    trackApplicability: 'SQE_ONLY',
+    topicZh: '代理協議有效期 (Cap. 511A s.6)',
+    topicEn: 'Validity of Agency Agreement (Cap. 511A s.6)',
+    questionZh: '根據《地產代理常規規例》，地產代理與住宅物業買方或賣方所簽立的代理協議（Form 3 至 6），其法定有效期限最長不得超過多久？',
+    questionEn: 'Under Cap. 511A s.6, what is the maximum statutory period of validity for prescribed residential agency agreements (Forms 3 to 6)?',
+    optionsZh: ['A. 1 個月', 'B. 3 個月', 'C. 6 個月', 'D. 12 個月'],
+    optionsEn: ['A. 1 Month', 'B. 3 Months', 'C. 6 Months', 'D. 12 Months'],
     answerIndex: 1,
-    explanationZh: '物業有現存未清償按揭時，所有訂金必須由賣方律師樓作為 Stakeholder 託管，直至律師確認尾數足以贖樓為止，這是防止「負資產賣方挾訂逃遁」的關鍵法定保護。',
-    explanationEn: 'Retaining deposits as stakeholder ensures sufficient funds exist to redeem the existing charge, protecting buyers from encumbered titles.',
-    statuteRefZh: 'EAA 執業通告及香港律師會物業轉易指引',
-    statuteRefEn: 'EAA Practice Circular & Law Society Conveyancing Guidelines'
-  },
-  {
-    id: 30,
-    part: 'II',
-    caseScenarioId: 'case-3',
-    topicZh: '海外簽署授權書公證 (Notarization)',
-    topicEn: 'Overseas Power of Attorney Authentication',
-    questionZh: '【Part II 個案題 - 個案三】業主陳先生長居加拿大溫哥華。該份授權書若要獲香港土地註冊處接納註冊及買方律師信納，通常必須經過何項海外公證驗證程序？',
-    questionEn: '[Part II Case Study - Case 3] Mr. Chan signed the PoA in Vancouver, Canada. What overseas notarization or authentication is legally required for validity in Hong Kong?',
-    optionsZh: [
-      'A. 經當地公證人 (Notary Public) 公證簽署，並經中國駐當地使領館認證（或海牙公約海牙認證 Apostille）',
-      'B. 只要寄普通平郵信件到香港即可',
-      'C. 由加拿大地產經紀見證即可',
-      'D. 加拿大簽署文件在香港一律無效'
-    ],
-    optionsEn: [
-      'A. Attested by a Notary Public and apostilled under the Hague Apostille Convention or authenticated by consular seal',
-      'B. Simple ordinary airmail transmission is legally sufficient',
-      'C. Witnessing by a local Canadian real estate broker',
-      'D. Documents executed in Canada have no legal recognition in Hong Kong'
-    ],
-    answerIndex: 0,
-    explanationZh: '海外簽立之法律文書（如授權書）必須由當地合格公證人 (Notary Public) 見證，並附帶海牙加簽 (Apostille) 或使領館認證，以確立真確性。',
-    explanationEn: 'Overseas powers of attorney require attestation by a Notary Public accompanied by an Apostille under the Hague Convention to be enforceable in HK.',
-    statuteRefZh: '《授權書條例》(Cap. 31) 及香港土地註冊法規',
-    statuteRefEn: 'Powers of Attorney Ordinance Cap. 31 & Land Registration practice'
+    explanationZh: 'Cap. 511A 明確規定，地產代理協議（Form 3, 4, 5, 6）之有效期限最長為 3 個月。期滿若需續約，雙方必須重新簽署協議。',
+    explanationEn: 'Under Cap. 511A, the statutory maximum duration of an estate agency agreement for residential property is 3 months.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 6 條',
+    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.6'
   }
 ];
 
 export async function GET(req: NextRequest) {
   try {
-    // 1. Inspect Authorization Header or Session Cookie from client
+    const { searchParams } = new URL(req.url);
+    const requestedTrack = (searchParams.get('track') || 'EAQE').toUpperCase() as 'EAQE' | 'SQE';
+
+    // 1. Inspect Authorization Header, Session Token, or Supabase Cookie
     const authHeader = req.headers.get('authorization') || '';
-    const token = authHeader.replace('Bearer ', '').trim();
+    const bearerToken = authHeader.replace('Bearer ', '').trim();
 
-    // 2. Inspect Client User Email query/header if passed from Supabase client
-    const clientUserEmail = req.headers.get('x-user-email') || '';
+    // 2. Read explicit user email header passed from client
+    const dynamicClientEmail = (req.headers.get('x-user-email') || '').toLowerCase().trim();
 
-    // Check if the user is an authorized admin builder
-    const isAdmin = ADMIN_EMAILS.includes(clientUserEmail.toLowerCase());
+    // 3. Inspect user tier header passed from client
+    const dynamicClaimedTier = (req.headers.get('x-user-tier') || '').toUpperCase().trim();
 
-    // In a fully deployed Supabase auth system, verify JWT with SUPABASE_JWT_SECRET or supabase.auth.getUser()
-    // For now: full access is granted if isAdmin is true or a valid token is provided
-    const isProUser = isAdmin || token.length > 20;
+    // 4. Resolve Identity: Verify against Admin / Builder bypass list
+    const isAdmin = dynamicClientEmail.length > 0 && ADMIN_EMAILS.includes(dynamicClientEmail);
 
-    if (isProUser) {
-      // Return the full 30 questions with complete details
+    let effectiveTier: UserSubscriptionTier = 'FREE_PREVIEW';
+
+    if (isAdmin) {
+      effectiveTier = 'ADMIN_BUILDER';
+    } else if (dynamicClaimedTier === 'ALL_ACCESS_PRO') {
+      effectiveTier = 'ALL_ACCESS_PRO';
+    } else if (dynamicClaimedTier === 'EAQE_PRO') {
+      effectiveTier = 'EAQE_PRO';
+    } else if (dynamicClaimedTier === 'SQE_PRO') {
+      effectiveTier = 'SQE_PRO';
+    } else if (bearerToken.length > 30 && dynamicClientEmail.length > 0) {
+      // If user has an active session token, determine tier
+      effectiveTier = requestedTrack === 'EAQE' ? 'EAQE_PRO' : 'SQE_PRO';
+    }
+
+    // Determine authorization per track:
+    const isAuthorizedForEAQE =
+      effectiveTier === 'ADMIN_BUILDER' ||
+      effectiveTier === 'ALL_ACCESS_PRO' ||
+      effectiveTier === 'EAQE_PRO';
+
+    const isAuthorizedForSQE =
+      isAuthorizedForEAQE || effectiveTier === 'SQE_PRO';
+
+    const isAuthorizedForRequestedTrack =
+      requestedTrack === 'EAQE' ? isAuthorizedForEAQE : isAuthorizedForSQE;
+
+    // Filter master questions relevant to requested track
+    const trackRelevantQuestions = MASTER_QUESTIONS.filter((q) => {
+      if (requestedTrack === 'SQE') {
+        return q.trackApplicability === 'BOTH' || q.trackApplicability === 'SQE_ONLY';
+      }
+      return q.trackApplicability === 'BOTH' || q.trackApplicability === 'EAQE_ONLY';
+    });
+
+    // If fully authorized for this specific track (or Admin Builder), deliver all content unlocked
+    if (isAuthorizedForRequestedTrack) {
       return NextResponse.json({
         success: true,
-        userTier: isAdmin ? 'ADMIN_BUILDER' : 'PRO_SUBSCRIBER',
-        totalAvailable: MASTER_QUESTIONS_SERVER.length,
-        questions: MASTER_QUESTIONS_SERVER
+        userTier: effectiveTier,
+        requestedTrack,
+        isAuthorized: true,
+        totalAvailable: trackRelevantQuestions.length,
+        questions: trackRelevantQuestions.map((q) => ({
+          ...q,
+          isLocked: false
+        }))
       });
     }
 
-    // FREE / GUEST TIER: Return Q1 - Q10 in full. For Q11 - Q30, return locked metadata stubs
-    const sanitizedQuestions = MASTER_QUESTIONS_SERVER.map((q, idx) => {
+    // IF NOT AUTHORIZED (Free Preview Mode):
+    // Deliver first 10 questions free as diagnostic preview; lock all questions 11+ with upgrade stubs
+    const sanitizedQuestions = trackRelevantQuestions.map((q, idx) => {
       if (idx < 10) {
-        // Questions 1 - 10: Fully visible
         return {
           ...q,
           isLocked: false
         };
-      } else {
-        // Questions 11 - 30: Locked teaser stubs (No questions, options, or answers leak to client)
-        return {
-          id: q.id,
-          part: q.part,
-          topicZh: q.topicZh,
-          topicEn: q.topicEn,
-          statuteRefZh: q.statuteRefZh,
-          statuteRefEn: q.statuteRefEn,
-          isLocked: true,
-          // Placeholder stubs
-          questionZh: '【PRO 專業版專屬考題】此題屬於 EAQE 資格考標準試題。請解鎖專業版以閱覽完整題幹、ABCD 選項及法規解析。',
-          questionEn: '[PRO TIER EXCLUSIVE QUESTION] This official exam item is part of the complete standardized paper. Unlock PRO to inspect question stems, options, and statutory analysis.',
-          optionsZh: [
-            'A. [PRO 專屬選項 - 點擊升級解鎖]',
-            'B. [PRO 專屬選項 - 點擊升級解鎖]',
-            'C. [PRO 專屬選項 - 點擊升級解鎖]',
-            'D. [PRO 專屬選項 - 點擊升級解鎖]'
-          ],
-          optionsEn: [
-            'A. [PRO Locked Option - Unlock to view]',
-            'B. [PRO Locked Option - Unlock to view]',
-            'C. [PRO Locked Option - Unlock to view]',
-            'D. [PRO Locked Option - Unlock to view]'
-          ],
-          answerIndex: 0,
-          explanationZh: '請升級以獲取主考官評分依據與條例解析。',
-          explanationEn: 'Please upgrade to view master examiner statutory analysis.'
-        };
       }
+
+      const requiresEaqeUpgrade = requestedTrack === 'EAQE' && effectiveTier === 'SQE_PRO';
+
+      return {
+        id: q.id,
+        part: q.part,
+        trackApplicability: q.trackApplicability,
+        caseScenarioId: q.caseScenarioId,
+        topicZh: q.topicZh,
+        topicEn: q.topicEn,
+        statuteRefZh: q.statuteRefZh,
+        statuteRefEn: q.statuteRefEn,
+        isLocked: true,
+        lockReason: requiresEaqeUpgrade ? 'REQUIRES_EAQE_UPGRADE' : 'REQUIRES_SUBSCRIPTION',
+        questionZh: requiresEaqeUpgrade
+          ? '【EAQE 大牌專屬試題】此題屬於地產代理（大牌）資格考題。您目前的會籍為 SQE 營業員版，請升級以解鎖全真大牌試卷及商業查冊個案。'
+          : '【PRO 專業版專屬考題】此題屬於標準資格考題。請解鎖專業版以閱覽完整題幹、ABCD 選項及法規解析。',
+        questionEn: requiresEaqeUpgrade
+          ? '[EAQE EXCLUSIVE] This question tests Estate Agent (EAQE) level competency. Your current tier is SQE Salesperson. Upgrade to access full EAQE papers.'
+          : '[PRO TIER EXCLUSIVE QUESTION] This official exam item is part of the complete standardized paper. Unlock PRO to inspect question stems, options, and statutory analysis.',
+        optionsZh: [
+          'A. [PRO 專屬選項 - 點擊升級解鎖]',
+          'B. [PRO 專屬選項 - 點擊升級解鎖]',
+          'C. [PRO 專屬選項 - 點擊升級解鎖]',
+          'D. [PRO 專屬選項 - 點擊升級解鎖]'
+        ],
+        optionsEn: [
+          'A. [PRO Locked Option - Unlock to view]',
+          'B. [PRO Locked Option - Unlock to view]',
+          'C. [PRO Locked Option - Unlock to view]',
+          'D. [PRO Locked Option - Unlock to view]'
+        ],
+        answerIndex: 0,
+        explanationZh: '請升級以獲取主考官評分依據與條例解析。',
+        explanationEn: 'Please upgrade to view master examiner statutory analysis.'
+      };
     });
 
     return NextResponse.json({
       success: true,
-      userTier: 'FREE_PREVIEW',
+      userTier: effectiveTier,
+      requestedTrack,
+      isAuthorized: false,
       freeLimit: 10,
-      totalAvailable: MASTER_QUESTIONS_SERVER.length,
+      totalAvailable: trackRelevantQuestions.length,
       questions: sanitizedQuestions
     });
 
   } catch (err: any) {
-    console.error('Protected Mock Exam API Error:', err);
+    console.error('Tier-Gated Mock Exam API Error:', err);
     return NextResponse.json(
       { error: err.message || 'Internal Server Error' },
       { status: 500 }
