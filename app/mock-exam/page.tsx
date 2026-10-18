@@ -1028,6 +1028,7 @@ export default function MockExamPage() {
     loadQuestions(track);
   }, [track, loadQuestions]);
 
+  /* STREAMING_CHUNK:Looping parallel batch wave logic to fulfill full 100/60 target... */
   const triggerAutomatedAssembly = useCallback(async (targetTotal: number) => {
     const isAuthorized = userTier === 'ADMIN_BUILDER' || userTier.includes('PRO');
     if (!isAuthorized) return;
@@ -1045,8 +1046,7 @@ export default function MockExamPage() {
       'POIM_CASE'
     ];
 
-    // Helper to fetch a single domain batch
-    const fetchBatch = async (domain: ExamDomainBatch, count: number = 5) => {
+    const fetchBatch = async (domain: ExamDomainBatch, count: number = 4) => {
       try {
         const caseCtx = domain === 'POIM_CASE' ? {
           title: CASE_SCENARIOS['case-1'].titleZh,
@@ -1078,16 +1078,17 @@ export default function MockExamPage() {
     };
 
     try {
-      // Step 2 Optimization: Fan-out concurrent requests simultaneously via Promise.all
-      // All 5 domains execute in parallel, cutting total assembly time from 10+ minutes to ~3-5 seconds!
-      const parallelBatches = await Promise.all(
-        domainsSequence.map((domain) => fetchBatch(domain, 5))
-      );
+      let currentTotal = questionsList.length;
 
-      // Flatten incoming batches
-      const incomingQuestions = parallelBatches.flat();
+      // Continuously loop parallel waves until questionsList reaches targetTotal (100 for EAQE, 60 for SQE)
+      while (isStreamingRef.current && currentTotal < targetTotal) {
+        const parallelBatches = await Promise.all(
+          domainsSequence.map((domain) => fetchBatch(domain, 4))
+        );
 
-      if (incomingQuestions.length > 0) {
+        const incomingQuestions = parallelBatches.flat();
+        if (incomingQuestions.length === 0) break; // Terminate if API rate limits or errors out
+
         setQuestionsList((prev) => {
           const highestId = Math.max(...prev.map((q) => q.id), 0);
           const augmented = incomingQuestions.map((q: any, i: number) => ({
@@ -1095,8 +1096,13 @@ export default function MockExamPage() {
             id: highestId + i + 1,
             isLocked: false
           }));
-          return [...prev, ...augmented];
+          const updated = [...prev, ...augmented];
+          currentTotal = updated.length;
+          return updated;
         });
+
+        // Throttle 1 second between waves to protect OpenRouter quotas
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     } catch (err) {
       console.warn('Parallel synthesis error:', err);
@@ -1104,7 +1110,7 @@ export default function MockExamPage() {
       isStreamingRef.current = false;
       setIsBackgroundStreaming(false);
     }
-  }, [userTier, track, isZh]);
+  }, [userTier, track, isZh, questionsList.length]);
 
   const handleSynthesizeBatch = async () => {
     setIsGeneratingBatch(true);
