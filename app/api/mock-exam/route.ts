@@ -34,7 +34,7 @@ export interface MockQuestionServer {
 }
 
 const MASTER_QUESTIONS: MockQuestionServer[] = [
-  // --- PART I: FOUNDATIONAL (BOTH EAQE & SQE) ---
+  // --- PART I: STATUTORY MCQS (Q1 - Q30) ---
   {
     id: 1,
     part: 'I',
@@ -213,64 +213,58 @@ const MASTER_QUESTIONS: MockQuestionServer[] = [
     statuteRefZh: '《防止賄賂條例》Cap. 201 第 9 條',
     statuteRefEn: 'Prevention of Bribery Ordinance Cap. 201 s.9'
   },
-
-  // --- PART II: CASE 1 (RESIDENTIAL PROBATE - BOTH EAQE & SQE) ---
   {
     id: 9,
-    part: 'II',
+    part: 'I',
     trackApplicability: 'BOTH',
-    caseScenarioId: 'case-1',
-    topicZh: '土地查冊 (POIM 業主權限)',
-    topicEn: 'Land Search (POIM Ownership & Probate)',
-    questionZh: '【Part II 個案題 - 個案一】審視 Smart Mansion 查冊報告附件，物業目前由溫先生以「單獨遺囑執行人 (Sole Executor)」登記。在簽署臨時買賣合約及收取樓價訂金時，地產代理 Sunny 最符合法規要求的專業做法為何？',
-    questionEn: '[Part II Case Study - Case 1] Reviewing the Smart Mansion Land Search Annex, the property is registered under Mr. Wan as Sole Executor. When arranging the PASP and deposit payment, which practice is legally correct for agent Sunny?',
+    topicZh: '廣告常規守則 (Cap. 511A s.9)',
+    topicEn: 'Advertising Rules (Cap. 511A s.9)',
+    questionZh: '持牌地產代理在刊登二手住宅物業廣告前，必須取得下列哪一項法定要件方為合法合規？',
+    questionEn: 'Before publishing an advertisement for a second-hand residential property, which statutory requirement must the licensee obtain?',
     optionsZh: [
-      'A. 要求買方將所有首期訂金支票抬頭直接寫給地產代理個人，由代理轉交',
-      'B. 查核已註冊之遺囑認證文件 (Letters of Probate)，確認執行人身份，並安排訂金由賣方律師樓以保證金 (Stakeholder) 方式託管',
-      'C. 遺囑執行人無權出售物業，代理必須直接拒絕簽約',
-      'D. 無需核實遺囑，直接將訂金全數交付溫先生個人銀行戶口'
+      'A. 業主口頭通知即足夠',
+      'B. 經有效簽立之地產代理協議（Form 3）及業主的明確書面准許',
+      'C. 僅需向地產代理監管局報備廣告標題',
+      'D. 只需取得大廈物業管理處通行證'
     ],
     optionsEn: [
-      'A. Direct the purchaser to draw the deposit cheque directly in Sunny’s personal name',
-      'B. Verify the registered Letters of Probate to confirm executor authority, and mandate that initial deposits be held by the vendor’s solicitor as stakeholder',
-      'C. Refuse to execute the transaction, claiming an executor has no statutory capacity to convey title',
-      'D. Release all initial deposit monies immediately into Mr. Wan’s personal bank account'
+      'A. Verbal confirmation from the owner is legally sufficient',
+      'B. A validly executed Estate Agency Agreement (Form 3) and express written authorization from the vendor',
+      'C. Advance submission of advertisement headlines to EAA',
+      'D. A building management pass issued by the estate manager'
     ],
     answerIndex: 1,
-    explanationZh: '單獨遺囑執行人有權處置物業，但因存在清拆命令與潛在債權人風險，地產代理必須查驗已於土地註冊處登記的遺囑認證文書，並極力建議所有訂金以 Stakeholder 方式由律師樓託管，以保障買方利益。',
-    explanationEn: 'A sole executor has statutory power of disposal, but given the UBW and estate debts, the agent must inspect the probate memorial and hold deposits in escrow via vendor solicitor as stakeholder.',
-    statuteRefZh: '《遺囑認證及遺產管理條例》(Cap. 10) 及 EAA 操守守則',
-    statuteRefEn: 'Probate and Administration Ordinance (Cap. 10) & EAA Code'
+    explanationZh: '根據 Cap. 511A 第 9 條，發布任何出售物業廣告前必須已訂立有效 Form 3 出售協議並取得業主之書面指示與同意，且廣告刊登價格不得低於業主指定價。',
+    explanationEn: 'Under Cap. 511A s.9, an agent must have a valid Form 3 agreement and express written consent from the vendor before advertising.',
+    statuteRefZh: '《地產代理常規規例》第 9 條',
+    statuteRefEn: 'Estate Agents Practice Regulations s.9'
   },
   {
     id: 10,
-    part: 'II',
+    part: 'I',
     trackApplicability: 'BOTH',
-    caseScenarioId: 'case-1',
-    topicZh: '違建命令揭示 (Cap. 123 s.24)',
-    topicEn: 'UBW Disclosure & Requisition (Cap. 123)',
-    questionZh: '【Part II 個案題 - 個案一】查冊負擔欄 (Incumbrances) 登記有屋宇署第 24 條清拆命令。地產代理 Sunny 未於簽約前向買方鄧小姐披露並解釋此命令。Sunny 可能違反何項 EAA 操守規定？',
-    questionEn: '[Part II Case Study - Case 1] The Incumbrances section registers a Buildings Dept s.24 Removal Order. Sunny failed to disclose or explain this order before signing. Which EAA statutory duty has Sunny breached?',
+    topicZh: '臨時買賣合約效力 (Contract Law)',
+    topicEn: 'PASP Legal Binding Nature (Contract Law)',
+    questionZh: '在香港物業買賣實務中，買賣雙方簽署的「臨時買賣合約 (PASP)」具備何種法律效力？',
+    questionEn: 'In Hong Kong conveyancing practice, what legal status does a Preliminary Agreement for Sale and Purchase (PASP) hold?',
     optionsZh: [
-      'A. 僅屬於無心之失，法例並無要求代理交代建築物命令',
-      'B. 違反《地產代理常規規例》，未盡應盡的努力 (Due Diligence) 查明並告知買方物業存在產權負擔及按揭風險',
-      'C. 只要買方委聘了律師，代理即完全免除所有物業查證責任',
-      'D. 屋宇署 s.24 清拆令不屬於土地查冊重要事項，無須向買方解釋'
+      'A. 僅屬沒有法律約束力的初步意向書 (Letter of Intent)',
+      'B. 只要符合要約、承諾、對價及法律意圖四大要素，即構成具備完全法律約束力的合法合約',
+      'C. 必須待正式買賣合約簽署後，臨時合約方產生法律效力',
+      'D. 買賣雙方均可隨時無條件撤回而不負任何民事責任'
     ],
     optionsEn: [
-      'A. Pure oversight; agents bear no statutory obligation to explain building orders',
-      'B. Breached Practice Regulations by failing to exercise due diligence to ascertain and disclose encumbrances affecting title and mortgageability',
-      'C. Complete exemption applies once the purchaser engages independent legal representation',
-      'D. Cap. 123 s.24 orders do not constitute material encumbrances under land search rules'
+      'A. Pure non-binding Letter of Intent with no legal enforceability',
+      'B. A fully legally binding contract once offer, acceptance, consideration, and intention to create legal relations are present',
+      'C. Legal effect is held in abeyance until execution of formal Agreement for Sale and Purchase',
+      'D. Either party may retract unilaterally without civil liability'
     ],
     answerIndex: 1,
-    explanationZh: '《地產代理常規規例》第 9(2) 條及 EAA 執業通告明確規定：代理在安排簽約前必須向買方全面披露查冊中登記的未清拆令及 UBW 風險，未作揭示構成嚴重失職及紀律制裁處分。',
-    explanationEn: 'Under Cap. 511A s.9(2) and EAA Practice Circulars, failure to explain a registered s.24 removal order and potential defect in title constitutes gross professional misconduct.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)'
+    explanationZh: '香港判例法確立：臨時買賣合約是完全具約束力的法律文件。除非合約明文載有 Escape Clause（如必買必賣或賠訂限制條款），否則受害方可向法庭申請強制履行合約 (Specific Performance)。',
+    explanationEn: 'Under HK contract law, a PASP is a binding contract. Parties cannot withdraw freely unless an express escape clause applies.',
+    statuteRefZh: '香港普通法合約原則及 EAA 執業指引',
+    statuteRefEn: 'Hong Kong Common Law & EAA Practice Circulars'
   },
-
-  // --- PART I: EAQE ADVANCED / COMMERCIAL / MANAGEMENT (EAQE_ONLY) ---
   {
     id: 11,
     part: 'I',
@@ -375,10 +369,266 @@ const MASTER_QUESTIONS: MockQuestionServer[] = [
     statuteRefZh: '《建築物管理條例》(Cap. 344) 及 Cap. 219 s.41',
     statuteRefEn: 'Building Management Ordinance Cap. 344'
   },
-
-  // --- PART II: CASE 2 (COMMERCIAL FLOATING CHARGE - EAQE_ONLY) ---
   {
     id: 15,
+    part: 'I',
+    trackApplicability: 'EAQE_ONLY',
+    topicZh: '授權書有效性 (Cap. 31)',
+    topicEn: 'Powers of Attorney (Cap. 31)',
+    questionZh: '業主委託受權人簽立物業買賣契約。根據香港《授權書條例》(Cap. 31)，除非屬於不可撤銷之具對價授權書，一般授權書在下列何種法定情況下將自動即時失效？',
+    questionEn: 'Under the Powers of Attorney Ordinance (Cap. 31), in which statutory circumstance is an ordinary power of attorney revoked by operation of law?',
+    optionsZh: [
+      'A. 授權人出國旅遊滿 14 天',
+      'B. 授權人死亡、破產或精神無行為能力 (Mental Incapacity)',
+      'C. 物業估價下跌超過 20%',
+      'D. 買方委任之律師樓更換合夥人'
+    ],
+    optionsEn: [
+      'A. Donor travels abroad for more than 14 days',
+      'B. Donor dies, becomes bankrupt, or suffers mental incapacity',
+      'C. Property market valuation drops by over 20%',
+      'D. The purchaser changes solicitor representation'
+    ],
+    answerIndex: 1,
+    explanationZh: '根據 Cap. 31，普通授權書在授權人身故、破產或失去精神行為能力時自動終止。地產代理安排簽約前必須確認授權書仍完全有效。',
+    explanationEn: 'Under Cap. 31, an ordinary power of attorney terminates automatically upon the donor’s death, bankruptcy, or mental incapacity.',
+    statuteRefZh: '《授權書條例》(Cap. 31) 第 5 條',
+    statuteRefEn: 'Powers of Attorney Ordinance Cap. 31 s.5'
+  },
+  {
+    id: 16,
+    part: 'I',
+    trackApplicability: 'SQE_ONLY',
+    topicZh: '營業員從業權限 (Cap. 511 s.16)',
+    topicEn: 'Salesperson Authority (Cap. 511 s.16)',
+    questionZh: '持牌營業員 (Salesperson Licensee) 在香港地產代理日常執業過程中，下列哪一項行為屬於條例所明確禁止的越權行為？',
+    questionEn: 'Under Cap. 511 s.16, which of the following acts is strictly prohibited for a licensed salesperson acting in that capacity?',
+    optionsZh: [
+      'A. 陪同準買家進行現場實地視察單位',
+      'B. 以獨資經營人 (Sole Proprietor) 或合夥人身分自行經營地產代理業務',
+      'C. 協助客戶填寫 Form 1 物業資料單',
+      'D. 介紹二手租賃盤源予準租客'
+    ],
+    optionsEn: [
+      'A. Accompanying prospective purchasers to conduct site inspections',
+      'B. Carrying on estate agency business on one’s own account as a sole proprietor or partner',
+      'C. Assisting clients to complete Form 1 Property Information Forms',
+      'D. Introducing secondary rental listings to prospective tenants'
+    ],
+    answerIndex: 1,
+    explanationZh: '《地產代理條例》第 16 條規定：營業員牌照持有人僅可受聘於持牌地產代理行工作，嚴禁以獨資或合夥人身分自立門戶經營地產代理業務。',
+    explanationEn: 'Under Cap. 511 s.16, a salesperson is only permitted to perform estate agency work as an employee of a licensed agent and cannot practice on their own account.',
+    statuteRefZh: '《地產代理條例》Cap. 511 第 16 條',
+    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.16'
+  },
+  {
+    id: 17,
+    part: 'I',
+    trackApplicability: 'SQE_ONLY',
+    topicZh: '代理協議有效期 (Cap. 511A s.6)',
+    topicEn: 'Validity of Agency Agreement (Cap. 511A s.6)',
+    questionZh: '根據《地產代理常規規例》，地產代理與住宅物業買方或賣方所簽立的代理協議（Form 3 至 6），其法定有效期限最長不得超過多久？',
+    questionEn: 'Under Cap. 511A s.6, what is the maximum statutory period of validity for prescribed residential agency agreements (Forms 3 to 6)?',
+    optionsZh: ['A. 1 個月', 'B. 3 個月', 'C. 6 個月', 'D. 12 個月'],
+    optionsEn: ['A. 1 Month', 'B. 3 Months', 'C. 6 Months', 'D. 12 Months'],
+    answerIndex: 1,
+    explanationZh: 'Cap. 511A 明確規定，地產代理協議（Form 3, 4, 5, 6）之有效期限最長為 3 個月。期滿若需續約，雙方必須重新簽署協議。',
+    explanationEn: 'Under Cap. 511A, the statutory maximum duration of an estate agency agreement for residential property is 3 months.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 6 條',
+    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.6'
+  },
+  {
+    id: 18,
+    part: 'I',
+    trackApplicability: 'SQE_ONLY',
+    topicZh: '看樓前簽約常規 (Cap. 511A)',
+    topicEn: 'Pre-Inspection Agreement (Cap. 511A)',
+    questionZh: '營業員在帶領準買家進入物業現場視察前，必須要求買家簽署哪一份法定表格，以確立委任代理關係並訂明佣金條款？',
+    questionEn: 'Before leading a prospective buyer to inspect a residential property, which statutory agreement must the salesperson execute with the buyer?',
+    optionsZh: [
+      'A. 表格一 (Form 1)',
+      'B. 表格四 (Form 4 - 購買香港住宅物業地產代理協議)',
+      'C. 表格五 (Form 5)',
+      'D. 僅需出示名片無需簽立任何表格'
+    ],
+    optionsEn: [
+      'A. Form 1',
+      'B. Form 4 (Estate Agency Agreement for Purchase of Residential Property)',
+      'C. Form 5',
+      'D. Business card presentation only with no written agreement'
+    ],
+    answerIndex: 1,
+    explanationZh: '《地產代理常規規例》規定代理人在引導買家睇樓前，必須簽署 Form 4，清楚訂明佣金收費率、委託期限及雙重代理披露。',
+    explanationEn: 'Under Cap. 511A, agents must execute Form 4 with buyers prior to property inspection.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A 表格四',
+    statuteRefEn: 'Estate Agents Practice Regulations Form 4'
+  },
+  {
+    id: 19,
+    part: 'I',
+    trackApplicability: 'BOTH',
+    topicZh: '破產條例與物業交易 (Cap. 6)',
+    topicEn: 'Bankruptcy & Conveyancing (Cap. 6)',
+    questionZh: '若賣方在簽署正式買賣合約前已被債權人提交破產呈請 (Bankruptcy Petition)。地產代理知悉後，最妥善之專業處理為何？',
+    questionEn: 'If a vendor is subject to a pending Bankruptcy Petition prior to signing formal ASP, what is the agent’s correct professional duty?',
+    optionsZh: [
+      'A. 隱瞞該呈請並敦促買方即日繳付全數樓價',
+      'B. 立即通知買方及律師，並建議所有訂金由買方律師託管，因破產呈請後的處置可能被破產管理署判定無效',
+      'C. 代理可自行扣起 20% 作為佣金保障',
+      'D. 破產呈請對物業產權毫無影響，無需處理'
+    ],
+    optionsEn: [
+      'A. Conceal the petition and urge buyer to pay full price immediately',
+      'B. Immediately notify buyer and solicitor; advise deposit stakeholding as dispositions post-petition are void against trustee in bankruptcy',
+      'C. Agent unilaterally retains 20% commission safeguard',
+      'D. Petitions bear no effect on conveyancing title'
+    ],
+    answerIndex: 1,
+    explanationZh: '《破產條例》(Cap. 6) 規定破產呈請後債務人之財產處置可能無效。代理有受信責任提醒買方潛在業權陷阱並建議訂金由律師託管。',
+    explanationEn: 'Under Cap. 6, dispositions after a petition are void against the trustee in bankruptcy. Stakeholding and title warnings are mandatory.',
+    statuteRefZh: '《破產條例》(Cap. 6) 及 EAA 操守準則',
+    statuteRefEn: 'Bankruptcy Ordinance Cap. 6 & EAA Code'
+  },
+  {
+    id: 20,
+    part: 'I',
+    trackApplicability: 'BOTH',
+    topicZh: '個人資料（私隱）條例 (Cap. 486)',
+    topicEn: 'Personal Data Protection (Cap. 486)',
+    questionZh: '地產代理收集準買家之身份證副本及入息證明後，下列哪一項行為違反《個人資料（私隱）條例》(Cap. 486)？',
+    questionEn: 'Under the Personal Data (Privacy) Ordinance (Cap. 486), which of the following acts by an estate agent is illegal?',
+    optionsZh: [
+      'A. 僅供申請按揭用途使用',
+      'B. 未得客戶明確書面同意，將客戶個人電話號碼轉售予裝修公司作直銷推廣',
+      'C. 存放於設有密碼之代理行伺服器',
+      'D. 交易完成後按法定要求妥善存檔保存'
+    ],
+    optionsEn: [
+      'A. Use strictly for bank mortgage application',
+      'B. Disclosing or selling client phone contacts to renovation contractors for direct marketing without explicit consent',
+      'C. Encrypting data on agency secure servers',
+      'D. Retaining records according to statutory rules'
+    ],
+    answerIndex: 1,
+    explanationZh: 'Cap. 486 嚴禁在未經當事人明確同意下將個人資料用於直銷 (Direct Marketing) 或移轉第三方，違者屬嚴重刑事罪行。',
+    explanationEn: 'Under Cap. 486, unauthorized disclosure of client personal data for direct marketing is a serious criminal offence.',
+    statuteRefZh: '《個人資料（私隱）條例》Cap. 486 第 35 條',
+    statuteRefEn: 'Personal Data (Privacy) Ordinance Cap. 486 s.35'
+  },
+
+  // --- PART II: CASE 1 (SMART MANSION PROBATE & BD S.24 ORDER - Q31 to Q40) ---
+  {
+    id: 31,
+    part: 'II',
+    trackApplicability: 'BOTH',
+    caseScenarioId: 'case-1',
+    topicZh: '土地查冊 (POIM 業主權限)',
+    topicEn: 'Land Search (POIM Ownership & Probate)',
+    questionZh: '【Part II 個案題 - 個案一】審視 Smart Mansion 查冊報告附件，物業目前由溫先生以「單獨遺囑執行人 (Sole Executor)」登記。在簽署臨時買賣合約及收取樓價訂金時，地產代理 Sunny 最符合法規要求的專業做法為何？',
+    questionEn: '[Part II Case Study - Case 1] Reviewing the Smart Mansion Land Search Annex, the property is registered under Mr. Wan as Sole Executor. When arranging the PASP and deposit payment, which practice is legally correct for agent Sunny?',
+    optionsZh: [
+      'A. 要求買方將所有首期訂金支票抬頭直接寫給地產代理個人，由代理轉交',
+      'B. 查核已註冊之遺囑認證文件 (Letters of Probate)，確認執行人身份，並安排訂金由賣方律師樓以保證金 (Stakeholder) 方式託管',
+      'C. 遺囑執行人無權出售物業，代理必須直接拒絕簽約',
+      'D. 無需核實遺囑，直接將訂金全數交付溫先生個人銀行戶口'
+    ],
+    optionsEn: [
+      'A. Direct the purchaser to draw the deposit cheque directly in Sunny’s personal name',
+      'B. Verify the registered Letters of Probate to confirm executor authority, and mandate that initial deposits be held by the vendor’s solicitor as stakeholder',
+      'C. Refuse to execute the transaction, claiming an executor has no statutory capacity to convey title',
+      'D. Release all initial deposit monies immediately into Mr. Wan’s personal bank account'
+    ],
+    answerIndex: 1,
+    explanationZh: '單獨遺囑執行人有權處置物業，但因存在清拆命令與潛在債權人風險，地產代理必須查驗已於土地註冊處登記的遺囑認證文書，並極力建議所有訂金以 Stakeholder 方式由律師樓託管，以保障買方利益。',
+    explanationEn: 'A sole executor has statutory power of disposal, but given the UBW and estate debts, the agent must inspect the probate memorial and hold deposits in escrow via vendor solicitor as stakeholder.',
+    statuteRefZh: '《遺囑認證及遺產管理條例》(Cap. 10) 及 EAA 操守守則',
+    statuteRefEn: 'Probate and Administration Ordinance (Cap. 10) & EAA Code'
+  },
+  {
+    id: 32,
+    part: 'II',
+    trackApplicability: 'BOTH',
+    caseScenarioId: 'case-1',
+    topicZh: '違建命令揭示 (Cap. 123 s.24)',
+    topicEn: 'UBW Disclosure & Requisition (Cap. 123)',
+    questionZh: '【Part II 個案題 - 個案一】查冊負擔欄 (Incumbrances) 登記有屋宇署第 24 條清拆命令。地產代理 Sunny 未於簽約前向買方鄧小姐披露並解釋此命令。Sunny 可能違反何項 EAA 操守規定？',
+    questionEn: '[Part II Case Study - Case 1] The Incumbrances section registers a Buildings Dept s.24 Removal Order. Sunny failed to disclose or explain this order before signing. Which EAA statutory duty has Sunny breached?',
+    optionsZh: [
+      'A. 僅屬於無心之失，法例並無要求代理交代建築物命令',
+      'B. 違反《地產代理常規規例》，未盡應盡的努力 (Due Diligence) 查明並告知買方物業存在產權負擔及按揭風險',
+      'C. 只要買方委聘了律師，代理即完全免除所有物業查證責任',
+      'D. 屋宇署 s.24 清拆令不屬於土地查冊重要事項，無須向買方解釋'
+    ],
+    optionsEn: [
+      'A. Pure oversight; agents bear no statutory obligation to explain building orders',
+      'B. Breached Practice Regulations by failing to exercise due diligence to ascertain and disclose encumbrances affecting title and mortgageability',
+      'C. Complete exemption applies once the purchaser engages independent legal representation',
+      'D. Cap. 123 s.24 orders do not constitute material encumbrances under land search rules'
+    ],
+    answerIndex: 1,
+    explanationZh: '《地產代理常規規例》第 9(2) 條及 EAA 執業通告明確規定：代理在安排簽約前必須向買方全面披露查冊中登記的未清拆令及 UBW 風險，未作揭示構成嚴重失職及紀律制裁處分。',
+    explanationEn: 'Under Cap. 511A s.9(2) and EAA Practice Circulars, failure to explain a registered s.24 removal order and potential defect in title constitutes gross professional misconduct.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
+    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)'
+  },
+  {
+    id: 33,
+    part: 'II',
+    trackApplicability: 'BOTH',
+    caseScenarioId: 'case-1',
+    topicZh: '按揭代理解釋責任 (Cap. 219)',
+    topicEn: 'Mortgage & Legal Charge Requisitions',
+    questionZh: '【Part II 個案題 - 個案一】查冊中登記之恆生銀行按揭 (Memorial UB44012) 仍未解除。在簽立合約時，合約條款通常如何確保買方在成交時取得優良業權 (Good Title)？',
+    questionEn: '[Part II Case Study - Case 1] Memorial UB44012 Legal Charge is undischarged. How does the contract ensure the purchaser receives good title upon completion?',
+    optionsZh: [
+      'A. 買方必須連同該未償還按揭一併承受',
+      'B. 賣方承諾在完成交易當日或之前，出具由銀行簽立之解除法定押記契據 (Deed of Release / Receipt)',
+      'C. 銀行按揭在簽約後自動宣告無效',
+      'D. 買方需向土地註冊處直接支付代價'
+    ],
+    optionsEn: [
+      'A. Purchaser must take title subject to existing legal charge',
+      'B. Vendor undertakes to deliver a valid Deed of Release or receipt discharging the charge upon completion',
+      'C. Charges void automatically upon execution of PASP',
+      'D. Purchaser pays consideration directly to Land Registry'
+    ],
+    answerIndex: 1,
+    explanationZh: '賣方有合約義務提供無產權負擔的優良業權，成交時必須提供有效 Deed of Release 解除按揭。',
+    explanationEn: 'Vendors are contractually bound to deliver title free from encumbrances via an executed Deed of Release upon completion.',
+    statuteRefZh: '《物業轉易及物業條例》(Cap. 219)',
+    statuteRefEn: 'Conveyancing and Property Ordinance Cap. 219'
+  },
+  {
+    id: 34,
+    part: 'II',
+    trackApplicability: 'BOTH',
+    caseScenarioId: 'case-1',
+    topicZh: '清拆令還原費用承擔 (Contract Terms)',
+    topicEn: 'Apportionment of Rectification Costs',
+    questionZh: '【Part II 個案題 - 個案一】合約若未有明文特約條款，對於簽約前已登記的屋宇署清拆令之還原工程費用，法律責任原則上歸於何方？',
+    questionEn: '[Part II Case Study - Case 1] In the absence of an express special condition, who is legally responsible for rectification costs of a pre-existing registered s.24 order?',
+    optionsZh: [
+      'A. 賣方負全責在完成前清拆還原並註銷命令',
+      'B. 買方在簽約後自動無條件承擔所有費用',
+      'C. 地產代理承擔 50% 維修費',
+      'D. 建築事務監督承擔全部工程開支'
+    ],
+    optionsEn: [
+      'A. Vendor bears full legal responsibility to rectify and discharge prior to completion',
+      'B. Purchaser assumes all expenses unconditionally upon signing',
+      'C. Estate agency contributes 50% of remedial costs',
+      'D. Building Authority finances the entire remediation'
+    ],
+    answerIndex: 0,
+    explanationZh: '合約簽立前已存在的建築命令屬產權瑕疵，賣方有責任完成前清拆還原並向屋宇署取得滿意紙註銷命令，否則買方律師有權提出業權質詢 (Requisition on Title)。',
+    explanationEn: 'Pre-existing building orders constitute defects in title; the vendor must remediate at their own cost to satisfy requisitions.',
+    statuteRefZh: '普通法轉易原則及物業買賣標準條件',
+    statuteRefEn: 'Standard Conditions of Sale & Title Law'
+  },
+
+  // --- PART II: CASE 2 (CENTRAL COMMERCIAL TOWER - Q41 to Q50) ---
+  {
+    id: 41,
     part: 'II',
     trackApplicability: 'EAQE_ONLY',
     caseScenarioId: 'case-2',
@@ -405,7 +655,7 @@ const MASTER_QUESTIONS: MockQuestionServer[] = [
     statuteRefEn: 'Companies Ordinance Cap. 622 s.335 & EAA Guidelines'
   },
   {
-    id: 16,
+    id: 42,
     part: 'II',
     trackApplicability: 'EAQE_ONLY',
     caseScenarioId: 'case-2',
@@ -431,49 +681,59 @@ const MASTER_QUESTIONS: MockQuestionServer[] = [
     statuteRefZh: '《公司條例》(Cap. 622) 第 127 條',
     statuteRefEn: 'Companies Ordinance Cap. 622 s.127'
   },
-
-  // --- PART I: SQE ADDITIONAL MCQS (SQE_ONLY / BOTH EXPANSION) ---
   {
-    id: 17,
-    part: 'I',
-    trackApplicability: 'SQE_ONLY',
-    topicZh: '營業員從業權限 (Cap. 511 s.16)',
-    topicEn: 'Salesperson Authority (Cap. 511 s.16)',
-    questionZh: '持牌營業員 (Salesperson Licensee) 在香港地產代理日常執業過程中，下列哪一項行為屬於條例所明確禁止的越權行為？',
-    questionEn: 'Under Cap. 511 s.16, which of the following acts is strictly prohibited for a licensed salesperson acting in that capacity?',
+    id: 43,
+    part: 'II',
+    trackApplicability: 'EAQE_ONLY',
+    caseScenarioId: 'case-2',
+    topicZh: '商業物業印花稅及過戶 (Cap. 117)',
+    topicEn: 'Stamp Duty on Non-Residential Property',
+    questionZh: '【Part II 個案題 - 個案二】中環商業寫字樓成交價 3,800 萬港元。根據香港《印花稅條例》(Cap. 117)，買方律師在計算非住宅物業從價印花稅 (AVD Scale 2) 時，該契約應於何時交付印花稅署加蓋印花？',
+    questionEn: '[Part II Case Study - Case 2] Purchase price is HK$38M. Under Cap. 117, when must the agreement be stamped?',
     optionsZh: [
-      'A. 陪同準買家進行現場實地視察單位',
-      'B. 以獨資經營人 (Sole Proprietor) 或合夥人身分自行經營地產代理業務',
-      'C. 協助客戶填寫 Form 1 物業資料單',
-      'D. 介紹二手租賃盤源予準租客'
+      'A. 必須於簽署臨時買賣合約後 14 天內交付加蓋印花',
+      'B. 正式買賣合約簽署後 30 天內加蓋印花',
+      'C. 可延遲至交易完成後 1 年內',
+      'D. 商業物業永久豁免加蓋印花稅'
     ],
     optionsEn: [
-      'A. Accompanying prospective purchasers to conduct site inspections',
-      'B. Carrying on estate agency business on one’s own account as a sole proprietor or partner',
-      'C. Assisting clients to complete Form 1 Property Information Forms',
-      'D. Introducing secondary rental listings to prospective tenants'
+      'A. Within 14 days of PASP execution',
+      'B. Within 30 days of formal agreement execution',
+      'C. Deferred up to 1 year post-completion',
+      'D. Non-residential properties are permanently exempt'
     ],
     answerIndex: 1,
-    explanationZh: '《地產代理條例》第 16 條規定：營業員牌照持有人僅可受聘於持牌地產代理行工作，嚴禁以獨資或合夥人身分自立門戶經營地產代理業務。',
-    explanationEn: 'Under Cap. 511 s.16, a salesperson is only permitted to perform estate agency work as an employee of a licensed agent and cannot practice on their own account.',
-    statuteRefZh: '《地產代理條例》Cap. 511 第 16 條',
-    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.16'
+    explanationZh: '非住宅物業買賣合約須於簽立後 30 天內交付印花稅署加蓋從價印花稅 (AVD Scale 2)。',
+    explanationEn: 'Under Cap. 117, agreements for non-residential properties must be stamped within 30 days of execution.',
+    statuteRefZh: '《印花稅條例》(Cap. 117) 第 19 條',
+    statuteRefEn: 'Stamp Duty Ordinance Cap. 117 s.19'
   },
   {
-    id: 18,
-    part: 'I',
-    trackApplicability: 'SQE_ONLY',
-    topicZh: '代理協議有效期 (Cap. 511A s.6)',
-    topicEn: 'Validity of Agency Agreement (Cap. 511A s.6)',
-    questionZh: '根據《地產代理常規規例》，地產代理與住宅物業買方或賣方所簽立的代理協議（Form 3 至 6），其法定有效期限最長不得超過多久？',
-    questionEn: 'Under Cap. 511A s.6, what is the maximum statutory period of validity for prescribed residential agency agreements (Forms 3 to 6)?',
-    optionsZh: ['A. 1 個月', 'B. 3 個月', 'C. 6 個月', 'D. 12 個月'],
-    optionsEn: ['A. 1 Month', 'B. 3 Months', 'C. 6 Months', 'D. 12 Months'],
+    id: 44,
+    part: 'II',
+    trackApplicability: 'EAQE_ONLY',
+    caseScenarioId: 'case-2',
+    topicZh: '大廈公契商業用途限制 (DMC Permitted Use)',
+    topicEn: 'DMC Permitted User Covenants',
+    questionZh: '【Part II 個案題 - 個案二】買方擬將中環寫字樓改建為醫療診所或零售補習社。地產代理 Ken 在推介時最應查驗下列哪項法定文件，以防違反公契及法定用途限制？',
+    questionEn: '[Part II Case Study - Case 2] Purchaser intends to convert office into medical clinic or retail tutoring. Which document must agent Ken verify regarding permitted user?',
+    optionsZh: [
+      'A. 僅需物業宣傳單張',
+      'B. 查閱大廈公契 (DMC) 條款、入伙紙 (Occupation Permit) 及政府租契 (Government Lease) 之用途限制',
+      'C. 鄰近商業大廈管業處通告',
+      'D. 僅需查詢賣方口頭意向'
+    ],
+    optionsEn: [
+      'A. Promotional brochures only',
+      'B. Terms of the Deed of Mutual Covenant (DMC), Occupation Permit (OP), and Government Lease user clauses',
+      'C. Notices issued by neighboring management offices',
+      'D. Oral representations from the vendor'
+    ],
     answerIndex: 1,
-    explanationZh: 'Cap. 511A 明確規定，地產代理協議（Form 3, 4, 5, 6）之有效期限最長為 3 個月。期滿若需續約，雙方必須重新簽署協議。',
-    explanationEn: 'Under Cap. 511A, the statutory maximum duration of an estate agency agreement for residential property is 3 months.',
-    statuteRefZh: '《地產代理常規規例》Cap. 511A 第 6 條',
-    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.6'
+    explanationZh: '物業改動用途必須符合三重限制：政府租契、大廈公契 (DMC) 及入伙紙 (OP)。代理有責任查核相關條款並提醒買方申請指明牌照。',
+    explanationEn: 'Permitted user is governed triple-fold by Government Lease, DMC, and Occupation Permit. Verification is an essential duty.',
+    statuteRefZh: '《建築物條例》(Cap. 123) 及公契法規',
+    statuteRefEn: 'Buildings Ordinance Cap. 123 & DMC Law'
   }
 ];
 
@@ -506,7 +766,6 @@ export async function GET(req: NextRequest) {
     } else if (dynamicClaimedTier === 'SQE_PRO') {
       effectiveTier = 'SQE_PRO';
     } else if (bearerToken.length > 30 && dynamicClientEmail.length > 0) {
-      // If user has an active session token, determine tier
       effectiveTier = requestedTrack === 'EAQE' ? 'EAQE_PRO' : 'SQE_PRO';
     }
 
