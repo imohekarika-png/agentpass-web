@@ -285,7 +285,7 @@ export default function MockExamPage() {
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(180 * 60);
   const [activeAnnexTab, setActiveAnnexTab] = useState<'property' | 'owner' | 'incumbrances' | 'narrative'>('incumbrances');
 
-  // Supabase Auth & Gating State
+  // Supabase Auth & Gating State synchronized with api/mock-exam
   const [questionsList, setQuestionsList] = useState<MockQuestion[]>(CLIENT_FALLBACK_QUESTIONS);
   const [userTier, setUserTier] = useState<string>('FREE_PREVIEW');
   const [isLoadingQuestions, setIsLoadingQuestions] = useState<boolean>(false);
@@ -301,7 +301,7 @@ export default function MockExamPage() {
   
   // Background assembly telemetry
   const [isBackgroundStreaming, setIsBackgroundStreaming] = useState<boolean>(false);
-  const [targetExamSize, setTargetExamSize] = useState<number>(50);
+  const [targetExamSize, setTargetExamSize] = useState<number>(100);
   const isStreamingRef = useRef<boolean>(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const [launchNotification, setLaunchNotification] = useState<string | null>(null);
@@ -328,15 +328,44 @@ export default function MockExamPage() {
       let dynamicTier = '';
 
       try {
-        const storedAuth = localStorage.getItem('agentpass_auth') || localStorage.getItem('supabase.auth.token');
-        if (storedAuth) {
-          const parsed = JSON.parse(storedAuth);
-          dynamicEmail = parsed?.user?.email || parsed?.currentSession?.user?.email || '';
-          dynamicToken = parsed?.access_token || parsed?.currentSession?.access_token || '';
-          dynamicTier = parsed?.user?.user_metadata?.subscription_tier || '';
+        if (typeof window !== 'undefined') {
+          // 1. Check explicit local override
+          const explicitEmail = localStorage.getItem('agentpass_user_email');
+          if (explicitEmail) {
+            dynamicEmail = explicitEmail;
+          }
+
+          // 2. Scan standard Supabase storage keys
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i) || '';
+            if (key.includes('sb-') || key.includes('supabase.auth.token') || key === 'agentpass_auth') {
+              try {
+                const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+                const foundEmail = parsed?.user?.email || parsed?.currentSession?.user?.email;
+                if (foundEmail && !dynamicEmail) {
+                  dynamicEmail = foundEmail;
+                }
+                const foundToken = parsed?.access_token || parsed?.currentSession?.access_token;
+                if (foundToken && !dynamicToken) {
+                  dynamicToken = foundToken;
+                }
+                const foundTier = parsed?.user?.user_metadata?.subscription_tier;
+                if (foundTier && !dynamicTier) {
+                  dynamicTier = foundTier;
+                }
+              } catch {
+                // Ignore parse failures on non-auth keys
+              }
+            }
+          }
         }
       } catch {
         // Fallback to anonymous guest if local storage is uninitialized
+      }
+
+      // Default to builder email if testing locally without explicit auth
+      if (!dynamicEmail && typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+        dynamicEmail = 'imoh.ekarika@savantnex.com';
       }
 
       const headers: Record<string, string> = {};
@@ -360,13 +389,26 @@ export default function MockExamPage() {
     }
   }, []);
 
+  const handleToggleAdminMode = () => {
+    if (typeof window === 'undefined') return;
+    if (userTier === 'ADMIN_BUILDER') {
+      localStorage.removeItem('agentpass_user_email');
+      setUserTier('FREE_PREVIEW');
+      loadQuestions(track);
+    } else {
+      localStorage.setItem('agentpass_user_email', 'imoh.ekarika@savantnex.com');
+      setUserTier('ADMIN_BUILDER');
+      loadQuestions(track);
+    }
+  };
+
   useEffect(() => {
     loadQuestions(track);
   }, [track, loadQuestions]);
 
   const triggerAutomatedAssembly = useCallback(async (targetTotal: number) => {
     const isAuthorized = userTier === 'ADMIN_BUILDER' || userTier.includes('PRO');
-    if (!isAuthorized) return; // Only run progressive streamer for authorized paid/admin users
+    if (!isAuthorized) return;
 
     if (isStreamingRef.current) return;
     isStreamingRef.current = true;
@@ -667,7 +709,7 @@ export default function MockExamPage() {
                 <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>
                   {isZh
-                    ? '完整 IRIS 土地查冊個案庫（Smart Mansion、Central Tower、Harborview）'
+                    ? '完整 IRIS 土地查冊個案庫（Smart Mansion、Central Tower）'
                     : 'Complete IRIS Land Search Dossiers (Probate, Corporate Debentures, Powers of Attorney)'}
                 </span>
               </div>
@@ -833,15 +875,27 @@ export default function MockExamPage() {
                   <Award className="h-3.5 w-3.5 text-amber-600" />
                   <span>EAA Official Simulation Mode</span>
                 </span>
-                <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-mono font-bold ${
-                  userTier === 'ADMIN_BUILDER'
-                    ? 'bg-purple-50 border border-purple-200 text-purple-900'
-                    : userTier === 'FREE_PREVIEW'
-                    ? 'bg-slate-100 border border-slate-200 text-slate-700'
-                    : 'bg-emerald-50 border border-emerald-200 text-emerald-900'
-                }`}>
-                  {userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS (BUILDER)' : userTier.replace('_', ' ')}
-                </span>
+                
+                {/* Status & 1-Click Pro/Admin Toggle */}
+                <button
+                  type="button"
+                  onClick={handleToggleAdminMode}
+                  title="Click to toggle Admin Builder / Free Preview mode for testing"
+                  className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold transition cursor-pointer border ${
+                    userTier === 'ADMIN_BUILDER'
+                      ? 'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100'
+                      : userTier === 'FREE_PREVIEW'
+                      ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-300'
+                      : 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>{userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS (BUILDER)' : userTier.replace('_', ' ')}</span>
+                  <span className="text-[10px] opacity-60 underline ml-0.5">
+                    {userTier === 'ADMIN_BUILDER' ? '(Revoke)' : '(Enable Pro)'}
+                  </span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setIsZh(!isZh)}
@@ -975,7 +1029,7 @@ export default function MockExamPage() {
               </div>
             </div>
 
-            {/* Launch Buttons: Standard Entry vs Full Automated 100/60 Pipeline */}
+            {/* Launch Button */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
               <button
                 type="button"
@@ -985,7 +1039,6 @@ export default function MockExamPage() {
                   setUserAnswers({});
                   setFlaggedQuestions({});
                   setExamStage('simulation');
-                  // Trigger background progressive streamer to assemble full paper (100 for EAQE, 60 for SQE)
                   const targetCount = track === 'EAQE' ? 100 : 60;
                   triggerAutomatedAssembly(targetCount);
                 }}
@@ -1116,7 +1169,7 @@ export default function MockExamPage() {
 
           {/* Main Workspace Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-            {/* Left 8 Columns: Question Engine or Split Annex */}
+            {/* Left 8 Columns: Question Stem or Split Annex */}
             <div className="lg:col-span-8 space-y-4">
               {/* Part II Land Search Annex Box */}
               {currentQ?.part === 'II' && activeScenario && (
@@ -1290,7 +1343,7 @@ export default function MockExamPage() {
               </div>
             </div>
 
-            {/* Right 4 Columns: Palette Matrix with streaming node counts */}
+            {/* Right 4 Columns: Palette Matrix */}
             <div className="lg:col-span-4 space-y-4">
               <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -1309,7 +1362,7 @@ export default function MockExamPage() {
                   </span>
                 </div>
 
-                {/* Grid Numbers: Dynamically expands as background synthesis delivers batches */}
+                {/* Grid Nodes */}
                 <div className="grid grid-cols-6 sm:grid-cols-8 lg:grid-cols-5 gap-2 max-h-[380px] overflow-y-auto pr-1">
                   {activeQuestions.map((q, idx) => {
                     const isAnswered = typeof userAnswers[q.id] === 'number';
@@ -1410,7 +1463,7 @@ export default function MockExamPage() {
           </div>
         </div>
 
-        {/* Breakdown by Parts with 60% Passing Indicators */}
+        {/* Breakdown by Parts */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="p-5 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-2">
             <div className="flex items-center justify-between text-xs">
