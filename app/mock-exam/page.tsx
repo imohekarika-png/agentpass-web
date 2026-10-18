@@ -243,6 +243,9 @@ export default function MockExamPage() {
   const [targetExamSize, setTargetExamSize] = useState<number>(100);
   const [launchNotification, setLaunchNotification] = useState<string | null>(null);
 
+  // --- REFS DECLARATION FOR TIMER & ASSEMBLY STREAMER ---
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const isStreamingRef = useRef<boolean>(false);
   const questionTopRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToQuestionTop = () => {
@@ -286,7 +289,6 @@ export default function MockExamPage() {
     }
   }, []);
 
-  // FIXED: 1-Click Admin Builder Mode Toggle with Immediate LocalStorage Synchronization
   const handleToggleAdminMode = () => {
     if (typeof window === 'undefined') return;
 
@@ -300,7 +302,6 @@ export default function MockExamPage() {
       setUserTier('ADMIN_BUILDER');
     }
 
-    // Force instant refetch with updated email header
     setTimeout(() => {
       loadQuestions(track);
     }, 50);
@@ -843,7 +844,7 @@ export default function MockExamPage() {
               </div>
               <div className="space-y-1">
                 <span className="text-slate-500 block font-mono">{isZh ? '即時就緒' : 'Immediate Questions'}</span>
-                <span className="font-extrabold text-slate-900 text-sm">{questionsList.length} 題 (即時就緒)</span>
+                <span className="font-extrabold text-slate-900 text-sm">{questionsList.length} 題</span>
               </div>
               <div className="space-y-1">
                 <span className="text-slate-500 block font-mono">{isZh ? '全真模擬目標' : 'Full Sim Target'}</span>
@@ -980,6 +981,7 @@ export default function MockExamPage() {
               <button
                 type="button"
                 onClick={() => {
+                  if (timerRef.current) clearInterval(timerRef.current);
                   setExamStage('report');
                 }}
                 className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition cursor-pointer"
@@ -1182,6 +1184,11 @@ export default function MockExamPage() {
                     <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
                       {isZh ? `${track} 試題導覽調色板` : `${track} Palette Matrix`}
                     </h4>
+                    {isBackgroundStreaming && (
+                      <span className="text-[10px] text-indigo-600 font-mono font-bold block">
+                        Streaming {questionsList.length} of {targetExamSize} Qs
+                      </span>
+                    )}
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-500">
                     {totalAnswered}/{questionsList.length}
