@@ -243,9 +243,7 @@ export default function MockExamPage() {
   const [targetExamSize, setTargetExamSize] = useState<number>(100);
   const [launchNotification, setLaunchNotification] = useState<string | null>(null);
 
-  // --- REFS DECLARATION FOR TIMER & ASSEMBLY STREAMER ---
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const isStreamingRef = useRef<boolean>(false);
   const questionTopRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToQuestionTop = () => {
@@ -703,7 +701,7 @@ export default function MockExamPage() {
                   <span>EAA Official Simulation Mode</span>
                 </span>
                 
-                {/* Status & 1-Click Pro/Admin Toggle Button */}
+                {/* Status & 1-Click Pro/Admin Toggle */}
                 <button
                   type="button"
                   onClick={handleToggleAdminMode}
@@ -1184,11 +1182,6 @@ export default function MockExamPage() {
                     <h4 className="text-xs font-mono font-bold text-slate-700 uppercase tracking-wider">
                       {isZh ? `${track} 試題導覽調色板` : `${track} Palette Matrix`}
                     </h4>
-                    {isBackgroundStreaming && (
-                      <span className="text-[10px] text-indigo-600 font-mono font-bold block">
-                        Streaming {questionsList.length} of {targetExamSize} Qs
-                      </span>
-                    )}
                   </div>
                   <span className="text-xs font-mono font-bold text-slate-500">
                     {totalAnswered}/{questionsList.length}
