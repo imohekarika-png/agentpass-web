@@ -149,10 +149,11 @@ export default function AiTutorWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-indigo-600 px-4 py-3 text-white shadow-lg transition-all hover:bg-indigo-700 hover:scale-105 cursor-pointer"
+          // Softened the floating CTA background and shadow for dark mode aesthetics
+          className="flex items-center gap-2 rounded-full bg-indigo-500 px-4 py-3 text-white shadow-lg shadow-indigo-900/40 transition-all hover:bg-indigo-400 hover:scale-105 cursor-pointer"
         >
-          <Sparkles className="h-5 w-5 text-yellow-300" />
-          <span className="text-sm font-semibold">
+          <Sparkles className="h-5 w-5 text-indigo-50" />
+          <span className="text-sm font-semibold tracking-wide">
             {isZh ? 'AI 導師提問' : 'Ask AI Tutor'}
           </span>
         </button>
@@ -163,12 +164,13 @@ export default function AiTutorWidget() {
           {/* Header */}
           <div className="flex items-center justify-between rounded-t-2xl bg-slate-800 px-4 py-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600">
-                <Bot className="h-5 w-5 text-white" />
+              {/* Refined Header Avatar: Soft translucent background */}
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/20 border border-indigo-500/30">
+                <Bot className="h-5 w-5 text-indigo-400" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">AgentPass™ AI Tutor</h3>
-                <p className="text-xs text-slate-400">
+                <h3 className="text-sm font-bold text-slate-100">AgentPass™ AI Tutor</h3>
+                <p className="text-xs text-slate-400 font-medium">
                   {isZh ? 'EAQE / SQE 條例導師' : 'EAQE / SQE Assistant'}
                 </p>
               </div>
@@ -249,19 +251,22 @@ export default function AiTutorWidget() {
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {m.role !== 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-600">
-                    <Bot className="h-4 w-4 text-white" />
+                  // Softened AI chat avatar
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-500/20 border border-indigo-500/30 mt-0.5">
+                    <Bot className="h-4 w-4 text-indigo-400" />
                   </div>
                 )}
                 <div
-                  className={`rounded-xl px-3.5 py-2 max-w-[85%] text-xs leading-relaxed ${
+                  className={`rounded-xl px-3.5 py-2 max-w-[85%] text-xs leading-relaxed shadow-sm transition-all ${
                     m.role === 'user'
-                      ? 'bg-indigo-600 text-white rounded-br-none'
-                      : 'bg-slate-800 text-slate-200 border border-slate-700 rounded-bl-none'
+                      // FIXED: User Bubble now uses translucent glassmorphism (bg-indigo-500/15) with soft border and crisp text (text-indigo-50)
+                      ? 'bg-indigo-500/15 text-indigo-50 border border-indigo-500/20 rounded-br-none font-medium'
+                      // AI Bubble remains grounded in deep slate
+                      : 'bg-slate-800/80 text-slate-200 border border-slate-700 rounded-bl-none'
                   }`}
                 >
                   {m.role === 'user' ? (
-                    <div className="whitespace-pre-wrap">{m.content}</div>
+                    <div className="whitespace-pre-wrap tracking-wide">{m.content}</div>
                   ) : (
                     <div className="prose prose-invert prose-xs max-w-none text-slate-200">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -271,14 +276,14 @@ export default function AiTutorWidget() {
                   )}
                 </div>
                 {m.role === 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-700 mt-0.5">
                     <User className="h-4 w-4 text-slate-300" />
                   </div>
                 )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-400 italic">
+              <div className="flex items-center gap-2 text-xs text-slate-400 italic px-2">
                 <Bot className="h-4 w-4 animate-spin text-indigo-400" />
                 {isZh ? '導師思考中...' : 'Tutor is thinking...'}
               </div>
@@ -287,7 +292,7 @@ export default function AiTutorWidget() {
           </div>
 
           {/* Form Input */}
-          <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850">
+          <form onSubmit={handleFormSubmit} className="border-t border-slate-700 p-3 bg-slate-850 rounded-b-2xl">
             <div className="flex items-center gap-2">
               <input
                 value={input}
@@ -297,12 +302,12 @@ export default function AiTutorWidget() {
                     ? '輸入問題 (例：何謂雙重代理？)'
                     : 'Ask a question (e.g., What is dual agency?)'
                 }
-                className="flex-1 rounded-xl bg-slate-800 px-3.5 py-2 text-xs text-white border border-slate-700 focus:border-indigo-500 focus:outline-none"
+                className="flex-1 rounded-xl bg-slate-800 px-3.5 py-2.5 text-xs text-slate-100 border border-slate-700 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/50 focus:outline-none transition-all placeholder:text-slate-500"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 text-white disabled:opacity-50 hover:bg-indigo-700 transition cursor-pointer"
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500 text-white disabled:opacity-50 hover:bg-indigo-400 transition-colors cursor-pointer shadow-sm"
               >
                 <Send className="h-4 w-4" />
               </button>
