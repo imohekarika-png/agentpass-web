@@ -149,8 +149,7 @@ export default function AiTutorWidget() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          // Floating Button: Bright Indigo-600 pill with pure white text
-          className="flex items-center gap-2 rounded-full bg-indigo-600 px-5 py-3.5 text-white shadow-xl shadow-indigo-600/25 transition-all hover:bg-indigo-700 hover:scale-105 cursor-pointer font-bold"
+          className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3.5 text-white shadow-xl shadow-blue-600/30 transition-all hover:bg-blue-700 hover:scale-105 cursor-pointer font-bold"
         >
           <Sparkles className="h-5 w-5 text-amber-300" />
           <span className="text-sm tracking-wide">
@@ -160,17 +159,16 @@ export default function AiTutorWidget() {
       )}
 
       {isOpen && (
-        // Daylight Card Drawer: Pure White Background, Soft Slate Border, Crisp Shadow
-        <div className="flex h-[560px] w-[360px] flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/15 sm:w-[420px] overflow-hidden">
-          {/* Header */}
-          <div className="flex items-center justify-between bg-slate-50 px-4 py-3.5 border-b border-slate-200/80">
+        <div className="flex h-[560px] w-[360px] flex-col rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/20 sm:w-[420px] overflow-hidden">
+          {/* RULE 1: Navbar ALWAYS solid blue (bg-blue-600) & Branding text in white (text-white) across ALL themes */}
+          <div className="flex items-center justify-between bg-blue-600 px-4 py-3.5 border-b border-blue-700">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-sm">
-                <Bot className="h-5 w-5" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/20 text-white shadow-xs">
+                <Bot className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h3 className="text-sm font-extrabold text-slate-900">AgentPass™ AI Tutor</h3>
-                <p className="text-[11px] text-slate-500 font-semibold">
+                <h3 className="text-sm font-extrabold text-white">AgentPass™ AI Tutor</h3>
+                <p className="text-[11px] text-blue-100 font-semibold">
                   {isZh ? 'EAQE / SQE 條例導師' : 'EAQE / SQE Assistant'}
                 </p>
               </div>
@@ -180,9 +178,9 @@ export default function AiTutorWidget() {
               <button
                 onClick={toggleLocale}
                 title={isZh ? '切換語言' : 'Switch Language'}
-                className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:border-indigo-500 hover:text-indigo-600 transition cursor-pointer shadow-2xs"
+                className="flex items-center gap-1 rounded-xl border border-blue-400/40 bg-blue-700/50 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-blue-700 transition cursor-pointer shadow-2xs"
               >
-                <Globe className="h-3 w-3 text-indigo-600" />
+                <Globe className="h-3 w-3 text-blue-200" />
                 <span>{isZh ? 'EN' : '繁'}</span>
               </button>
 
@@ -190,7 +188,7 @@ export default function AiTutorWidget() {
                 <button
                   onClick={clearHistory}
                   title={isZh ? '清除紀錄' : 'Clear History'}
-                  className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-rose-500 transition cursor-pointer"
+                  className="rounded-xl p-1.5 text-blue-200 hover:bg-blue-700 hover:text-white transition cursor-pointer"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -198,25 +196,26 @@ export default function AiTutorWidget() {
 
               <button
                 onClick={() => setIsOpen(false)}
-                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition cursor-pointer"
+                className="rounded-xl p-1.5 text-blue-200 hover:bg-blue-700 hover:text-white transition cursor-pointer"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          {/* Chat Messages Body */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-slate-50/50">
+          {/* RULE 3: Text window body background ALWAYS white (bg-white) */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3.5 text-xs bg-white">
             {messages.length === 0 && (
               <div className="flex h-full flex-col justify-center space-y-4">
                 <div className="text-center text-slate-500">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-50 border border-indigo-100 mx-auto mb-2">
-                    <Bot className="h-6 w-6 text-indigo-600" />
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 border border-blue-100 mx-auto mb-2">
+                    <Bot className="h-6 w-6 text-blue-600" />
                   </div>
-                  <p className="text-xs font-bold text-slate-900 mb-1">
+                  {/* RULE 3: Dark grey text (text-slate-800) */}
+                  <p className="text-xs font-bold text-slate-800 mb-1">
                     {isZh ? '歡迎！我是您的 EAQE / SQE 考試導師' : 'Welcome! I am your EAQE / SQE Exam Tutor'}
                   </p>
-                  <p className="text-xs max-w-[270px] mx-auto text-slate-500">
+                  <p className="text-xs max-w-[270px] mx-auto text-slate-600">
                     {isZh
                       ? '您可以點擊熱門考點提問，或直接輸入任何《地產代理條例》(第511章) 疑難：'
                       : 'Click a suggested topic below or type any Cap. 511 exam question:'}
@@ -224,7 +223,7 @@ export default function AiTutorWidget() {
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center gap-1 text-[11px] font-bold text-indigo-700">
+                  <div className="flex items-center gap-1 text-[11px] font-bold text-blue-700">
                     <HelpCircle className="h-3.5 w-3.5" />
                     <span>{isZh ? '熱門試題速問' : 'Suggested Exam Topics'}</span>
                   </div>
@@ -234,10 +233,10 @@ export default function AiTutorWidget() {
                         key={idx}
                         onClick={() => submitQuestion(item.query)}
                         disabled={isLoading}
-                        className="w-full text-left rounded-2xl bg-white border border-slate-200/80 p-3 text-xs text-slate-700 hover:border-indigo-500 hover:bg-indigo-50/50 hover:text-indigo-900 transition-all flex items-center justify-between group cursor-pointer shadow-2xs font-medium"
+                        className="w-full text-left rounded-2xl bg-slate-50 border border-slate-200/80 p-3 text-xs text-slate-700 hover:border-blue-500 hover:bg-blue-50/50 hover:text-blue-900 transition-all flex items-center justify-between group cursor-pointer shadow-2xs font-medium"
                       >
                         <span>{item.label}</span>
-                        <span className="text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold">
+                        <span className="text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity text-xs font-bold">
                           →
                         </span>
                       </button>
@@ -253,17 +252,17 @@ export default function AiTutorWidget() {
                 className={`flex gap-2.5 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {m.role !== 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white mt-0.5 shadow-2xs">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white mt-0.5 shadow-2xs">
                     <Bot className="h-4 w-4" />
                   </div>
                 )}
                 <div
                   className={`rounded-2xl px-4 py-3 max-w-[85%] text-xs leading-relaxed shadow-2xs transition-all ${
                     m.role === 'user'
-                      // USER BUBBLE: Solid Indigo-600 with PURE WHITE TEXT for 100% WCAG Readability
-                      ? 'bg-indigo-600 text-white rounded-br-none font-semibold'
-                      // AI RESPONSE BUBBLE: Clean White Box with Border & Dark Slate Body Text
-                      : 'bg-white text-slate-800 border border-slate-200/90 rounded-bl-none font-normal'
+                      // User message: Solid blue bubble with white text
+                      ? 'bg-blue-600 text-white rounded-br-none font-medium'
+                      // RULE 3: Assistant message: Light grey card with dark grey text (text-slate-800)
+                      : 'bg-slate-100 text-slate-800 border border-slate-200 rounded-bl-none font-normal'
                   }`}
                 >
                   {m.role === 'user' ? (
@@ -277,23 +276,23 @@ export default function AiTutorWidget() {
                   )}
                 </div>
                 {m.role === 'user' && (
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-white mt-0.5 shadow-2xs">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-white mt-0.5 shadow-2xs">
                     <User className="h-4 w-4" />
                   </div>
                 )}
               </div>
             ))}
             {isLoading && (
-              <div className="flex items-center gap-2 text-xs text-indigo-600 font-semibold italic px-2">
-                <Bot className="h-4 w-4 animate-spin text-indigo-600" />
+              <div className="flex items-center gap-2 text-xs text-blue-600 font-semibold italic px-2">
+                <Bot className="h-4 w-4 animate-spin text-blue-600" />
                 {isZh ? '導師思考中...' : 'Tutor is thinking...'}
               </div>
             )}
             <div ref={chatEndRef} />
           </div>
 
-          {/* Form Input */}
-          <form onSubmit={handleFormSubmit} className="border-t border-slate-200/80 p-3 bg-white">
+          {/* RULE 2 & 4: Footer ALWAYS blue (bg-blue-600) and Send CTA ALWAYS blue (bg-blue-600 / bg-white button) */}
+          <form onSubmit={handleFormSubmit} className="border-t border-blue-700 p-3 bg-blue-600">
             <div className="flex items-center gap-2">
               <input
                 value={input}
@@ -303,14 +302,15 @@ export default function AiTutorWidget() {
                     ? '輸入問題 (例：何謂雙重代理？)'
                     : 'Ask a question (e.g., What is dual agency?)'
                 }
-                className="flex-1 rounded-2xl bg-slate-100 px-4 py-2.5 text-xs text-slate-900 border border-slate-200 focus:border-indigo-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-400 font-medium"
+                className="flex-1 rounded-2xl bg-white px-4 py-2.5 text-xs text-slate-800 border border-blue-200 focus:border-white focus:bg-white focus:outline-none transition-all placeholder:text-slate-400 font-medium shadow-inner"
               />
+              {/* RULE 4: Send CTA button */}
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-indigo-600 text-white disabled:opacity-40 hover:bg-indigo-700 transition-colors cursor-pointer shadow-xs"
+                className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-blue-600 disabled:opacity-50 hover:bg-blue-50 transition-colors cursor-pointer shadow-sm font-bold"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4 text-blue-600" />
               </button>
             </div>
           </form>
