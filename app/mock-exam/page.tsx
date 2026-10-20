@@ -661,7 +661,7 @@ export default function MockExamPage() {
         });
       }
     } catch (err: any) {
-      console.warn('Synthesis error:', err);
+     console.warn('Synthesis error:', err);
     } finally {
       setIsGeneratingBatch(false);
     }
