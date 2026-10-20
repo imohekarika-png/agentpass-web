@@ -154,7 +154,7 @@ const CASE_SCENARIOS: Record<string, CaseScenarioMeta> = {
   }
 };
 
-const TOPIC_TEMPLATES = [
+const STATUTORY_FRAMEWORK = [
   {
     topicZh: '牌照變更通知 (Cap. 511 s.40)',
     topicEn: 'Notice of Change of Particulars (Cap. 511 s.40)',
@@ -169,8 +169,8 @@ const TOPIC_TEMPLATES = [
     refEn: 'Estate Agents Ordinance Cap. 511 s.40'
   },
   {
-    topicZh: '客戶款項規則 (Client Money Rules)',
-    topicEn: 'Client Money Trust Accounts',
+    topicZh: '客戶款項規則 (Client Money Trust Accounts)',
+    topicEn: 'Client Money Custody & Trust Accounts',
     qZh: '地產代理行收到客戶存款後，必須依據法規於多少天內向客戶發出收據？相關信託戶口紀錄須妥善保存多久？',
     qEn: 'Upon receiving client deposit monies, within how many days must an agency issue a receipt, and for how long must trust records be retained?',
     optsZh: ['A. 7 天發收據，保存 1 年', 'B. 14 天發收據，保存 3 年', 'C. 21 天發收據，保存 5 年', 'D. 30 天發收據，保存 7 年'],
@@ -287,47 +287,98 @@ const TOPIC_TEMPLATES = [
   }
 ];
 
+const PART_II_VARIANTS = [
+  {
+    scenarioId: 'case-1',
+    topicZh: '遺囑認證與清拆命令實務 (Cap. 123 / Cap. 10)',
+    topicEn: 'Probate & Removal Orders (Cap. 123 / Cap. 10)',
+    refZh: '《建築物條例》Cap. 123 s.24 & 《遺囑認證及遺產管理條例》',
+    refEn: 'Buildings Ordinance Cap. 123 s.24 & Probate Administration',
+    questions: [
+      {
+        qZh: '【Part II 個案一 • Q81】審視 Smart Mansion 查冊報告負擔欄。代理 Sunny 發現屋宇署第 24 條清拆命令，賣方要求不予披露。 Sunny 最符合法規的做法為何？',
+        qEn: '[Part II Case 1 • Q81] Reviewing the Land Search for Smart Mansion. Agent Sunny discovers a s.24 Removal Order. The vendor instructs non-disclosure. What is Sunny’s statutory duty?',
+        optsZh: ['A. 順從賣方指示隱瞞清拆命令', 'B. 必須向買方全面披露清拆命令，並於臨時合約特別條款中註明', 'C. 要求買方自行承擔風險，不作解說', 'D. 代賣方私下拆除該僭建物'],
+        optsEn: ['A. Comply with vendor instructions', 'B. Mandatory disclosure to purchaser and detail in Preliminary Agreement', 'C. Advise purchaser to accept all risks without explanation', 'D. Remove UBW privately on vendor behalf'],
+        ans: 1,
+        expZh: '代理對買方負有盡職審查責任 (Cap. 511A s.9)，必須披露查冊發現之清拆命令。',
+        expEn: 'Agents owe a duty of due diligence under Cap. 511A s.9 to disclose all registered encumbrances.'
+      },
+      {
+        qZh: '【Part II 個案一 • Q82】溫先生以單獨遺囑執行人身分簽署臨約。買方律師要求查閱 Letters of Probate（遺囑認證書），主要目的為何？',
+        qEn: '[Part II Case 1 • Q82] Mr. Wan signs as Sole Executor. Why does the purchaser’s solicitor require inspection of the Letters of Probate?',
+        optsZh: ['A. 確認溫先生是否物業唯一合法遺產管理權人及處置權限', 'B. 檢查何先生之死亡證明書真偽', 'C. 審視何先生遺囑之遺產分配比例', 'D. 評估物業印花稅稅率'],
+        optsEn: ['A. Verify Mr. Wan’s legal capacity as sole executor to convey good title', 'B. Check death certificate authenticity', 'C. Review internal inheritance ratios', 'D. Calculate stamp duty liabilities'],
+        ans: 0,
+        expZh: '遺囑認證書為證明遺囑執行人具備處置遺產物業法定權限之唯一官方法律文書。',
+        expEn: 'Letters of Probate constitute official legal authorization for an executor to assign estate property.'
+      }
+    ]
+  },
+  {
+    scenarioId: 'case-2',
+    topicZh: '公司賣方與浮動押記實務 (Cap. 622)',
+    topicEn: 'Corporate Vendors & Floating Charges (Cap. 622)',
+    refZh: '《公司條例》Cap. 622 & 《地產代理常規規例》',
+    refEn: 'Companies Ordinance Cap. 622 & Practice Regulations',
+    questions: [
+      {
+        qZh: '【Part II 個案二 • Q83】賣方 Apex Profits Limited 屬香港註冊公司。代理 Ken 僅進行土地查冊，忽略了公司註冊處 (CR) 查冊。可能遺漏哪種嚴重產權風險？',
+        qEn: '[Part II Case 2 • Q83] Vendor Apex Profits Limited is a HK incorporated firm. Agent Ken omitted Companies Registry search. What severe encumbrance risk was missed?',
+        optsZh: ['A. 未登記於土地註冊處之浮動押記 (Floating Charge) 及負面擔保條款 (Negative Pledge)', 'B. 住宅租約紀錄', 'C. 差餉物業估價署估值', 'D. 物業地租繳付紀錄'],
+        optsEn: ['A. Unregistered Floating Charge with Negative Pledge Clause at Land Registry', 'B. Domestic tenancy agreements', 'C. RVD valuation ratings', 'D. Government rent receipts'],
+        ans: 0,
+        expZh: '公司賣方可能於公司註冊處登記有 Debenture/Floating Charge，若含有 Negative Pledge，賣方未獲債權銀行同意無權出售物業。',
+        expEn: 'Corporate debentures with negative pledge clauses registered at CR prevent valid property dispositions without bank consent.'
+      },
+      {
+        qZh: '【Part II 個案二 • Q84】針對商業物業買賣，代理 Ken 建議買方將首期訂金直接存入賣方公司帳戶，而非律師樓託管 (Stakeholder)。此做法有何違規風險？',
+        qEn: '[Part II Case 2 • Q84] For commercial transactions, Agent Ken advised paying preliminary deposit directly to vendor company instead of solicitor stakeholding. What regulatory rule is breached?',
+        optsZh: ['A. 若賣方公司存在按揭或債務危機，直接清付訂金可能導致買方損失訂金且無法取得業權', 'B. 代理可獲得額外獎金', 'C. 律師樓無權託管商業訂金', 'D. 完全合規，無任何風險'],
+        optsEn: ['A. Risk of deposit loss if vendor is insolvent and unable to discharge charges', 'B. Agent qualifies for bonus', 'C. Solicitors are prohibited from stakeholding commercial deposits', 'D. Fully compliant'],
+        ans: 0,
+        expZh: '若物業存在按揭或負擔，代理必須建議訂金由律師樓以保證金 (Stakeholder) 方式託管以保障買方。',
+        expEn: 'Under EAA guidelines, agents must advise deposit stakeholding when properties are encumbered.'
+      }
+    ]
+  }
+];
+
 const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = Array.from({ length: 100 }, (_, idx) => {
   const qId = idx + 1;
   const isPartII = qId > 80;
 
   if (isPartII) {
+    const variantIndex = (qId - 81) % PART_II_VARIANTS.length;
+    const variant = PART_II_VARIANTS[variantIndex];
+    const qDetail = variant.questions[(qId - 81) % variant.questions.length] || variant.questions[0];
+
     return {
       id: qId,
       part: 'II',
       trackApplicability: 'BOTH',
-      caseScenarioId: qId % 2 === 0 ? 'case-2' : 'case-1',
-      topicZh: qId % 2 === 0 ? '商業物業查冊實務 (Cap. 622)' : '遺囑認證與建築令 (Cap. 123)',
-      topicEn: qId % 2 === 0 ? 'Commercial Land Search (Cap. 622)' : 'Probate & Removal Orders (Cap. 123)',
-      questionZh: `【Part II 個案題 - #${qId}】審視土地查冊報告負擔欄。關於物業之登記事項與產權負擔，地產代理最符合法規要求的專業做法為何？`,
-      questionEn: `[Part II Case Study - #${qId}] Inspecting the Incumbrances section of the Land Search. What is the legally mandated professional duty for the estate agent?`,
-      optionsZh: [
-        'A. 無需向買方披露，由買方律師全權處理',
-        'B. 查核已註冊之法律文書，確認賣方身份與處置權限，並建議訂金由律師託管 (Stakeholder)',
-        'C. 要求買方將首期訂金直接存入地產代理個人戶口',
-        'D. 建議買方即時放棄買賣合約'
-      ],
-      optionsEn: [
-        'A. No disclosure needed; leave entirely to purchaser’s solicitor',
-        'B. Verify registered instruments, confirm vendor’s authority, and mandate deposit stakeholding',
-        'C. Request purchaser to transfer deposit directly into agent’s personal account',
-        'D. Advise purchaser to cancel the transaction immediately'
-      ],
-      answerIndex: 1,
-      explanationZh: '地產代理有法定盡職審查責任 (Due Diligence)，必須向買方全面披露土地查冊負擔欄之登記事項，並建議訂金由律師樓以保證金 (Stakeholder) 方式託管。',
-      explanationEn: 'Agents bear a statutory duty of due diligence under Cap. 511A to disclose encumbrances and advise deposit stakeholding.',
-      statuteRefZh: '《地產代理常規規例》Cap. 511A s.9(2)',
-      statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.9(2)',
+      caseScenarioId: variant.scenarioId,
+      topicZh: `${variant.topicZh} (#${qId})`,
+      topicEn: `${variant.topicEn} (#${qId})`,
+      questionZh: qDetail.qZh,
+      questionEn: qDetail.qEn,
+      optionsZh: qDetail.optsZh,
+      optionsEn: qDetail.optsEn,
+      answerIndex: qDetail.ans,
+      explanationZh: qDetail.expZh,
+      explanationEn: qDetail.expEn,
+      statuteRefZh: variant.refZh,
+      statuteRefEn: variant.refEn,
       isLocked: false
     };
   }
 
-  const tmpl = TOPIC_TEMPLATES[(qId - 1) % TOPIC_TEMPLATES.length];
+  const tmpl = STATUTORY_FRAMEWORK[(qId - 1) % STATUTORY_FRAMEWORK.length];
   return {
     id: qId,
     part: 'I',
     trackApplicability: qId % 3 === 0 ? 'EAQE_ONLY' : 'BOTH',
-    topicZh: `${tmpl.topicZh} (試題 #${qId})`,
+    topicZh: `${tmpl.topicZh} (題目 #${qId})`,
     topicEn: `${tmpl.topicEn} (Item #${qId})`,
     questionZh: `【Part I 條例題 - #${qId}】${tmpl.qZh}`,
     questionEn: `[Part I MCQ - #${qId}] ${tmpl.qEn}`,
