@@ -334,7 +334,26 @@ const STATUTORY_FRAMEWORK = [
   }
 ];
 
-const PART_II_VARIANTS = [
+interface PartIICaseItem {
+  qZh: string;
+  qEn: string;
+  optsZh: string[];
+  optsEn: string[];
+  ans: number;
+  expZh: string;
+  expEn: string;
+}
+
+interface PartIICaseVariant {
+  scenarioId: string;
+  topicZh: string;
+  topicEn: string;
+  refZh: string;
+  refEn: string;
+  items: PartIICaseItem[];
+}
+
+const PART_II_VARIANTS: PartIICaseVariant[] = [
   {
     scenarioId: 'case-1',
     topicZh: '個案一：Smart Mansion 12 樓 B 室 (遺囑認證與清拆命令)',
@@ -342,26 +361,42 @@ const PART_II_VARIANTS = [
     refZh: '《建築物條例》Cap. 123 s.24 & 《遺囑認證條例》',
     refEn: 'Buildings Ordinance s.24 & Probate Ordinance',
     items: [
-      ("審視 Smart Mansion 查冊報告負擔欄。代理 Sunny 發現屋宇署第 24 條清拆命令，賣方指示隱瞞。Sunny 最符合法規的做法為何？",
-       "Inspecting Smart Mansion Land Search. Sunny finds a s.24 Removal Order. Vendor instructs non-disclosure. What is Sunny's duty?",
-       ["A. 遵從賣方指示不予披露", "B. 必須向買方全面披露並於臨約記載", "C. 建議買方自行評估", "D. 私下為賣方拆除僭建"],
-       ["A. Comply with vendor", "B. Mandatory disclosure to purchaser in PASP", "C. Advise buyer self-assessment", "D. Privately dismantle UBW"], 1,
-       "代理對買方負有盡職審查責任 (Cap. 511A)，必須披露清拆命令。", "Agents bear statutory duty under Cap. 511A to disclose orders."),
-      ("溫先生以單獨遺囑執行人身分簽臨約。買方律師要求查閱 Letters of Probate 主要目的為何？",
-       "Mr. Wan signs as Sole Executor. Why does buyer's solicitor require Letters of Probate?",
-       ["A. 核實溫先生具備處置物業之合法遺產管理權限", "B. 核實死亡證真偽", "C. 檢查遺產扣稅額", "D. 評估印花稅"],
-       ["A. Confirm legal authority to dispose estate property", "B. Verify death certificate", "C. Inspect tax deduction", "D. Calculate stamp duty"], 0,
-       "遺囑認證書為證明執行人具處置權限之法定文書。", "Letters of Probate establish executor legal assignment capacity."),
-      ("代理查冊發現露台存在未入則建築物 (UBW)。臨約特別條款應如何擬定？",
-       "Search reveals unauthorized balcony enclosure. How should special conditions be drafted?",
-       ["A. 明確列明該 UBW 存在，買方知悉並承擔日後清拆風險", "B. 保證該 UBW 100% 合法", "C. 承諾賣方開工拆除", "D. 不作任何紀錄"],
-       ["A. Explicitly state UBW presence, buyer accepts removal risk", "B. Guarantee legality", "C. Vendor promises removal", "D. Omit mention"], 0,
-       "應明確記載 UBW 現狀並由買方確認承擔風險。", "State existing UBW status with buyer risk acceptance."),
-      ("物業土地查冊有 2018 年恆生銀行按揭。臨約交樓條款應如何訂明？",
-       "Search shows a 2018 Hang Seng Bank Legal Charge. How should completion terms be framed?",
-       ["A. 賣方須於成交日或之前清還按揭並提供解除押記契 (Reassignment/Release)", "B. 買方承接賣方原有按揭", "C. 訂金直接付予賣方個人", "D. 無需處理舊按揭"],
-       ["A. Vendor must discharge legal charge on or before completion", "B. Buyer assumes existing mortgage", "C. Deposit paid to vendor personally", "D. Ignore prior mortgage"], 0,
-       "賣方有責任向買方交付無瑕疵良好業權 (Good Title)。", "Vendor is obligated to assign free from encumbrances (Good Title).")
+      {
+        qZh: '審視 Smart Mansion 查冊報告負擔欄。代理 Sunny 發現屋宇署第 24 條清拆命令，賣方指示隱瞞。Sunny 最符合法規的做法為何？',
+        qEn: "Inspecting Smart Mansion Land Search. Sunny finds a s.24 Removal Order. Vendor instructs non-disclosure. What is Sunny's duty?",
+        optsZh: ['A. 遵從賣方指示不予披露', 'B. 必須向買方全面披露並於臨約記載', 'C. 建議買方自行評估', 'D. 私下為賣方拆除僭建'],
+        optsEn: ['A. Comply with vendor', 'B. Mandatory disclosure to purchaser in PASP', 'C. Advise buyer self-assessment', 'D. Privately dismantle UBW'],
+        ans: 1,
+        expZh: '代理對買方負有盡職審查責任 (Cap. 511A)，必須披露清拆命令。',
+        expEn: 'Agents bear statutory duty under Cap. 511A to disclose orders.'
+      },
+      {
+        qZh: '溫先生以單獨遺囑執行人身分簽臨約。買方律師要求查閱 Letters of Probate 主要目的為何？',
+        qEn: 'Mr. Wan signs as Sole Executor. Why does buyer\'s solicitor require Letters of Probate?',
+        optsZh: ['A. 核實溫先生具備處置物業之合法遺產管理權限', 'B. 核實死亡證真偽', 'C. 檢查遺產扣稅額', 'D. 評估印花稅'],
+        optsEn: ['A. Confirm legal authority to dispose estate property', 'B. Verify death certificate', 'C. Inspect tax deduction', 'D. Calculate stamp duty'],
+        ans: 0,
+        expZh: '遺囑認證書為證明執行人具處置權限之法定文書。',
+        expEn: 'Letters of Probate establish executor legal assignment capacity.'
+      },
+      {
+        qZh: '代理查冊發現露台存在未入則建築物 (UBW)。臨約特別條款應如何擬定？',
+        qEn: 'Search reveals unauthorized balcony enclosure. How should special conditions be drafted?',
+        optsZh: ['A. 明確列明該 UBW 存在，買方知悉並承擔日後清拆風險', 'B. 保證該 UBW 100% 合法', 'C. 承諾賣方開工拆除', 'D. 不作任何紀錄'],
+        optsEn: ['A. Explicitly state UBW presence, buyer accepts removal risk', 'B. Guarantee legality', 'C. Vendor promises removal', 'D. Omit mention'],
+        ans: 0,
+        expZh: '應明確記載 UBW 現狀並由買方確認承擔風險。',
+        expEn: 'State existing UBW status with buyer risk acceptance.'
+      },
+      {
+        qZh: '物業土地查冊有 2018 年恆生銀行按揭。臨約交樓條款應如何訂明？',
+        qEn: 'Search shows a 2018 Hang Seng Bank Legal Charge. How should completion terms be framed?',
+        optsZh: ['A. 賣方須於成交日或之前清還按揭並提供解除押記契 (Reassignment/Release)', 'B. 買方承接賣方原有按揭', 'C. 訂金直接付予賣方個人', 'D. 無需處理舊按揭'],
+        optsEn: ['A. Vendor must discharge legal charge on or before completion', 'B. Buyer assumes existing mortgage', 'C. Deposit paid to vendor personally', 'D. Ignore prior mortgage'],
+        ans: 0,
+        expZh: '賣方有責任向買方交付無瑕疵良好業權 (Good Title)。',
+        expEn: 'Vendor is obligated to assign free from encumbrances (Good Title).'
+      }
     ]
   },
   {
@@ -371,26 +406,42 @@ const PART_II_VARIANTS = [
     refZh: '《公司條例》Cap. 622 & 《地產代理常規規例》',
     refEn: 'Companies Ordinance Cap. 622 & Practice Regulations',
     items: [
-      ("賣方 Apex Profits Limited 屬公司。代理 Ken 僅進行土地查冊，遺漏公司註冊處 (CR) 查冊，有何風險？",
-       "Vendor is a corporate entity. Agent Ken omitted Companies Registry search. What risk is exposed?",
-       ["A. 遺漏未於土地註冊處登記之浮動押記 (Floating Charge) 及 Negative Pledge 限制", "B. 遺漏差餉紀錄", "C. 遺漏水電費紀錄", "D. 無任何風險"],
-       ["A. Omission of unregistered Floating Charge with Negative Pledge", "B. Omission of rates", "C. Omission of utility bills", "D. No risk"], 0,
-       "公司賣方於 CR 登記之浮動押記可限制其未得銀行同意出售資產。", "CR registered debentures with negative pledges restrict asset sales."),
-      ("商業物業交易中，代理 Ken 建議將 380 萬大訂直接存入賣方公司帳戶，有何潛在隱患？",
-       "Ken advises paying HK$3.8M deposit directly to corporate vendor account. What danger exists?",
-       ["A. 若公司清盤或負債，買方面臨損失訂金且無法取得業權之極高風險", "B. 買方可獲稅務扣減", "C. 律師樓禁止託管商業訂金", "D. 符合標準對家程序"],
-       ["A. Severe risk of deposit loss if vendor liquidates before completion", "B. Tax reduction for buyer", "C. Solicitors prohibited from stakeholding", "D. Standard practice"], 0,
-       "有按揭或負擔物業之訂金應由律師樓以保證金 (Stakeholder) 託管。", "Encumbered properties mandate deposit stakeholding by solicitors."),
-      ("買方公司要求以授權簽署人 (Authorized Signatory) 代表簽署正式合約，代理應查核哪份文件？",
-       "Purchaser company signs via Authorized Signatory. Which corporate document must be inspected?",
-       ["A. 董事會決議案 (Board Resolution) 及公司章程 (Articles of Association)", "B. 商業登記證影印本", "C. 報稅表", "D. 股東個人身分證"],
-       ["A. Board Resolution and Articles of Association", "B. Business Registration copy", "C. Tax return", "D. Shareholder ID"], 0,
-       "須查核 Board Resolution 確認授權人具備代表公司簽署之合法權力。", "Board resolutions verify corporate signing authority."),
-      ("商業單位公契載明限作辦公室用途 (Commercial Office)。買方意圖改作零售開診所，代理有何義務？",
-       "DMC restricts unit to Commercial Office. Buyer intends retail medical clinic. What is agent duty?",
-       ["A. 提醒買方查核 DMC 及大廈公契用途限制，避免違規", "B. 保證開診所完全合法", "C. 慫恿買方先簽約後申請", "D. 隱瞞用途限制"],
-       ["A. Advise buyer to check DMC user restrictions and planning permission", "B. Guarantee legal clinic use", "C. Encourage signing first", "D. Conceal restrictions"], 0,
-       "代理須提醒買家注意公契 (DMC) 及城規 (Town Planning) 用途限制。", "Agents must caution buyers on DMC user covenants.")
+      {
+        qZh: '賣方 Apex Profits Limited 屬公司。代理 Ken 僅進行土地查冊，遺漏公司註冊處 (CR) 查冊，有何風險？',
+        qEn: 'Vendor is a corporate entity. Agent Ken omitted Companies Registry search. What risk is exposed?',
+        optsZh: ['A. 遺漏未於土地註冊處登記之浮動押記 (Floating Charge) 及 Negative Pledge 限制', 'B. 遺漏差餉紀錄', 'C. 遺漏水電費紀錄', 'D. 無任何風險'],
+        optsEn: ['A. Omission of unregistered Floating Charge with Negative Pledge', 'B. Omission of rates', 'C. Omission of utility bills', 'D. No risk'],
+        ans: 0,
+        expZh: '公司賣方於 CR 登記之浮動押記可限制其未得銀行同意出售資產。',
+        expEn: 'CR registered debentures with negative pledges restrict asset sales.'
+      },
+      {
+        qZh: '商業物業交易中，代理 Ken 建議將 380 萬大訂直接存入賣方公司帳戶，有何潛在隱患？',
+        qEn: 'Ken advises paying HK$3.8M deposit directly to corporate vendor account. What danger exists?',
+        optsZh: ['A. 若公司清盤或負債，買方面臨損失訂金且無法取得業權之極高風險', 'B. 買方可獲稅務扣減', 'C. 律師樓禁止託管商業訂金', 'D. 符合標準對家程序'],
+        optsEn: ['A. Severe risk of deposit loss if vendor liquidates before completion', 'B. Tax reduction for buyer', 'C. Solicitors prohibited from stakeholding', 'D. Standard practice'],
+        ans: 0,
+        expZh: '有按揭或負擔物業之訂金應由律師樓以保證金 (Stakeholder) 託管。',
+        expEn: 'Encumbered properties mandate deposit stakeholding by solicitors.'
+      },
+      {
+        qZh: '買方公司要求以授權簽署人 (Authorized Signatory) 代表簽署正式合約，代理應查核哪份文件？',
+        qEn: 'Purchaser company signs via Authorized Signatory. Which corporate document must be inspected?',
+        optsZh: ['A. 董事會決議案 (Board Resolution) 及公司章程 (Articles of Association)', 'B. 商業登記證影印本', 'C. 報稅表', 'D. 股東個人身分證'],
+        optsEn: ['A. Board Resolution and Articles of Association', 'B. Business Registration copy', 'C. Tax return', 'D. Shareholder ID'],
+        ans: 0,
+        expZh: '須查核 Board Resolution 確認授權人具備代表公司簽署之合法權力。',
+        expEn: 'Board resolutions verify corporate signing authority.'
+      },
+      {
+        qZh: '商業單位公契載明限作辦公室用途 (Commercial Office)。買方意圖改作零售開診所，代理有何義務？',
+        qEn: 'DMC restricts unit to Commercial Office. Buyer intends retail medical clinic. What is agent duty?',
+        optsZh: ['A. 提醒買方查核 DMC 及大廈公契用途限制，避免違規', 'B. 保證開診所完全合法', 'C. 慫恿買方先簽約後申請', 'D. 隱瞞用途限制'],
+        optsEn: ['A. Advise buyer to check DMC user restrictions and planning permission', 'B. Guarantee legal clinic use', 'C. Encourage signing first', 'D. Conceal restrictions'],
+        ans: 0,
+        expZh: '代理須提醒買家注意公契 (DMC) 及城規 (Town Planning) 用途限制。',
+        expEn: 'Agents must caution buyers on DMC user covenants.'
+      }
     ]
   }
 ];
@@ -412,13 +463,13 @@ const CLIENT_FALLBACK_QUESTIONS: MockQuestion[] = Array.from({ length: 100 }, (_
       caseScenarioId: c.scenarioId,
       topicZh: `${c.topicZh} (題 #${qId})`,
       topicEn: `${c.topicEn} (Q #${qId})`,
-      questionZh: `【Part II 個案題 - #${qId}】${item[0]}`,
-      questionEn: `[Part II Case Study - #${qId}] ${item[1]}`,
-      optionsZh: item[2],
-      optionsEn: item[3],
-      answerIndex: item[4],
-      explanationZh: item[5],
-      explanationEn: item[6],
+      questionZh: `【Part II 個案題 - #${qId}】${item.qZh}`,
+      questionEn: `[Part II Case Study - #${qId}] ${item.qEn}`,
+      optionsZh: item.optsZh,
+      optionsEn: item.optsEn,
+      answerIndex: item.ans,
+      explanationZh: item.expZh,
+      explanationEn: item.expEn,
       statuteRefZh: c.refZh,
       statuteRefEn: c.refEn,
       isLocked: false
@@ -661,7 +712,7 @@ export default function MockExamPage() {
         });
       }
     } catch (err: any) {
-     console.warn('Synthesis error:', err);
+      console.warn('Synthesis error:', err);
     } finally {
       setIsGeneratingBatch(false);
     }
