@@ -1,3 +1,4 @@
+// app/mock-exam/page.tsx
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -309,6 +310,71 @@ export default function MockExamPage() {
     loadQuestions(track);
   }, [track, loadQuestions]);
 
+  // --- Task 1.2.1: Spaced Repetition Queue Sync ---
+  const syncIncorrectAnswersToSRS = useCallback(() => {
+    try {
+      const incorrectItems: Array<{
+        id: string;
+        questionId: number;
+        blockNum: string;
+        titleZh: string;
+        titleEn: string;
+        statuteRefZh: string;
+        statuteRefEn: string;
+        lastReviewed: string;
+        nextReviewDate: string;
+        ladderStage: 'Day 1' | 'Day 3' | 'Day 7' | 'Day 16' | 'Day 35';
+        accuracy: number;
+      }> = [];
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      questionsList.forEach((q) => {
+        if (q.isLocked) return;
+        const userAnswer = userAnswers[q.id];
+        const isIncorrect = userAnswer !== undefined && userAnswer !== q.answerIndex;
+
+        if (isIncorrect) {
+          incorrectItems.push({
+            id: `q-${q.id}`,
+            questionId: q.id,
+            blockNum: `Block ${q.part === 'I' ? '01' : '16'}`,
+            titleZh: q.topicZh,
+            titleEn: q.topicEn,
+            statuteRefZh: q.statuteRefZh,
+            statuteRefEn: q.statuteRefEn,
+            lastReviewed: todayStr,
+            nextReviewDate: todayStr,
+            ladderStage: 'Day 1',
+            accuracy: 0
+          });
+        }
+      });
+
+      if (incorrectItems.length > 0) {
+        const existingQueue = JSON.parse(
+          localStorage.getItem('agentpass_srs_queue_v1') || '[]'
+        );
+
+        // Deduplicate against existing SRS items by questionId
+        const existingIds = new Set(existingQueue.map((item: any) => item.questionId || item.id));
+        const filteredNew = incorrectItems.filter((item) => !existingIds.has(item.questionId));
+        const updatedQueue = [...filteredNew, ...existingQueue];
+
+        localStorage.setItem('agentpass_srs_queue_v1', JSON.stringify(updatedQueue));
+      }
+    } catch (err) {
+      console.warn('SRS Sync Warning:', err);
+    }
+  }, [questionsList, userAnswers]);
+
+  // Updated submission trigger executing Task 1.2.1
+  const handleSubmitExam = () => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    syncIncorrectAnswersToSRS();
+    setExamStage('report');
+  };
+
   const handleSynthesizeBatch = async () => {
     setIsGeneratingBatch(true);
     setSynthesizerError(null);
@@ -390,6 +456,7 @@ export default function MockExamPage() {
         setTimeLeftSeconds((prev) => {
           if (prev <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
+            syncIncorrectAnswersToSRS();
             setExamStage('report');
             return 0;
           }
@@ -403,7 +470,7 @@ export default function MockExamPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [examStage]);
+  }, [examStage, syncIncorrectAnswersToSRS]);
 
   const formatTimer = (totalSecs: number): string => {
     const hrs = Math.floor(totalSecs / 3600);
@@ -978,10 +1045,7 @@ export default function MockExamPage() {
 
               <button
                 type="button"
-                onClick={() => {
-                  if (timerRef.current) clearInterval(timerRef.current);
-                  setExamStage('report');
-                }}
+                onClick={handleSubmitExam}
                 className="px-5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-black text-xs shadow-sm transition cursor-pointer"
               >
                 {isZh ? '提早交卷' : 'Submit Exam'}

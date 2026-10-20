@@ -73,6 +73,18 @@ export default function DashboardPage() {
     if (typeof window !== 'undefined') {
       const savedTrack = localStorage.getItem('agentpass_selected_track');
       if (savedTrack) setSelectedTrack(savedTrack);
+
+      // Task 1.2.1 Integration: Read dynamic SRS Queue items synced from mock exam attempts
+      try {
+        const syncedSRSQueue = JSON.parse(
+          localStorage.getItem('agentpass_srs_queue_v1') || '[]'
+        );
+        if (Array.isArray(syncedSRSQueue) && syncedSRSQueue.length > 0) {
+          setReviews(syncedSRSQueue);
+        }
+      } catch (e) {
+        console.warn('Failed to load dynamic SRS Queue:', e);
+      }
     }
   }, []);
 
@@ -126,7 +138,7 @@ export default function DashboardPage() {
             className="p-6 rounded-3xl border shadow-lg space-y-2"
           >
             <span className="text-xs font-mono font-bold uppercase opacity-60 block">Due Today for Review</span>
-            <span className="text-xl font-black text-amber-400">2 Topic Blocks</span>
+            <span className="text-xl font-black text-amber-400">{reviews.length} Topic Blocks</span>
           </div>
 
           <div 
