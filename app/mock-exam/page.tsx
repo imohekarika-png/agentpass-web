@@ -662,7 +662,7 @@ export default function MockExamPage() {
       }
     } catch (err: any) {
       console.warn('Synthesis error:', err);
-    } fontally {
+    } finally {
       setIsGeneratingBatch(false);
     }
   };
