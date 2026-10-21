@@ -78,7 +78,7 @@ export default function Navbar() {
     }
   };
 
-  // Dedicated navigation items with original routes and icons
+  // Dedicated navigation tabs matching Footer items
   const navLinks = [
     { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
     { href: '/memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
@@ -90,7 +90,7 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-md transition-colors duration-200">
+    <nav className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
           
@@ -106,7 +106,7 @@ export default function Navbar() {
               />
             </div>
             <div className="flex items-baseline">
-              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-slate-900 group-hover:text-blue-600 transition leading-none">
+              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white group-hover:text-indigo-400 transition leading-none">
                 AgentPass
               </span>
               <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
@@ -127,41 +127,41 @@ export default function Navbar() {
                   href={link.href}
                   className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                     isActive 
-                      ? 'text-blue-600 bg-blue-50 font-extrabold border-b-2 border-blue-600' 
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'text-indigo-400 bg-indigo-950/60 font-extrabold border-b-2 border-indigo-500' 
+                      : 'text-slate-300 hover:text-indigo-400 hover:bg-slate-900/60'
                   }`}
                 >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                   <span>{isZh ? link.labelZh : link.labelEn}</span>
                 </Link>
               );
             })}
           </div>
 
-          {/* Right Controls (Language & Auth - Dynamic Theme Selector Permanently Removed) */}
+          {/* Right Action Controls */}
           <div className="hidden md:flex items-center gap-2.5 shrink-0">
             
-            {/* Language Toggle */}
+            {/* Language Switcher */}
             <button
               onClick={toggleLanguage}
-              className="px-3.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 hover:border-blue-500 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-200 hover:border-slate-700 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
             >
-              <Globe className="h-3.5 w-3.5 text-blue-600" />
+              <Globe className="h-3.5 w-3.5 text-indigo-400" />
               <span>{isZh ? 'EN' : '繁體中文'}</span>
             </button>
 
             {/* User Session Handler */}
             {isMounted && user ? (
-              <div className="flex items-center gap-2 border-l border-slate-200 pl-2.5">
+              <div className="flex items-center gap-2 border-l border-slate-800 pl-2.5">
                 <Link 
                   href="/dashboard" 
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-emerald-300 hover:border-emerald-500 transition"
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 hover:border-emerald-500 transition"
                 >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
                   </span>
-                  <span className="text-xs font-bold text-emerald-800 max-w-[100px] truncate">
+                  <span className="text-xs font-bold text-emerald-300 max-w-[100px] truncate">
                     {user.name || user.email?.split('@')[0] || (isZh ? '已登入' : 'Logged In')}
                   </span>
                 </Link>
@@ -169,7 +169,7 @@ export default function Navbar() {
                 <button
                   onClick={handleLogout}
                   title={isZh ? '登出帳號' : 'Sign Out'}
-                  className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-300 transition cursor-pointer"
+                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition cursor-pointer"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                 </button>
@@ -177,7 +177,7 @@ export default function Navbar() {
             ) : isMounted ? (
               <Link
                 href="/login"
-                className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 !text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
               >
                 <LogIn className="h-3.5 w-3.5 !text-white" />
                 <span>{isZh ? '學員登入' : 'Login'}</span>
@@ -189,14 +189,14 @@ export default function Navbar() {
           <div className="flex items-center gap-2 lg:hidden">
             <button
               onClick={toggleLanguage}
-              className="p-2 rounded-xl border border-slate-200 bg-slate-50 text-xs font-bold text-blue-600"
+              className="p-2 rounded-xl border border-slate-800 bg-slate-900 text-xs font-bold text-indigo-400"
             >
               {isZh ? 'EN' : '中'}
             </button>
 
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200"
+              className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
@@ -207,7 +207,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-200 bg-white px-4 pt-2 pb-4 space-y-1 shadow-lg">
+        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1 shadow-2xl">
           {navLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -218,11 +218,11 @@ export default function Navbar() {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
                   isActive 
-                    ? 'text-blue-600 font-bold bg-blue-50 border-l-2 border-blue-600 pl-4' 
-                    : 'text-slate-700 hover:bg-slate-50'
+                    ? 'text-indigo-400 font-bold bg-slate-900 border-l-2 border-indigo-500 pl-4' 
+                    : 'text-slate-300 hover:bg-slate-900'
                 }`}
               >
-                <Icon className={`h-4 w-4 ${isActive ? 'text-blue-600' : 'text-slate-400'}`} />
+                <Icon className={`h-4 w-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
                 <span>{isZh ? link.labelZh : link.labelEn}</span>
               </Link>
             );
