@@ -68,8 +68,9 @@ const QUIZ_QUESTION_BANK: QuizQuestion[] = Array.from({ length: 130 }, (_, idx) 
     blockNum: tmpl.blockNum,
     topicZh: `${tmpl.topicZh} (題 #${qId})`,
     topicEn: `${tmpl.topicEn} (Q #${qId})`,
-    questionZh: `【${tmpl.blockNum} 考點特訓 #${qId}】關於${tmpl.topicZh}，下列哪項符合香港地產法規（${tmpl.refZh}）之規定？`,
-    questionEn: `[${tmpl.blockNum} Drill #${qId}] Regarding ${tmpl.topicEn}, which statement accurately reflects Hong Kong statutory requirement under ${tmpl.refEn}?`,
+    // Prefix tags removed for clean question titles
+    questionZh: `關於${tmpl.topicZh}，下列哪項符合香港地產法規（${tmpl.refZh}）之規定？`,
+    questionEn: `Regarding ${tmpl.topicEn}, which statement accurately reflects Hong Kong statutory requirement under ${tmpl.refEn}?`,
     optionsZh: [
       `A. 必須嚴格遵從 ${tmpl.refZh} 規定期限與法定程序執行`,
       `B. 只要雙方口頭同意即可豁免法定責任`,
