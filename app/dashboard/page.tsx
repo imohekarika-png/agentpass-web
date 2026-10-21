@@ -160,7 +160,8 @@ export default function DashboardPage() {
             {reviews.map((item) => (
               <div 
                 key={item.id}
-                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                // Daylight Fix: Light white background in light mode, dark slate in dark mode
+                className="p-4 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs transition-all"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -182,7 +183,7 @@ export default function DashboardPage() {
                     <span className="text-[10px] opacity-60">Next: {item.nextReviewDate}</span>
                   </div>
 
-                  {/* DAYLIGHT BLUE BUTTON: bg-blue-600 text-white */}
+                  {/* Daylight Fix: Solid Blue Button (bg-blue-600) with White Text (text-white) */}
                   <Link
                     href={`/quiz?block=${item.id}`}
                     className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer"
