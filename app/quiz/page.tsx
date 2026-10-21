@@ -13,7 +13,11 @@ import {
   XCircle,
   RotateCcw,
   ArrowRight,
-  Filter
+  Filter,
+  Lock,
+  ChevronRight,
+  ShieldCheck,
+  CheckCircle2
 } from 'lucide-react';
 
 export interface QuizQuestion {
@@ -32,9 +36,9 @@ export interface QuizQuestion {
   statuteRefZh: string;
   statuteRefEn: string;
   trackApplicability: 'BOTH' | 'EAQE_ONLY' | 'SQE_ONLY';
+  isLocked?: boolean;
 }
 
-// 130-Question Complete Practice Bank Generator across 20 Topic Blocks
 const STATUTORY_TOPIC_TEMPLATES = [
   { blockId: 'b1', blockNum: 'Block 01', topicZh: 'EAA 架構與持牌資格', topicEn: 'EAA Structure & Licensing Qualifications', refZh: '《地產代理條例》Cap. 511 s.15', refEn: 'Cap. 511 s.15', track: 'BOTH' as const },
   { blockId: 'b2', blockNum: 'Block 02', topicZh: '營業地點與 31 天通知期', topicEn: 'Business Premises & 31-Day Notice', refZh: '《地產代理條例》Cap. 511 s.40', refEn: 'Cap. 511 s.40', track: 'BOTH' as const },
@@ -58,7 +62,7 @@ const STATUTORY_TOPIC_TEMPLATES = [
   { blockId: 'b20', blockNum: 'Block 20', topicZh: '競爭條例與過失失實陳述', topicEn: 'Competition Law & Misrepresentation', refZh: '《競爭條例》Cap. 619', refEn: 'Cap. 619', track: 'BOTH' as const }
 ];
 
-const QUIZ_QUESTION_BANK: QuizQuestion[] = Array.from({ length: 130 }, (_, idx) => {
+const RAW_QUESTION_BANK: QuizQuestion[] = Array.from({ length: 130 }, (_, idx) => {
   const qId = idx + 101;
   const tmpl = STATUTORY_TOPIC_TEMPLATES[idx % STATUTORY_TOPIC_TEMPLATES.length];
 
@@ -68,7 +72,6 @@ const QUIZ_QUESTION_BANK: QuizQuestion[] = Array.from({ length: 130 }, (_, idx) 
     blockNum: tmpl.blockNum,
     topicZh: `${tmpl.topicZh} (題 #${qId})`,
     topicEn: `${tmpl.topicEn} (Q #${qId})`,
-    // Prefix tags removed for clean question titles
     questionZh: `關於${tmpl.topicZh}，下列哪項符合香港地產法規（${tmpl.refZh}）之規定？`,
     questionEn: `Regarding ${tmpl.topicEn}, which statement accurately reflects Hong Kong statutory requirement under ${tmpl.refEn}?`,
     optionsZh: [
@@ -106,29 +109,88 @@ function QuizContent() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [userScore, setUserScore] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 });
 
+  // Subscription state enforcement
+  const [userTier, setUserTier] = useState<string>('FREE_PREVIEW');
+  const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedTrack = localStorage.getItem('agentpass_selected_track');
       if (savedTrack === 'sqe' || savedTrack === 'sqe_pro') {
         setSelectedTrack('SQE');
       }
+
+      const storedTier = localStorage.getItem('agentpass_user_tier') || 'FREE_PREVIEW';
+      setUserTier(storedTier);
     }
   }, []);
 
-  const activeQuestions = QUIZ_QUESTION_BANK.filter((q) => {
+  const isPaidUser =
+    userTier === 'ADMIN_BUILDER' ||
+    userTier === 'ALL_ACCESS_PRO' ||
+    userTier === 'EAQE_PRO' ||
+    (selectedTrack === 'SQE' && userTier === 'SQE_PRO');
+
+  // Enforce 10-question free limit
+  const activeQuestions = RAW_QUESTION_BANK.filter((q) => {
     if (blockParam && q.blockId !== blockParam) return false;
     if (selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY') return false;
     return true;
+  }).map((q, idx) => {
+    const isLocked = !isPaidUser && idx >= 10;
+    if (isLocked) {
+      return {
+        ...q,
+        isLocked: true,
+        questionZh: '【PRO 專業版專屬考題】此題屬標準資格考題。請升級解鎖完整 130 題庫與條例解析。',
+        questionEn: '[PRO TIER EXCLUSIVE QUESTION] Upgrade to PRO to unlock full 130-question bank.',
+        optionsZh: [
+          'A. [PRO 專屬選項 - 點擊升級解鎖]',
+          'B. [PRO 專屬選項 - 點擊升級解鎖]',
+          'C. [PRO 專屬選項 - 點擊升級解鎖]',
+          'D. [PRO 專屬選項 - 點擊升級解鎖]'
+        ],
+        optionsEn: [
+          'A. [PRO Locked Option - Click to unlock]',
+          'B. [PRO Locked Option - Click to unlock]',
+          'C. [PRO Locked Option - Click to unlock]',
+          'D. [PRO Locked Option - Click to unlock]'
+        ]
+      };
+    }
+    return { ...q, isLocked: false };
   });
 
-  const currentQ = activeQuestions[currentQIndex] || activeQuestions[0] || QUIZ_QUESTION_BANK[0];
+  const currentQ = activeQuestions[currentQIndex] || activeQuestions[0] || RAW_QUESTION_BANK[0];
+
+  const handleToggleAdminMode = () => {
+    if (typeof window === 'undefined') return;
+
+    if (userTier === 'ADMIN_BUILDER') {
+      localStorage.setItem('agentpass_user_email', 'guest@agentpass.hk');
+      localStorage.setItem('agentpass_user_tier', 'FREE_PREVIEW');
+      setUserTier('FREE_PREVIEW');
+    } else {
+      localStorage.setItem('agentpass_user_email', 'imoh.ekarika@savantnex.com');
+      localStorage.setItem('agentpass_user_tier', 'ADMIN_BUILDER');
+      setUserTier('ADMIN_BUILDER');
+    }
+  };
 
   const handleSelectOption = (index: number) => {
+    if (currentQ?.isLocked) {
+      setShowUpgradeModal(true);
+      return;
+    }
     if (isSubmitted) return;
     setSelectedOptionIndex(index);
   };
 
   const handleCheckAnswer = () => {
+    if (currentQ?.isLocked) {
+      setShowUpgradeModal(true);
+      return;
+    }
     if (selectedOptionIndex === null) return;
     setIsSubmitted(true);
 
@@ -137,36 +199,6 @@ function QuizContent() {
       correct: isCorrect ? prev.correct + 1 : prev.correct,
       total: prev.total + 1
     }));
-
-    if (!isCorrect && typeof window !== 'undefined') {
-      try {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const srsItem = {
-          id: `q-${currentQ.id}`,
-          questionId: currentQ.id,
-          blockNum: currentQ.blockNum,
-          titleZh: currentQ.topicZh,
-          titleEn: currentQ.topicEn,
-          statuteRefZh: currentQ.statuteRefZh,
-          statuteRefEn: currentQ.statuteRefEn,
-          lastReviewed: todayStr,
-          nextReviewDate: todayStr,
-          ladderStage: 'Day 1',
-          accuracy: 0
-        };
-
-        const existingQueue = JSON.parse(
-          localStorage.getItem('agentpass_srs_queue_v1') || '[]'
-        );
-
-        const existingIds = new Set(existingQueue.map((item: any) => item.questionId || item.id));
-        if (!existingIds.has(currentQ.id)) {
-          localStorage.setItem('agentpass_srs_queue_v1', JSON.stringify([srsItem, ...existingQueue]));
-        }
-      } catch (err) {
-        console.warn('SRS Sync Warning:', err);
-      }
-    }
   };
 
   const handleNextQuestion = () => {
@@ -186,15 +218,107 @@ function QuizContent() {
 
   return (
     <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
+      {/* Upgrade Paywall Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-lg rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-2">
+                <span className="p-2 rounded-xl bg-amber-500 text-slate-950 font-black">
+                  <Lock className="h-5 w-5" />
+                </span>
+                <div>
+                  <span className="text-[10px] font-mono font-black text-amber-800 uppercase px-2 py-0.5 rounded bg-amber-50 border border-amber-200 block w-fit">
+                    PRO SUBSCRIPTION REQUIRED
+                  </span>
+                  <h3 className="text-xl font-extrabold text-slate-900 pt-0.5">
+                    {isZh ? '解鎖完整 130 題考題與法規解析' : 'Unlock Full 130 Practice Questions'}
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-xs">
+              <p className="text-slate-700 font-semibold leading-relaxed">
+                {isZh
+                  ? '免費版僅供前 10 題體驗。升級至 AgentPass PRO 即可解鎖全套 130 題高頻試題庫：'
+                  : 'Free preview covers the first 10 questions. Upgrade to AgentPass PRO to access:'}
+              </p>
+
+              <div className="space-y-2 font-bold text-slate-800">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>{isZh ? '完整 130 題不重複高頻考題庫' : 'Complete 130-question statutory practice bank'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>{isZh ? '主考官假命題陷阱解析與 Cap. 511/219/7 條文對照' : 'Master examiner trap analysis with official Cap. 511/219/7 citations'}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <span>{isZh ? '艾賓浩斯 SRS 錯題自動同步至溫習儀表板' : 'Automatic SRS wrong-item queueing to student dashboard'}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowUpgradeModal(false)}
+                className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs"
+              >
+                {isZh ? '繼續免費體驗' : 'Continue Free Preview'}
+              </button>
+
+              <a
+                href="/pricing"
+                className="px-6 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition flex items-center gap-2"
+              >
+                <span>{isZh ? '立即升級 PRO' : 'Upgrade to PRO'}</span>
+                <ChevronRight className="h-4 w-4 text-slate-950" />
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-4xl mx-auto space-y-8">
 
         {/* Top Header Banner */}
         <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
-              <span>Official 130-Question Practice Bank & Trap Register</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
+                <span>Official 130-Question Practice Bank & Trap Register</span>
+              </span>
+
+              {/* Status & 1-Click Pro/Admin Toggle */}
+              <button
+                type="button"
+                onClick={handleToggleAdminMode}
+                title="Click to toggle Admin Builder / Free Preview mode for testing"
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold transition cursor-pointer border ${
+                  userTier === 'ADMIN_BUILDER'
+                    ? 'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100'
+                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-300'
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>{userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS' : 'FREE PREVIEW'}</span>
+                <span className="text-[10px] opacity-60 underline ml-0.5">
+                  {userTier === 'ADMIN_BUILDER' ? '(Revoke)' : '(Enable Pro)'}
+                </span>
+              </button>
             </div>
+
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {isZh ? '全真 130 題高頻考題與陷阱特訓' : 'Full 130-Question Practice Bank'}
             </h1>
@@ -278,6 +402,12 @@ function QuizContent() {
               <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-700">
                 {currentQ.blockNum} • {isZh ? currentQ.topicZh : currentQ.topicEn}
               </span>
+              {currentQ.isLocked && (
+                <span className="text-xs font-mono font-black text-amber-800 px-2.5 py-0.5 rounded bg-amber-100 border border-amber-300 flex items-center gap-1">
+                  <Lock className="h-3 w-3" />
+                  <span>PRO LOCKED</span>
+                </span>
+              )}
             </div>
 
             <span className="text-xs font-mono font-bold text-blue-700 px-2.5 py-0.5 rounded bg-blue-50 border border-blue-100">
@@ -296,7 +426,9 @@ function QuizContent() {
 
               let btnStyle = 'bg-white border-slate-200 text-slate-800 hover:border-blue-400 hover:bg-slate-50';
 
-              if (isSubmitted) {
+              if (currentQ.isLocked) {
+                btnStyle = 'bg-slate-50 border-dashed border-slate-300 text-slate-400 hover:border-amber-400';
+              } else if (isSubmitted) {
                 if (isCorrect) {
                   btnStyle = 'bg-emerald-500 text-white border-emerald-500 font-bold';
                 } else if (isSelected && !isCorrect) {
@@ -316,14 +448,15 @@ function QuizContent() {
                   className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-3 cursor-pointer ${btnStyle}`}
                 >
                   <span>{optionText}</span>
-                  {isSubmitted && isCorrect && <Check className="h-4 w-4 text-white shrink-0" />}
-                  {isSubmitted && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-white shrink-0" />}
+                  {!currentQ.isLocked && isSubmitted && isCorrect && <Check className="h-4 w-4 text-white shrink-0" />}
+                  {!currentQ.isLocked && isSubmitted && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-white shrink-0" />}
+                  {currentQ.isLocked && <Lock className="h-4 w-4 text-slate-400 shrink-0" />}
                 </button>
               );
             })}
           </div>
 
-          {isSubmitted && (
+          {isSubmitted && !currentQ.isLocked && (
             <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 space-y-1.5 animate-in fade-in duration-200">
               <span className="font-extrabold text-amber-900 uppercase font-mono text-xs block">
                 {isZh ? '【 官方評分依據與條例解析 】' : '[ Statutory Explanation ]'}
@@ -347,11 +480,10 @@ function QuizContent() {
             {!isSubmitted ? (
               <button
                 type="button"
-                disabled={selectedOptionIndex === null}
                 onClick={handleCheckAnswer}
-                className="px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition cursor-pointer disabled:opacity-40"
+                className="px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition cursor-pointer"
               >
-                <span>{isZh ? '提交答案' : 'Check Answer'}</span>
+                <span>{currentQ.isLocked ? (isZh ? '解鎖完整題目' : 'Unlock Question') : (isZh ? '提交答案' : 'Check Answer')}</span>
               </button>
             ) : (
               <button
