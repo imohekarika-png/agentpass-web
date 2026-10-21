@@ -2,7 +2,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { LanguageProvider } from '@/app/context/LanguageContext';
-import { ThemeProvider } from '@/app/context/ThemeContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/app/components/Footer';
 import AiTutorWidget from '@/app/components/AiTutorWidget';
@@ -18,15 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="zh-HK" translate="no" className="notranslate" suppressHydrationWarning>
-      <body className="antialiased font-sans min-h-screen flex flex-col" suppressHydrationWarning>
+    <html lang="zh-HK" translate="no" className="notranslate light" style={{ colorScheme: 'light' }} suppressHydrationWarning>
+      <body className="antialiased font-sans min-h-screen flex flex-col bg-slate-50 text-slate-900" suppressHydrationWarning>
         <LanguageProvider>
-          <ThemeProvider>
-            <Navbar />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <AiTutorWidget />
-          </ThemeProvider>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <AiTutorWidget />
         </LanguageProvider>
       </body>
     </html>
