@@ -1,28 +1,34 @@
 // app/quiz/page.tsx
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { 
-  HelpCircle, 
-  CheckCircle2, 
-  XCircle, 
-  RotateCw, 
-  ArrowRight, 
-  Sparkles, 
+import {
+  HelpCircle,
   BookOpen,
   Award,
+  Check,
+  CheckCircle2,
+  XCircle,
+  RotateCcw,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+  Bookmark,
+  Target,
   AlertTriangle,
-  Target
+  Zap,
+  Filter
 } from 'lucide-react';
 
-interface Question {
+export interface QuizQuestion {
   id: number;
   blockId: string;
   blockNum: string;
-  level: string;
+  topicZh: string;
+  topicEn: string;
   questionZh: string;
   questionEn: string;
   optionsZh: string[];
@@ -30,68 +36,74 @@ interface Question {
   answerIndex: number;
   explanationZh: string;
   explanationEn: string;
-  statuteCitation: string;
+  statuteRefZh: string;
+  statuteRefEn: string;
+  trackApplicability: 'BOTH' | 'EAQE_ONLY' | 'SQE_ONLY';
 }
 
-const ALL_QUESTIONS: Question[] = [
-  // Block 01 Questions (EAA & Licensing)
+const QUIZ_QUESTION_BANK: QuizQuestion[] = [
   {
     id: 101,
     blockId: 'b1',
     blockNum: 'Block 01',
-    level: 'Level 2 - Basic Knowledge',
-    questionZh: '根據《地產代理條例》( Cap. 511)，下列哪一項是申請個人地產代理牌照的法定條件？',
-    questionEn: 'Under the Estate Agents Ordinance (Cap. 511), which of the following is a statutory requirement for an individual estate agent license?',
+    topicZh: 'EAA 架構與持牌資格',
+    topicEn: 'EAA Structure & Licensing Qualifications',
+    questionZh: '下列哪項條件【絕非】申請個人地產代理牌照 (EAQE) 或營業員牌照 (SQE) 的法定要求？',
+    questionEn: 'Which of the following is NOT a statutory requirement for an individual license?',
     optionsZh: [
-      'A. 具備最少 3 年地產代理從業經驗',
-      'B. 年滿 18 歲並完成中五或同等學歷',
-      'C. 獲得至少兩名持牌代理之書面推薦',
-      'D. 在香港擁有自置住宅物業'
+      'A. 年滿 18 歲',
+      'B. 完成中五 (Form 5) 或同等學歷',
+      'C. 具備最少 1 年地產相關工作經驗',
+      'D. 獲監管局評定為「適當人選」(Fit and Proper)'
     ],
     optionsEn: [
-      'A. At least 3 years of real estate agency work experience',
-      'B. Aged 18 or above and completed Form 5 or equivalent',
-      'C. Obtain written recommendations from two licensed agents',
-      'D. Own a residential property in Hong Kong'
+      'A. Aged 18 or above',
+      'B. Completed Form 5 or equivalent',
+      'C. Possess at least 1 year relevant estate agency work experience',
+      'D. Considered a Fit and Proper person by EAA'
     ],
-    answerIndex: 1,
-    explanationZh: '✓ 法定四大發牌條件為：年滿 18 歲、完成中五 (Form 5) 學歷、獲評為「適當人選」(Fit and Proper)、並於指定期限內考試合格。工作經驗 (Work Experience) 絕非法定條件。',
-    explanationEn: '✓ Statutory eligibility requirements: Age 18+, Form 5 completion, Fit and Proper person, and exam passed. Work experience is NOT required.',
-    statuteCitation: 'Cap. 511 s.15 & s.19'
+    answerIndex: 2,
+    explanationZh: '《地產代理條例》(Cap. 511) 規定之發牌四條件為：年滿 18 歲、中五或同等學歷、Fit & Proper 評估及指定期限內考試合格。「工作經驗」絕非發牌法定條件。',
+    explanationEn: 'Under Cap. 511, the 4 statutory conditions are: Age 18+, Form 5, Fit & Proper, and Exam passed. Work experience is NOT required.',
+    statuteRefZh: '《地產代理條例》Cap. 511 s.15',
+    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.15',
+    trackApplicability: 'BOTH'
   },
   {
     id: 102,
     blockId: 'b1',
     blockNum: 'Block 01',
-    level: 'Level 2 - Basic Knowledge',
-    questionZh: '營業員牌照 (SQE) 考試合格後，申請牌照的有效期限為何？',
-    questionEn: 'What is the validity window for applying for a Salesperson license after passing the SQE qualifying exam?',
+    topicZh: '考試合格有效期限',
+    topicEn: 'Exam Validity Windows',
+    questionZh: '營業員資格考試 (SQE) 考試合格後，申請人最遲須於考試合格日後多久內遞交牌照申請？',
+    questionEn: 'After passing the Salesperson Qualifying Exam (SQE), within what time frame must the license application be submitted?',
     optionsZh: [
-      'A. 考試合格日起計 3 個月內',
-      'B. 考試合格日起計 6 個月內',
-      'C. 考試合格日起計 12 個月內',
-      'D. 考試合格日起計 24 個月內'
+      'A. 3 個月內',
+      'B. 6 個月內',
+      'C. 12 個月內',
+      'D. 24 個月內'
     ],
     optionsEn: [
-      'A. Within 3 months from the exam pass date',
-      'B. Within 6 months from the exam pass date',
-      'C. Within 12 months from the exam pass date',
-      'D. Within 24 months from the exam pass date'
+      'A. Within 3 months',
+      'B. Within 6 months',
+      'C. Within 12 months',
+      'D. Within 24 months'
     ],
     answerIndex: 1,
-    explanationZh: '✓ 考試成績有效窗口：營業員牌照 (SQE) 為 6 個月；地產代理牌照 (EAQE) 為 12 個月。主考官最常在此數字出陷阱！',
-    explanationEn: '✓ Exam validity window: 6 months for Salesperson (SQE); 12 months for Estate Agent (EAQE).',
-    statuteCitation: 'EAA Licensing Guidelines s.2.2'
+    explanationZh: '營業員牌照 (SQE) 的考試合格有效期限為 6 個月；地產代理牌照 (EAQE) 為 12 個月。切勿混淆兩者時間！',
+    explanationEn: 'The exam validity window for Salesperson (SQE) is 6 months, whereas for Estate Agent (EAQE) it is 12 months.',
+    statuteRefZh: '《地產代理條例》Cap. 511 s.18',
+    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.18',
+    trackApplicability: 'BOTH'
   },
-
-  // Block 02 Questions (Business Premises)
   {
-    id: 201,
+    id: 103,
     blockId: 'b2',
     blockNum: 'Block 02',
-    level: 'Level 4 - Understand + Apply',
-    questionZh: '持牌地產代理公司變更營業地點後，必須於多少天內以書面通知地產代理監管局 (EAA)？',
-    questionEn: 'A licensed estate agency changing its business address must notify the EAA in writing within how many days?',
+    topicZh: '營業地點與 31 天通知期',
+    topicEn: 'Business Premises & 31-Day Notice',
+    questionZh: '持牌地產代理公司變更營業地址或委任新分行經理後，須於幾多天內以書面通知 EAA？',
+    questionEn: 'Within how many days must an agency notify EAA in writing of a change in business address or branch manager appointment?',
     optionsZh: [
       'A. 7 天內',
       'B. 14 天內',
@@ -105,261 +117,374 @@ const ALL_QUESTIONS: Question[] = [
       'D. Within 60 days'
     ],
     answerIndex: 2,
-    explanationZh: '✓ 根據 Cap. 511 s.40，營業地點或公司註冊地址如有變更，持牌人必須於 31 天內 以書面通知 EAA，否則屬刑事罪行。',
-    explanationEn: '✓ Under Cap. 511 s.40, any change of business address must be notified to EAA in writing within 31 days.',
-    statuteCitation: 'Cap. 511 s.40'
+    explanationZh: 'Cap. 511 s.40 規定，變更主要營業地點、開設新分行或委任分行經理，均須於 31 天內以書面通知監管局。',
+    explanationEn: 'Cap. 511 s.40 mandates that address changes and branch manager appointments must be reported in writing within 31 days.',
+    statuteRefZh: '《地產代理條例》Cap. 511 s.40',
+    statuteRefEn: 'Estate Agents Ordinance Cap. 511 s.40',
+    trackApplicability: 'BOTH'
   },
-
-  // Block 04 Questions (Client Money Trust)
   {
-    id: 401,
+    id: 104,
     blockId: 'b4',
     blockNum: 'Block 04',
-    level: 'Level 4 - Understand + Apply',
-    questionZh: '營業員代業主收取買家 $40,000 現金訂金而業主不在香港時，該營業員必須如何處理該筆款項？',
-    questionEn: 'A salesperson receiving $40,000 cash deposit for a vendor who is overseas must handle the funds by:',
+    topicZh: '客戶存款與信託戶口',
+    topicEn: 'Client Money & Trust Accounts',
+    questionZh: '地產代理代客戶收取存款後，必須於幾多天內向客戶發出正式書面收據？',
+    questionEn: 'Within how many days must an estate agent issue a written receipt after receiving client money?',
     optionsZh: [
-      'A. 存入買家律師樓的信託戶口',
-      'B. 存入其所屬地產代理行於持牌銀行開立的客戶信託戶口',
-      'C. 存入地產代理行的日常營業戶口 (Office Account)',
-      'D. 存入分行經理的個人銀行戶口代為保管'
+      'A. 即時發出',
+      'B. 7 天內',
+      'C. 14 天內',
+      'D. 30 天內'
     ],
     optionsEn: [
-      'A. Depositing into the purchaser solicitor trust account',
-      'B. Depositing into a Client Trust Account maintained by his agency at a bank',
-      'C. Depositing into the agency office operating account',
-      'D. Depositing into the branch manager personal bank account'
-    ],
-    answerIndex: 1,
-    explanationZh: '✓ 代客戶收取之款項，必須即時存入所屬代理行於持牌銀行開立之指定「客戶信託帳戶」(Client Trust Account)。嚴禁存入營業戶口或個人戶口！',
-    explanationEn: '✓ Must immediately deposit client money into designated bank Client Trust Account maintained by the agency.',
-    statuteCitation: 'Cap. 511 s.43 & Client Money Rules'
-  },
-
-  // Block 11 Questions (Statutory Forms 3-6)
-  {
-    id: 1101,
-    blockId: 'b11',
-    blockNum: 'Block 11',
-    level: 'Level 4 - Understand + Apply',
-    questionZh: '根據地產代理規條，下列哪一種物業交易「不需要」簽署 Prescribed 法定地產代理協議 (Form 3 至 6)？',
-    questionEn: 'Which of the following transaction scenarios does NOT require signing a prescribed agency agreement (Forms 3 to 6)?',
-    optionsZh: [
-      'A. 出售住宅物業連同一個車位',
-      'B. 出租獨立住宅樓宇',
-      'C. 出租商業寫字樓 (Commercial Office)',
-      'D. 購買住宅私人屋苑單位'
-    ],
-    optionsEn: [
-      'A. Sale of a residential property together with a car parking space',
-      'B. Leasing of a self-contained residential flat',
-      'C. Leasing of a commercial office',
-      'D. Purchase of a residential apartment unit'
+      'A. Immediately',
+      'B. Within 7 days',
+      'C. Within 14 days',
+      'D. Within 30 days'
     ],
     answerIndex: 2,
-    explanationZh: '✓Prescribed 法定地產代理協議 (Form 3-6) 僅適用於「住宅物業」。商業寫字樓 (Office)、店舖 (Shop) 及非獨立住宅租賃均豁免使用。',
-    explanationEn: '✓ Prescribed Forms 3-6 apply ONLY to residential properties. Commercial offices, shops, and non-self-contained units are exempt.',
-    statuteCitation: 'Estate Agency Agreement Regulation s.3'
+    explanationZh: '《地產代理(客戶款項)規例》Cap. 511B 規定，收取客戶存款後必須即時存入獨立信託戶口，並於 14 天內發出書面收據。收據副本須保存至少 3 年。',
+    explanationEn: 'Cap. 511B requires client money to be deposited immediately in trust and a receipt issued within 14 days (retained for 3 years).',
+    statuteRefZh: '《地產代理(客戶款項)規例》Cap. 511B s.4',
+    statuteRefEn: 'Estate Agents (Client Money) Rules Cap. 511B s.4',
+    trackApplicability: 'EAQE_ONLY'
   },
-
-  // Block 16 Questions (Tenancy Cap. 7)
   {
-    id: 1601,
-    blockId: 'b16',
-    blockNum: 'Block 16',
-    level: 'Level 4 - Understand + Apply',
-    questionZh: '住宅租約無明確沒收條款下，租客拖欠租金達多少天時，業主有權行使法定沒收租賃權 (Forfeiture)？',
-    questionEn: 'Absent an express forfeiture clause, after how many days of unpaid rent may a landlord forfeit a domestic tenancy?',
+    id: 105,
+    blockId: 'b11',
+    blockNum: 'Block 11',
+    topicZh: '法定代理協議有效期限',
+    topicEn: 'Agency Agreement Statutory Validity',
+    questionZh: '業主簽署 Form 3 出售放盤協議時，若協議內未填寫有效期限，該協議有何法律效力？',
+    questionEn: 'If the validity period is omitted when a vendor signs Form 3, what is its legal status?',
     optionsZh: [
-      'A. 欠租達 7 天',
-      'B. 欠租達 10 天',
-      'C. 欠租達 14 天',
-      'D. 欠租達 15 天'
+      'A. 協議無效 (Invalid)',
+      'B. 自動以 3 個月為上限',
+      'C. 自動以 1 年為上限',
+      'D. 永久有效'
     ],
     optionsEn: [
-      'A. After 7 days unpaid rent',
-      'B. After 10 days unpaid rent',
-      'C. After 14 days unpaid rent',
-      'D. After 15 days unpaid rent'
+      'A. Agreement is invalid / void',
+      'B. Deemed valid for 3 months maximum',
+      'C. Deemed valid for 1 year maximum',
+      'D. Perpetually valid'
     ],
-    answerIndex: 3,
-    explanationZh: '✓ 法定沒收租賃權門檻為「欠租達 15 天」(15 Days)！主考官常以 14 天作為標誌性干擾選項，切勿被誤導！',
-    explanationEn: '✓ Statutory forfeiture threshold is 15 DAYS of unpaid rent. 14 days is the standard distractor used by EAA.',
-    statuteCitation: 'Landlord and Tenant (Consolidation) Ordinance Cap. 7'
+    answerIndex: 0,
+    explanationZh: '《地產代理常規規例》規定，法定代理協議 (Form 3 至 6) 必須載明有效期限，最長不得超過 3 個月。未列明有效期的協議完全無效。',
+    explanationEn: 'Practice Regulations require Forms 3 to 6 to specify a validity period (max 3 months). Omitting this renders the agreement invalid.',
+    statuteRefZh: '《地產代理常規規例》Cap. 511A s.6',
+    statuteRefEn: 'Estate Agents Practice Regulations Cap. 511A s.6',
+    trackApplicability: 'BOTH'
+  },
+  {
+    id: 106,
+    blockId: 'b16',
+    blockNum: 'Block 16',
+    topicZh: '住宅租務欠租沒收權',
+    topicEn: 'Tenancy Forfeiture for Non-payment',
+    questionZh: '根據《業主與租客(綜合)條例》(Cap. 7)，在無明確條款下，住宅租客拖欠租金達幾多天時，業主可根據法定隱含條件行使沒收租賃權 (Forfeiture)？',
+    questionEn: 'Under Cap. 7, absent an express clause, after how many days of unpaid rent can a landlord forfeit the tenancy?',
+    optionsZh: [
+      'A. 7 天',
+      'B. 14 天',
+      'C. 15 天',
+      'D. 30 天'
+    ],
+    optionsEn: [
+      'A. 7 Days',
+      'B. 14 Days',
+      'C. 15 Days',
+      'D. 30 Days'
+    ],
+    answerIndex: 2,
+    explanationZh: 'Cap. 7 法定隱含條件規定，拖欠租金達 15 天 (15 Days) 即觸發業主沒收租賃權。14 天是常見干擾項！',
+    explanationEn: 'Cap. 7 statutory implied condition provides a 15-day unpaid rent threshold for tenancy forfeiture. 14 days is a false distractor!',
+    statuteRefZh: '《業主與租客(綜合)條例》Cap. 7 Part IV',
+    statuteRefEn: 'Landlord and Tenant Ordinance Cap. 7 Part IV',
+    trackApplicability: 'BOTH'
   }
 ];
 
-function QuizContent() {
+export default function QuizPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const searchParams = useSearchParams();
-  const activeBlockId = searchParams.get('block');
+  const blockParam = searchParams.get('block');
 
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedOption, setSelectedOption] = useState<number | null>(null);
-  const [isAnswered, setIsAnswered] = useState(false);
-  const [score, setScore] = useState(0);
+  const [selectedTrack, setSelectedTrack] = useState<'SQE' | 'EAQE'>('EAQE');
+  const [currentQIndex, setCurrentQIndex] = useState<number>(0);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [userScore, setUserScore] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 });
 
-  // Filter questions based on block parameter
-  const filteredQuestions = activeBlockId 
-    ? ALL_QUESTIONS.filter((q) => q.blockId === activeBlockId)
-    : ALL_QUESTIONS;
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedTrack = localStorage.getItem('agentpass_selected_track');
+      if (savedTrack === 'sqe' || savedTrack === 'sqe_pro') {
+        setSelectedTrack('SQE');
+      }
+    }
+  }, []);
 
-  const currentQ = filteredQuestions[currentIndex] || filteredQuestions[0] || ALL_QUESTIONS[0];
+  const activeQuestions = QUIZ_QUESTION_BANK.filter((q) => {
+    if (blockParam && q.blockId !== blockParam) return false;
+    if (selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY') return false;
+    return true;
+  });
 
-  const handleSelectOption = (idx: number) => {
-    if (isAnswered) return;
-    setSelectedOption(idx);
-    setIsAnswered(true);
-    if (idx === currentQ.answerIndex) {
-      setScore((prev) => prev + 1);
+  const currentQ = activeQuestions[currentQIndex] || activeQuestions[0] || QUIZ_QUESTION_BANK[0];
+
+  const handleSelectOption = (index: number) => {
+    if (isSubmitted) return;
+    setSelectedOptionIndex(index);
+  };
+
+  const handleCheckAnswer = () => {
+    if (selectedOptionIndex === null) return;
+    setIsSubmitted(true);
+
+    const isCorrect = selectedOptionIndex === currentQ.answerIndex;
+    setUserScore((prev) => ({
+      correct: isCorrect ? prev.correct + 1 : prev.correct,
+      total: prev.total + 1
+    }));
+
+    // Task 1.2.1 Integration: Sync incorrect answers to Spaced Repetition Queue (SRS)
+    if (!isCorrect && typeof window !== 'undefined') {
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const srsItem = {
+          id: `q-${currentQ.id}`,
+          questionId: currentQ.id,
+          blockNum: currentQ.blockNum,
+          titleZh: currentQ.topicZh,
+          titleEn: currentQ.topicEn,
+          statuteRefZh: currentQ.statuteRefZh,
+          statuteRefEn: currentQ.statuteRefEn,
+          lastReviewed: todayStr,
+          nextReviewDate: todayStr,
+          ladderStage: 'Day 1',
+          accuracy: 0
+        };
+
+        const existingQueue = JSON.parse(
+          localStorage.getItem('agentpass_srs_queue_v1') || '[]'
+        );
+
+        const existingIds = new Set(existingQueue.map((item: any) => item.questionId || item.id));
+        if (!existingIds.has(currentQ.id)) {
+          localStorage.setItem('agentpass_srs_queue_v1', JSON.stringify([srsItem, ...existingQueue]));
+        }
+      } catch (err) {
+        console.warn('SRS Sync Warning:', err);
+      }
     }
   };
 
   const handleNextQuestion = () => {
-    setSelectedOption(null);
-    setIsAnswered(false);
-    setCurrentIndex((prev) => (prev + 1) % filteredQuestions.length);
+    setSelectedOptionIndex(null);
+    setIsSubmitted(false);
+    if (currentQIndex < activeQuestions.length - 1) {
+      setCurrentQIndex((prev) => prev + 1);
+    }
+  };
+
+  const handleResetQuiz = () => {
+    setCurrentQIndex(0);
+    setSelectedOptionIndex(null);
+    setIsSubmitted(false);
+    setUserScore({ correct: 0, total: 0 });
   };
 
   return (
-    <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
+    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
       <div className="max-w-4xl mx-auto space-y-8">
 
-        {/* Top Header */}
-        <div 
-          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-          className="p-6 sm:p-8 rounded-3xl border shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6"
-        >
+        {/* Top Header Banner */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-bold text-indigo-400">
-              <Target className="h-3.5 w-3.5" />
-              <span>{activeBlockId ? `Topic Block Drill: ${currentQ.blockNum}` : 'All 20 Topic Blocks Quiz Bank'}</span>
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+              <HelpCircle className="h-3.5 w-3.5 text-blue-600" />
+              <span>Official Practice Bank & Exam Trap Register</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              {isZh ? '全真試題與考官陷阱特訓' : 'Verified Exam Questions & Trap Drills'}
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              {isZh ? '全真高頻考題與陷阱特訓' : 'Practice Quiz Bank & Exam Traps'}
             </h1>
-            <p className="text-xs font-medium opacity-80">
-              {isZh ? '每一題均來自地產代理監管局 (EAA) 官方標準答案庫與法例條文解析。' : '100% verified against official EAA answer keys and statutory ordinances.'}
+            <p className="text-xs sm:text-sm text-slate-600 max-w-xl leading-relaxed">
+              {isZh
+                ? '針對香港地產代理監管局 (EAA) 最新出題傾向，訓練法規辨析能力與消除考官陷阱。'
+                : 'Targeted practice drills reinforcing statutory citations and eliminating examiner trap patterns.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
             <Link
               href="/course"
-              className="px-4 py-2.5 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-1.5"
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 transition flex items-center gap-2"
             >
-              <BookOpen className="h-3.5 w-3.5 text-indigo-400" />
-              <span>{isZh ? '返回單元' : 'Topic Blocks'}</span>
+              <BookOpen className="h-4 w-4 text-blue-600" />
+              <span>{isZh ? '返回課程大綱' : 'Syllabus'}</span>
+            </Link>
+
+            <Link
+              href="/mock-exam"
+              className="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-2"
+            >
+              <Award className="h-4 w-4 !text-white" />
+              <span>{isZh ? '進入模擬考場' : 'Full Mock Exam'}</span>
             </Link>
           </div>
         </div>
 
-        {/* Active Block Info Pill */}
-        {activeBlockId && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs font-bold text-amber-400">
-            <span>{isZh ? `目前正進行 ${currentQ.blockNum} 專屬刷題` : `Active Block Drill: ${currentQ.blockNum}`}</span>
-            <Link href="/quiz" className="underline hover:opacity-80">
-              {isZh ? '查看全部 20 單元題目' : 'View All Questions'}
-            </Link>
+        {/* Filter Bar & Performance Counter */}
+        <div className="p-4 sm:p-6 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-blue-600" />
+            <span className="text-xs font-bold text-slate-700">
+              {isZh ? '應考軌道:' : 'Active Track:'}
+            </span>
+            <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTrack('SQE');
+                  handleResetQuiz();
+                }}
+                className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  selectedTrack === 'SQE' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                SQE (細牌)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedTrack('EAQE');
+                  handleResetQuiz();
+                }}
+                className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  selectedTrack === 'EAQE' ? 'bg-blue-600 text-white shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                EAQE (大牌)
+              </button>
+            </div>
           </div>
-        )}
 
-        {/* Question Card */}
-        {currentQ && (
-          <div 
-            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-            className="p-6 sm:p-8 rounded-3xl border shadow-2xl space-y-6"
-          >
-            <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
-              <span className="px-3 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-mono font-bold text-indigo-400">
-                Question {currentIndex + 1} / {filteredQuestions.length}
+          <div className="flex items-center gap-4 text-xs font-mono font-bold">
+            <span className="text-slate-500">
+              {isZh ? `進度: ${currentQIndex + 1} / ${activeQuestions.length}` : `Progress: ${currentQIndex + 1} / ${activeQuestions.length}`}
+            </span>
+            {userScore.total > 0 && (
+              <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                {isZh ? `正確率: ${Math.round((userScore.correct / userScore.total) * 100)}%` : `Accuracy: ${Math.round((userScore.correct / userScore.total) * 100)}%`}
               </span>
-
-              <span className="text-xs font-mono font-bold text-amber-400">
-                {currentQ.level}
-              </span>
-            </div>
-
-            <div className="space-y-4">
-              <h2 className="text-base sm:text-lg font-extrabold leading-relaxed">
-                {isZh ? currentQ.questionZh : currentQ.questionEn}
-              </h2>
-
-              {/* Options */}
-              <div className="space-y-3 pt-2">
-                {(isZh ? currentQ.optionsZh : currentQ.optionsEn).map((opt, idx) => {
-                  const isSelected = selectedOption === idx;
-                  const isCorrect = idx === currentQ.answerIndex;
-
-                  let btnStyle = 'border-slate-800 bg-slate-900/60 hover:border-indigo-500/60';
-                  if (isAnswered) {
-                    if (isCorrect) {
-                      btnStyle = 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold';
-                    } else if (isSelected) {
-                      btnStyle = 'bg-rose-600/20 border-rose-500 text-rose-300 font-bold';
-                    }
-                  }
-
-                  return (
-                    <button
-                      key={idx}
-                      disabled={isAnswered}
-                      onClick={() => handleSelectOption(idx)}
-                      className={`w-full text-left p-4 rounded-2xl border text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center justify-between ${btnStyle}`}
-                    >
-                      <span>{opt}</span>
-                      {isAnswered && isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />}
-                      {isAnswered && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-rose-400 shrink-0" />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Answer Explanation Box */}
-            {isAnswered && (
-              <div className="p-5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-2 animate-in fade-in duration-200">
-                <div className="flex items-center justify-between text-xs font-mono font-bold text-indigo-400">
-                  <span>【 官方答題解析 】</span>
-                  <span>{currentQ.statuteCitation}</span>
-                </div>
-                <p className="text-xs sm:text-sm font-bold leading-relaxed text-indigo-200">
-                  {isZh ? currentQ.explanationZh : currentQ.explanationEn}
-                </p>
-              </div>
             )}
-
-            {/* Card Footer Controls */}
-            <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
-              <div className="text-xs font-mono font-bold opacity-60">
-                Score: {score} / {filteredQuestions.length}
-              </div>
-
-              {isAnswered && (
-                <button
-                  onClick={handleNextQuestion}
-                  className="px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
-                >
-                  <span>{isZh ? '下一題' : 'Next Question'}</span>
-                  <ArrowRight className="h-4 w-4" />
-                </button>
-              )}
-            </div>
           </div>
-        )}
+        </div>
+
+        {/* Main Quiz Question Card */}
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-700">
+                {currentQ.blockNum} • {isZh ? currentQ.topicZh : currentQ.topicEn}
+              </span>
+            </div>
+
+            <span className="text-xs font-mono font-bold text-blue-700 px-2.5 py-0.5 rounded bg-blue-50 border border-blue-100">
+              {isZh ? currentQ.statuteRefZh : currentQ.statuteRefEn}
+            </span>
+          </div>
+
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            {isZh ? currentQ.questionZh : currentQ.questionEn}
+          </h3>
+
+          {/* Options Grid */}
+          <div className="space-y-3">
+            {(isZh ? currentQ.optionsZh : currentQ.optionsEn).map((optionText, optIdx) => {
+              const isSelected = selectedOptionIndex === optIdx;
+              const isCorrect = optIdx === currentQ.answerIndex;
+
+              let btnStyle = 'bg-white border-slate-200 text-slate-800 hover:border-blue-400 hover:bg-slate-50';
+
+              if (isSubmitted) {
+                if (isCorrect) {
+                  btnStyle = 'bg-emerald-500 text-white border-emerald-500 font-bold';
+                } else if (isSelected && !isCorrect) {
+                  btnStyle = 'bg-rose-500 text-white border-rose-500 font-bold';
+                } else {
+                  btnStyle = 'bg-slate-50 border-slate-200 text-slate-400';
+                }
+              } else if (isSelected) {
+                btnStyle = 'bg-blue-600 text-white border-blue-600 font-extrabold shadow-sm';
+              }
+
+              return (
+                <button
+                  key={optIdx}
+                  type="button"
+                  onClick={() => handleSelectOption(optIdx)}
+                  className={`w-full p-4 rounded-2xl border text-left text-xs sm:text-sm font-semibold transition flex items-center justify-between gap-3 cursor-pointer ${btnStyle}`}
+                >
+                  <span>{optionText}</span>
+                  {isSubmitted && isCorrect && <Check className="h-4 w-4 text-white shrink-0" />}
+                  {isSubmitted && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-white shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Explanation Box */}
+          {isSubmitted && (
+            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 space-y-1.5 animate-in fade-in duration-200">
+              <span className="font-extrabold text-amber-900 uppercase font-mono text-xs block">
+                {isZh ? '【 官方評分依據與條例解析 】' : '[ Statutory Explanation ]'}
+              </span>
+              <p className="text-xs font-medium leading-relaxed">
+                {isZh ? currentQ.explanationZh : currentQ.explanationEn}
+              </p>
+            </div>
+          )}
+
+          {/* Navigation Controls */}
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleResetQuiz}
+              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <RotateCcw className="h-4 w-4 text-blue-600" />
+              <span>{isZh ? '重新練習' : 'Restart'}</span>
+            </button>
+
+            {!isSubmitted ? (
+              <button
+                type="button"
+                disabled={selectedOptionIndex === null}
+                onClick={handleCheckAnswer}
+                className="px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition cursor-pointer disabled:opacity-40"
+              >
+                <span>{isZh ? '提交答案' : 'Check Answer'}</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleNextQuestion}
+                className="px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <span>{isZh ? '下一題' : 'Next Question'}</span>
+                <ArrowRight className="h-4 w-4 !text-white" />
+              </button>
+            )}
+          </div>
+        </div>
 
       </div>
     </div>
-  );
-}
-
-export default function QuizPage() {
-  return (
-    <Suspense fallback={<div className="p-10 text-center text-xs font-mono font-bold opacity-60">Loading Quiz Engine...</div>}>
-      <QuizContent />
-    </Suspense>
   );
 }
