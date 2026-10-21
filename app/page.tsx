@@ -1,231 +1,270 @@
 // app/page.tsx
 'use client';
 
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { 
-  BookOpen, 
-  HelpCircle, 
-  Layers, 
-  LayoutDashboard, 
-  PartyPopper, 
-  LogIn, 
-  Sparkles, 
-  ArrowRight,
-  ShieldAlert,
+import {
   Award,
+  BookOpen,
   Compass,
-  Zap
+  HelpCircle,
+  Layers,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  TrendingUp,
+  Building2,
+  Zap,
+  Target,
+  FileText
 } from 'lucide-react';
 
-export default function HomePage() {
+export default function MergedLandingPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const tools = [
-    {
-      step: '00',
-      titleZh: '學員迎新指引',
-      titleEn: 'Student Welcome Guide',
-      descZh: '新手入門指南、合格分數線與 4 步精通備考策略。',
-      descEn: 'Getting started guide, score thresholds, and 4-step mastery strategy.',
-      href: '/welcome',
-      icon: PartyPopper,
-      btnZh: '閱讀指引',
-      btnEn: 'Read Guide'
-    },
-    {
-      step: '00',
-      titleZh: '學員帳號登入',
-      titleEn: 'Account Login',
-      descZh: '跨裝置同步溫習進度、錯題紀錄與全真模擬考成績。',
-      descEn: 'Sync learning progress, error notebooks, and exam scores.',
-      href: '/login',
-      icon: LogIn,
-      btnZh: '前往登入',
-      btnEn: 'Go to Login'
-    },
-    {
-      step: '01',
-      titleZh: '閱讀 20 大主題單元',
-      titleEn: 'Read 20 Topic Blocks',
-      descZh: '系統化筆記全面涵蓋 Cap. 511 地產代理條例、Cap. 7 租務法例及土地查冊。',
-      descEn: 'Systematic notes covering Cap. 511, Cap. 7 Tenancy, and Land Search.',
-      href: '/course',
-      icon: BookOpen,
-      btnZh: '開始閱讀',
-      btnEn: 'Start Reading'
-    },
-    {
-      step: '02',
-      titleZh: '漫步 10 站記憶宮殿',
-      titleEn: 'Walk Memory Palace',
-      descZh: '將監管法定職責融入住宅交易實景路線，過目不忘。',
-      descEn: '10-Station residential route mapping regulatory duties into sequence.',
-      href: '/memory-palace', // <-- Dedicated Route
-      icon: Compass,
-      btnZh: '探索路線',
-      btnEn: 'Explore Route'
-    },
-    {
-      step: '03',
-      titleZh: '破解 38 考官陷阱',
-      titleEn: 'Master Exam Traps',
-      descZh: '專為破解考官誤導性選項設計的 38 個假命題特訓。',
-      descEn: 'Review 38 FALSE propositions crafted to trick unprepared candidates.',
-      href: '/quiz',
-      icon: ShieldAlert,
-      btnZh: '查看陷阱',
-      btnEn: 'View Traps'
-    },
-    {
-      step: '03+',
-      titleZh: 'Cap. 511 / 表格特訓閃卡',
-      titleEn: 'Statutory Flashcards Drill',
-      descZh: '針對數字記憶錨點與 Form 1-6 法定表格的快速翻牌特訓。',
-      descEn: 'Quick interval drills for numeric anchors and Form 1-6 rules.',
-      href: '/flashcards',
-      icon: Zap,
-      btnZh: '翻單字卡',
-      btnEn: 'Flip Cards'
-    },
-    {
-      step: '04',
-      titleZh: '間隔題庫刷題',
-      titleEn: 'Spaced Practice Quiz Bank',
-      descZh: '130 題最新大綱驗證真題，結合艾賓浩斯記憶階梯梯隊練題。',
-      descEn: 'Practice with 130 mock questions following the Ebbinghaus ladder.',
-      href: '/quiz',
-      icon: HelpCircle,
-      btnZh: '開始練習',
-      btnEn: 'Start Practice'
-    },
-    {
-      step: '04+',
-      titleZh: '全真 50 題模擬考場',
-      titleEn: 'Full Mock Exam Suite',
-      descZh: '提供 2.5 小時 SQE 及 3 小時 EAQE 全真計時考試模擬體驗。',
-      descEn: 'Official timed exam simulation for Salesperson (SQE) & Estate Agent (EAQE).',
-      href: '/mock-exam',
-      icon: Award,
-      btnZh: '進入考場',
-      btnEn: 'Enter Exam'
-    },
-    {
-      step: 'Progress',
-      titleZh: '記憶階梯與儀表板',
-      titleEn: 'Memory Ladder & Dashboard',
-      descZh: '實時追蹤 20 大單元複習進度、弱點警報與熟練度指標。',
-      descEn: 'Track review schedules, weakness alerts, and mastery levels.',
-      href: '/dashboard',
-      icon: LayoutDashboard,
-      btnZh: '查看進度',
-      btnEn: 'View Progress'
-    }
-  ];
+  const [selectedTrack, setSelectedTrack] = useState<'SQE' | 'EAQE'>('EAQE');
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-      <div className="max-w-6xl mx-auto space-y-16">
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-16">
 
         {/* Hero Section */}
-        <div className="text-center space-y-6 pt-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-bold text-amber-500 shadow-sm">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            <span>HK EAA EAQE / SQE Memory Engineering Platform</span>
+        <div className="p-8 sm:p-12 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="space-y-4 max-w-2xl">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1 text-xs font-bold text-blue-700">
+              <Sparkles className="h-3.5 w-3.5 text-blue-600" />
+              <span>{isZh ? '香港地產代理 AI 智能備考平台' : 'AI-Powered Prep for HK EAA Licensing Exams'}</span>
+            </div>
+
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+              {isZh ? (
+                <>一站式通關 <span className="text-blue-600">EAQE 大牌</span> 與 <span className="text-blue-600">SQE 細牌</span> 資格考試</>
+              ) : (
+                <>Master <span className="text-blue-600">EAQE & SQE</span> Licensing Exams with AI Precision</>
+              )}
+            </h1>
+
+            <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
+              {isZh
+                ? '結合 20 大主題單元、艾賓浩斯記憶階梯 (SRS)、記憶宮殿與 IRIS 土地查冊實務題庫，幫助學員精準考取地產代理資格。'
+                : 'Combining 20 statutory blocks, Spaced Repetition (SRS), Memory Palace routes, and IRIS Land Search dossiers to maximize your passing rate.'}
+            </p>
+
+            <div className="flex items-center gap-3 pt-2 flex-wrap">
+              <Link
+                href="/mock-exam"
+                className="px-6 py-3.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-sm shadow-md transition flex items-center gap-2"
+              >
+                <span>{isZh ? '免費體驗全真模擬考' : 'Start Free Mock Exam'}</span>
+                <ArrowRight className="h-4 w-4 !text-white" />
+              </Link>
+
+              <Link
+                href="/course"
+                className="px-6 py-3.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-sm text-slate-700 transition flex items-center gap-2"
+              >
+                <BookOpen className="h-4 w-4 text-blue-600" />
+                <span>{isZh ? '瀏覽 20 大單元大綱' : 'Explore Syllabus'}</span>
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight">
-            Master <span className="text-indigo-500">20 Topic Blocks</span>
-            <br />
-            <span className="bg-gradient-to-r from-amber-400 via-indigo-400 to-emerald-400 bg-clip-text text-transparent">
-              Pass Your HK EAA Licensing Exam
+          {/* Quick Track Selection Card */}
+          <div className="w-full md:w-80 p-6 rounded-3xl border border-slate-200 bg-slate-50 space-y-4 shrink-0">
+            <div className="space-y-1">
+              <span className="text-[10px] font-mono font-bold text-blue-700 uppercase tracking-wider block">
+                {isZh ? 'STEP 1: 選擇你的應考軌道' : 'STEP 1: Select Your Track'}
+              </span>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                {isZh ? '即時過濾專屬考綱' : 'Streamline Relevant Content'}
+              </h3>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setSelectedTrack('EAQE')}
+                className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  selectedTrack === 'EAQE'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300'
+                }`}
+              >
+                <div>
+                  <div className="font-black">EAQE {isZh ? '地產代理 (大牌)' : 'Estate Agent'}</div>
+                  <div className={`text-[10px] ${selectedTrack === 'EAQE' ? 'text-blue-100' : 'text-slate-500'}`}>
+                    {isZh ? '20 Blocks • 100 題完整卷' : '20 Blocks • 100 Qs Paper'}
+                  </div>
+                </div>
+                {selectedTrack === 'EAQE' && <CheckCircle2 className="h-4 w-4 text-white" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSelectedTrack('SQE')}
+                className={`w-full p-3.5 rounded-2xl border text-left text-xs font-bold transition flex items-center justify-between cursor-pointer ${
+                  selectedTrack === 'SQE'
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-blue-300'
+                }`}
+              >
+                <div>
+                  <div className="font-black">SQE {isZh ? '營業員 (細牌)' : 'Salesperson'}</div>
+                  <div className={`text-[10px] ${selectedTrack === 'SQE' ? 'text-blue-100' : 'text-slate-500'}`}>
+                    {isZh ? '16 Blocks • 60 題完整卷' : '16 Blocks • 60 Qs Paper'}
+                  </div>
+                </div>
+                {selectedTrack === 'SQE' && <CheckCircle2 className="h-4 w-4 text-white" />}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Onboarding Steps Section (Integrated from /welcome) */}
+        <div className="space-y-6">
+          <div className="text-center space-y-1">
+            <span className="text-xs font-mono font-bold text-blue-700 uppercase tracking-wider block">
+              {isZh ? '迎新備考 3 步曲' : '3-Step Candidate Guidance'}
             </span>
-          </h1>
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              {isZh ? '如何利用 AgentPass™ 高效備考？' : 'How AgentPass™ Accelerates Your Pass Rate'}
+            </h2>
+          </div>
 
-          <p className="max-w-2xl mx-auto text-sm sm:text-base opacity-80 font-medium leading-relaxed">
-            {isZh 
-              ? '基於地產代理監管局官方大綱研發，融入 1-3-7-16-35 間隔重複算法、38 個主考官陷阱與 130 題全真真題庫。'
-              : 'Built on official EAA syllabi, featuring 1-3-7-16-35 Spaced Repetition, 38 Master Exam Traps, and 130 Verified Sample Questions.'}
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="p-6 rounded-3xl border border-slate-200 bg-white space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black text-sm">
+                01
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                {isZh ? '研讀 20 大主題與圖像口訣' : 'Study Statutory Blocks'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {isZh
+                  ? '進入課程大綱精讀法定筆記，配合記憶宮殿圖像與「易混淆對照表」，徹底釐清法規盲區。'
+                  : 'Review statutory notes, memory hooks, and Do Not Confuse tables across the 20 official syllabus blocks.'}
+              </p>
+            </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <div className="p-6 rounded-3xl border border-slate-200 bg-white space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-black text-sm">
+                02
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                {isZh ? '艾賓浩斯 SRS 記憶階梯複習' : 'Spaced Repetition Review'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {isZh
+                  ? '模擬考中答錯的題目會自動同步至溫習儀表板 (1-3-7-16-35 天)，依據記憶曲線自動提醒溫習。'
+                  : 'Incorrect answers automatically queue into your SRS Dashboard ladder for review at optimal memory intervals.'}
+              </p>
+            </div>
+
+            <div className="p-6 rounded-3xl border border-slate-200 bg-white space-y-3 shadow-sm">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm">
+                03
+              </div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                {isZh ? '雙階段全真模擬考場應試' : 'Dual-Stage Mock Simulation'}
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {isZh
+                  ? '體驗 Part I 法規選擇題與 Part II 土地查冊個案實務題，達到官方 60% 雙門檻及格標準。'
+                  : 'Simulate full Part I MCQs and Part II IRIS Land Search dossiers with official 60% passing diagnostics.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Feature Modules Grid */}
+        <div className="space-y-6">
+          <div className="text-center space-y-1">
+            <span className="text-xs font-mono font-bold text-blue-700 uppercase tracking-wider block">
+              {isZh ? '核心功能模組' : 'Platform Modules'}
+            </span>
+            <h2 className="text-2xl font-extrabold text-slate-900">
+              {isZh ? '全方位備考工具箱' : 'Complete Prep Toolkit'}
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             <Link
-              href="/welcome"
-              className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm shadow-xl shadow-amber-500/20 transition flex items-center gap-2"
+              href="/course"
+              className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-md transition space-y-3 block"
             >
-              <span>{isZh ? '閱讀 4 步精通指南' : 'Read 4-Step Mastery Guide'}</span>
-              <ArrowRight className="h-4 w-4" />
+              <div className="p-3 rounded-2xl bg-blue-50 text-blue-600 w-fit">
+                <BookOpen className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                {isZh ? '課程大綱' : 'Syllabus & Lessons'}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {isZh ? '20 大主題精讀課文、條例對照與考官陷阱登錄。' : '20 block lessons with verified notes and trap registers.'}
+              </p>
             </Link>
 
             <Link
-              href="/course"
-              className="px-6 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/25 transition flex items-center gap-2"
+              href="/memory-palace"
+              className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-md transition space-y-3 block"
             >
-              <span>{isZh ? '探索課程大綱' : 'Explore Syllabus'}</span>
-              <ArrowRight className="h-4 w-4" />
+              <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 w-fit">
+                <Compass className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                {isZh ? '記憶宮殿' : 'Memory Palace'}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {isZh ? '10 站視覺化記憶路線，迅速掌握條例數字與死記考點。' : '10-station visual loci routes for memorizing legal limits.'}
+              </p>
             </Link>
 
             <Link
               href="/mock-exam"
-              className="px-6 py-3.5 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-sm transition flex items-center gap-2"
+              className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-md transition space-y-3 block"
             >
-              <Award className="h-4 w-4 text-amber-400" />
-              <span>{isZh ? '進入全真考場' : 'Full Mock Exam'}</span>
+              <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-600 w-fit">
+                <Award className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                {isZh ? '全真模擬考場' : 'Mock Exam Suite'}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {isZh ? '100 題完全不重複題庫，真實調色板與 IRIS 查冊附件。' : '100 unique items with official palette matrix and IRIS annex.'}
+              </p>
+            </Link>
+
+            <Link
+              href="/dashboard"
+              className="p-6 rounded-3xl border border-slate-200 bg-white hover:border-blue-300 hover:shadow-md transition space-y-3 block"
+            >
+              <div className="p-3 rounded-2xl bg-indigo-50 text-indigo-600 w-fit">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-extrabold text-slate-900">
+                {isZh ? '溫習儀表板' : 'SRS Review Dashboard'}
+              </h3>
+              <p className="text-xs text-slate-600">
+                {isZh ? '追蹤各單元掌握度，智能推算最佳複習時間點。' : 'Track topic mastery and review due queue automatically.'}
+              </p>
             </Link>
           </div>
         </div>
 
-        {/* Feature Grid Header */}
-        <div className="text-center space-y-2 pt-6 border-t border-slate-800/40">
-          <span className="text-xs font-mono font-bold tracking-widest uppercase text-indigo-500">
-            The 4-Step AgentPass Mastery Workflow
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-black">
-            {isZh ? '順序掌握 4 步備考流程' : 'Step-by-Step Learning Pathway'}
-          </h2>
-        </div>
-
-        {/* Feature Tool Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools.map((tool, idx) => {
-            const Icon = tool.icon;
-            return (
-              <div 
-                key={idx}
-                className="p-6 rounded-3xl border border-slate-800/80 bg-slate-900/60 shadow-xl flex flex-col justify-between space-y-6 hover:border-indigo-500/50 transition duration-200 relative group"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800/80 text-[10px] font-mono font-bold text-amber-400 border border-slate-700/60">
-                      STEP {tool.step}
-                    </span>
-                  </div>
-
-                  <div>
-                    <h3 className="text-lg font-bold">
-                      {isZh ? tool.titleZh : tool.titleEn}
-                    </h3>
-                    <p className="text-xs opacity-70 mt-2 leading-relaxed">
-                      {isZh ? tool.descZh : tool.descEn}
-                    </p>
-                  </div>
-                </div>
-
-                <Link
-                  href={tool.href}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition pt-2"
-                >
-                  <span>{isZh ? tool.btnZh : tool.btnEn}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            );
-          })}
+        {/* EAA Compliance Disclaimer Footer Card */}
+        <div className="p-6 rounded-3xl border border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
+          <div className="flex items-center gap-2 font-bold text-slate-900">
+            <ShieldCheck className="h-5 w-5 text-blue-600 shrink-0" />
+            <span>{isZh ? '100% 地產代理監管局 (EAA) 考綱對齊' : '100% EAA Official Syllabus Aligned'}</span>
+          </div>
+          <p className="text-slate-500 text-center sm:text-right">
+            {isZh
+              ? '內容嚴格對照 Cap. 511、Cap. 219、Cap. 7 及一手樓 Cap. 621 最新法規。'
+              : 'Compliant with Cap. 511, Cap. 219, Cap. 7, and Cap. 621 regulations.'}
+          </p>
         </div>
 
       </div>
