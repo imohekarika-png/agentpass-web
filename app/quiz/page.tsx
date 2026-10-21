@@ -1,7 +1,7 @@
 // app/quiz/page.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -10,16 +10,9 @@ import {
   BookOpen,
   Award,
   Check,
-  CheckCircle2,
   XCircle,
   RotateCcw,
   ArrowRight,
-  ArrowLeft,
-  Sparkles,
-  Bookmark,
-  Target,
-  AlertTriangle,
-  Zap,
   Filter
 } from 'lucide-react';
 
@@ -206,7 +199,7 @@ const QUIZ_QUESTION_BANK: QuizQuestion[] = [
   }
 ];
 
-export default function QuizPage() {
+function QuizContent() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
@@ -252,7 +245,6 @@ export default function QuizPage() {
       total: prev.total + 1
     }));
 
-    // Task 1.2.1 Integration: Sync incorrect answers to Spaced Repetition Queue (SRS)
     if (!isCorrect && typeof window !== 'undefined') {
       try {
         const todayStr = new Date().toISOString().split('T')[0];
@@ -486,5 +478,21 @@ export default function QuizPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function QuizPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen py-12 flex items-center justify-center bg-slate-50">
+          <div className="p-6 bg-white rounded-2xl border border-slate-200 font-bold text-slate-600 text-xs shadow-sm">
+            Loading Quiz Module...
+          </div>
+        </div>
+      }
+    >
+      <QuizContent />
+    </Suspense>
   );
 }
