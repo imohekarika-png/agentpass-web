@@ -7,14 +7,8 @@ import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   LayoutDashboard, 
   Calendar, 
-  CheckCircle2, 
-  RotateCw, 
   Award, 
-  AlertTriangle, 
-  Zap, 
-  BookOpen,
-  ArrowRight,
-  TrendingUp
+  ArrowRight
 } from 'lucide-react';
 
 interface ReviewItem {
@@ -74,7 +68,6 @@ export default function DashboardPage() {
       const savedTrack = localStorage.getItem('agentpass_selected_track');
       if (savedTrack) setSelectedTrack(savedTrack);
 
-      // Task 1.2.1 Integration: Read dynamic SRS Queue items synced from mock exam attempts
       try {
         const syncedSRSQueue = JSON.parse(
           localStorage.getItem('agentpass_srs_queue_v1') || '[]'
@@ -128,7 +121,7 @@ export default function DashboardPage() {
             className="p-6 rounded-3xl border shadow-lg space-y-2"
           >
             <span className="text-xs font-mono font-bold uppercase opacity-60 block">Active Track</span>
-            <span className="text-xl font-black text-indigo-400">
+            <span className="text-xl font-black text-indigo-500 dark:text-indigo-400">
               {selectedTrack.toUpperCase()} {selectedTrack === 'sqe' ? '(16 Blocks)' : '(20 Blocks)'}
             </span>
           </div>
@@ -138,7 +131,7 @@ export default function DashboardPage() {
             className="p-6 rounded-3xl border shadow-lg space-y-2"
           >
             <span className="text-xs font-mono font-bold uppercase opacity-60 block">Due Today for Review</span>
-            <span className="text-xl font-black text-amber-400">{reviews.length} Topic Blocks</span>
+            <span className="text-xl font-black text-amber-500 dark:text-amber-400">{reviews.length} Topic Blocks</span>
           </div>
 
           <div 
@@ -146,7 +139,7 @@ export default function DashboardPage() {
             className="p-6 rounded-3xl border shadow-lg space-y-2"
           >
             <span className="text-xs font-mono font-bold uppercase opacity-60 block">Overall Mastery Level</span>
-            <span className="text-xl font-black text-emerald-400">68% Pass Confidence</span>
+            <span className="text-xl font-black text-emerald-500 dark:text-emerald-400">68% Pass Confidence</span>
           </div>
         </div>
 
@@ -157,7 +150,7 @@ export default function DashboardPage() {
         >
           <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: 'var(--border-color)' }}>
             <div className="flex items-center gap-2 text-base font-extrabold">
-              <Calendar className="h-5 w-5 text-amber-400" />
+              <Calendar className="h-5 w-5 text-amber-500 dark:text-amber-400" />
               <span>{isZh ? '今日待溫習單元 (Due for Spaced Review)' : 'Today\'s Spaced Repetition Queue'}</span>
             </div>
             <span className="text-xs font-mono opacity-60">Ladder: 1 - 3 - 7 - 16 - 35 Days</span>
@@ -167,34 +160,35 @@ export default function DashboardPage() {
             {reviews.map((item) => (
               <div 
                 key={item.id}
-                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-mono font-bold text-indigo-400">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/20 text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400">
                       {item.blockNum}
                     </span>
-                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[10px] font-mono font-bold text-amber-400">
+                    <span className="px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-[10px] font-mono font-bold text-amber-700 dark:text-amber-400">
                       {item.ladderStage}
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">
                     {isZh ? item.titleZh : item.titleEn}
                   </h3>
                 </div>
 
                 <div className="flex items-center gap-3 shrink-0">
                   <div className="text-right">
-                    <span className="text-xs font-mono font-bold block text-emerald-400">{item.accuracy}% Accuracy</span>
+                    <span className="text-xs font-mono font-bold block text-emerald-600 dark:text-emerald-400">{item.accuracy}% Accuracy</span>
                     <span className="text-[10px] opacity-60">Next: {item.nextReviewDate}</span>
                   </div>
 
+                  {/* DAYLIGHT BLUE BUTTON: bg-blue-600 text-white */}
                   <Link
                     href={`/quiz?block=${item.id}`}
-                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md transition flex items-center gap-1.5"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <span>{isZh ? '立即複習' : 'Review Now'}</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5 text-white" />
                   </Link>
                 </div>
               </div>
