@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useLanguage } from '@/app/context/LanguageContext';
 import logoImg from '@/components/logo.png';
-import { Mail, Phone, Clock, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, Clock, ShieldCheck, Lock, Scale, BookOpen } from 'lucide-react';
 
 export default function Footer() {
   const { language, locale } = useLanguage();
@@ -53,8 +53,9 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-xs font-medium">
               <li>
-                <Link href="/course" className="hover:text-indigo-400 transition">
-                  {isZh ? '20 大主題單元' : 'Course Syllabus'}
+                <Link href="/course" className="hover:text-indigo-400 transition flex items-center gap-1.5">
+                  <BookOpen className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                  <span>{isZh ? '20 大主題單元' : 'Course Syllabus'}</span>
                 </Link>
               </li>
               <li>
@@ -75,6 +76,27 @@ export default function Footer() {
               <li>
                 <Link href="/flashcards" className="hover:text-indigo-400 transition">
                   {isZh ? '高頻法規閃卡' : 'Legal Flashcards'}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal & Compliance (PDPO Cap. 486) */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
+              {isZh ? '法律與私隱條款' : 'Legal & Compliance'}
+            </h4>
+            <ul className="space-y-2.5 text-xs font-medium">
+              <li>
+                <Link href="/privacy" className="hover:text-indigo-300 transition flex items-center gap-1.5 text-indigo-400">
+                  <Lock className="h-3.5 w-3.5 shrink-0" />
+                  <span>{isZh ? '私隱政策聲明 (PDPO)' : 'Privacy Policy (PDPO)'}</span>
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-indigo-400 transition flex items-center gap-1.5">
+                  <Scale className="h-3.5 w-3.5 shrink-0" />
+                  <span>{isZh ? '服務條款與免責聲明' : 'Terms of Service'}</span>
                 </Link>
               </li>
             </ul>
@@ -101,28 +123,28 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Official Alignment Badge */}
-          <div className="space-y-3 p-4 rounded-2xl border border-slate-800 bg-slate-900/60">
-            <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
-              <ShieldCheck className="h-4 w-4" />
-              <span>{isZh ? '官方大綱深度對齊' : 'EAA Syllabus Aligned'}</span>
-            </div>
-            <p className="text-[11px] opacity-70 leading-relaxed">
-              {isZh 
-                ? '所有筆記與答案解析均對照地產代理監管局 (EAA) 最新 Cap. 511、Cap. 7 及 Form 1-6 官方指引審核。'
-                : 'Study notes and answer keys are compiled directly under Cap. 511, Cap. 7, and official EAA syllabi.'}
-            </p>
-          </div>
-
         </div>
 
-        {/* Legal Disclaimer */}
+        {/* EAA Official Alignment & Independent Prep Disclaimer */}
+        <div className="p-4 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-1.5 text-[11px] opacity-80">
+          <div className="flex items-center gap-2 text-amber-400 font-bold">
+            <ShieldCheck className="h-4 w-4 shrink-0" />
+            <span>{isZh ? 'EAA 官方大綱深度對齊 • 獨立備考平台聲明' : 'EAA Syllabus Aligned • Independent Prep Notice'}</span>
+          </div>
+          <p className="leading-relaxed">
+            {isZh 
+              ? 'AgentPass™ 為獨立 AI 學習輔助平台。所有筆記與答案解析均對照地產代理監管局 (EAA) 最新 Cap. 511、Cap. 7 及 Form 1-6 官方指引審核。AgentPass™ 非地產代理監管局 (EAA) 或職業訓練局 (VTC/PEAK) 之附屬機構，亦未獲其授權。'
+              : 'AgentPass™ is an independent AI prep product. Study notes and statutory explanations are compiled directly under Cap. 511, Cap. 7, and official EAA syllabi. AgentPass™ is not affiliated with, sponsored by, or endorsed by the HK Estate Agents Authority (EAA) or VTC/PEAK.'}
+          </p>
+        </div>
+
+        {/* Legal Disclaimer & Copyright */}
         <div className="pt-8 border-t border-slate-800/60 text-center space-y-2 text-[11px] opacity-60">
           <p>
             © 2026 Vektor Spatial Limited. All rights reserved. Hong Kong SAR.
           </p>
           <p>
-            Study materials and statutory explanations are compiled under Cap. 511, Cap. 7, and official EAA syllabi. AgentPass™ is a product of Vektor Spatial Limited.
+            Compliant with HK Personal Data (Privacy) Ordinance (Cap. 486). AgentPass™ is a product of Vektor Spatial Limited.
           </p>
         </div>
 
