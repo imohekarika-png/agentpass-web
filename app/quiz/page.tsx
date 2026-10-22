@@ -1,7 +1,7 @@
 // app/quiz/page.tsx
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -17,7 +17,8 @@ import {
   Lock,
   ChevronRight,
   ShieldCheck,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles
 } from 'lucide-react';
 
 export interface QuizQuestion {
@@ -320,6 +321,9 @@ function QuizContent() {
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
   const [userScore, setUserScore] = useState<{ correct: number; total: number }>({ correct: 0, total: 0 });
 
+  // Focus Anchor Ref
+  const questionCardRef = useRef<HTMLDivElement | null>(null);
+
   // Subscription state enforcement
   const [userTier, setUserTier] = useState<string>('FREE_PREVIEW');
   const [showUpgradeModal, setShowUpgradeModal] = useState<boolean>(false);
@@ -342,7 +346,7 @@ function QuizContent() {
     userTier === 'EAQE_PRO' ||
     (selectedTrack === 'SQE' && userTier === 'SQE_PRO');
 
-  // Enforce 10-question free limit
+  // Enforce 10-question free preview limit for non-paid accounts
   const activeQuestions = RAW_QUESTION_BANK.filter((q) => {
     if (blockParam && q.blockId !== blockParam) return false;
     if (selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY') return false;
@@ -374,17 +378,9 @@ function QuizContent() {
 
   const currentQ = activeQuestions[currentQIndex] || activeQuestions[0] || RAW_QUESTION_BANK[0];
 
-  const handleToggleAdminMode = () => {
-    if (typeof window === 'undefined') return;
-
-    if (userTier === 'ADMIN_BUILDER') {
-      localStorage.setItem('agentpass_user_email', 'guest@agentpass.hk');
-      localStorage.setItem('agentpass_user_tier', 'FREE_PREVIEW');
-      setUserTier('FREE_PREVIEW');
-    } else {
-      localStorage.setItem('agentpass_user_email', 'imoh.ekarika@savantnex.com');
-      localStorage.setItem('agentpass_user_tier', 'ADMIN_BUILDER');
-      setUserTier('ADMIN_BUILDER');
+  const scrollToQuestionFocus = () => {
+    if (questionCardRef.current) {
+      questionCardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
@@ -418,6 +414,10 @@ function QuizContent() {
     if (currentQIndex < activeQuestions.length - 1) {
       setCurrentQIndex((prev) => prev + 1);
     }
+    // Smooth Auto-scroll / Focus next question
+    setTimeout(() => {
+      scrollToQuestionFocus();
+    }, 50);
   };
 
   const handleResetQuiz = () => {
@@ -425,6 +425,7 @@ function QuizContent() {
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
     setUserScore({ correct: 0, total: 0 });
+    scrollToQuestionFocus();
   };
 
   return (
@@ -459,7 +460,7 @@ function QuizContent() {
             <div className="space-y-4 text-xs">
               <p className="text-slate-700 font-semibold leading-relaxed">
                 {isZh
-                  ? '免費版僅供前 10 題體驗。升級至 AgentPass PRO 即可解鎖全套 130 題高頻試題庫：'
+                  ? '免費試用版提供前 10 題體驗。升級至 AgentPass PRO 即可解鎖全套 130 題高頻試題庫：'
                   : 'Free preview covers the first 10 questions. Upgrade to AgentPass PRO to access:'}
               </p>
 
@@ -511,23 +512,28 @@ function QuizContent() {
                 <span>Official 130-Question Practice Bank & Trap Register</span>
               </span>
 
-              {/* Status & 1-Click Pro/Admin Toggle */}
-              <button
-                type="button"
-                onClick={handleToggleAdminMode}
-                title="Click to toggle Admin Builder / Free Preview mode for testing"
-                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold transition cursor-pointer border ${
-                  userTier === 'ADMIN_BUILDER'
-                    ? 'bg-purple-50 border-purple-300 text-purple-900 hover:bg-purple-100'
-                    : 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-emerald-50 hover:text-emerald-900 hover:border-emerald-300'
-                }`}
-              >
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>{userTier === 'ADMIN_BUILDER' ? 'ADMIN ACCESS' : 'FREE PREVIEW'}</span>
-                <span className="text-[10px] opacity-60 underline ml-0.5">
-                  {userTier === 'ADMIN_BUILDER' ? '(Revoke)' : '(Enable Pro)'}
+              {/* Account Status Badge & Upgrade CTA (No Public Admin Toggle) */}
+              <div className="inline-flex items-center gap-2">
+                <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+                  isPaidUser
+                    ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                    : 'bg-amber-50 border-amber-300 text-amber-900'
+                }`}>
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>{isPaidUser ? 'PRO ACCOUNT (UNLOCKED)' : 'FREE PREVIEW (10 QUESTIONS)'}</span>
                 </span>
-              </button>
+
+                {!isPaidUser && (
+                  <button
+                    type="button"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                  >
+                    <Sparkles className="h-3 w-3" />
+                    <span>{isZh ? '升級 PRO' : 'Upgrade'}</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
@@ -606,8 +612,11 @@ function QuizContent() {
           </div>
         </div>
 
-        {/* Question Card */}
-        <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
+        {/* Question Card Anchor */}
+        <div
+          ref={questionCardRef}
+          className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6 scroll-mt-20"
+        >
           <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-700">
