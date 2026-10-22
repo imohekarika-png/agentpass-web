@@ -3,6 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
+import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   LayoutDashboard, 
@@ -81,6 +83,12 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const handleSelectOfficialDate = (fetchedDate: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('agentpass_exam_date', fetchedDate);
+    }
+  };
+
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 transition-colors duration-300">
       <div className="max-w-6xl mx-auto space-y-10">
@@ -112,6 +120,19 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
+
+        {/* Live Official HKEAA Schedule Sync Selector */}
+        <OfficialScheduleFetcher
+          track={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+          isZh={isZh}
+          onSelectDate={handleSelectOfficialDate}
+        />
+
+        {/* One-Click Google Calendar, .ICS Download, & Email Reminder CTAs */}
+        <ExamTrackerCTA
+          isZh={isZh}
+          trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+        />
 
         {/* Performance Overview Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -155,7 +176,6 @@ export default function DashboardPage() {
             {reviews.map((item) => (
               <div 
                 key={item.id}
-                /* Clean White Card Background + Soft Slate Border */
                 className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs transition-all hover:border-slate-300"
               >
                 <div className="space-y-1">
@@ -178,7 +198,6 @@ export default function DashboardPage() {
                     <span className="text-[10px] text-slate-500">Next: {item.nextReviewDate}</span>
                   </div>
 
-                  {/* Vibrant Blue Button (bg-blue-600) with Strict White Text (!text-white) */}
                   <Link
                     href={`/quiz?block=${item.id}`}
                     className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer"

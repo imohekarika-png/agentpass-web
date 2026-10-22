@@ -3,6 +3,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
+import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { 
   BookOpen, 
@@ -793,6 +795,9 @@ export default function CoursePage() {
       if (savedTrack === 'eaqe' || savedTrack === 'sqe') {
         setSelectedTrack(savedTrack);
       }
+
+      const savedDate = localStorage.getItem('agentpass_exam_date');
+      if (savedDate) setExamDate(savedDate);
     }
   }, []);
 
@@ -800,6 +805,13 @@ export default function CoursePage() {
     setSelectedTrack(track);
     if (typeof window !== 'undefined') {
       localStorage.setItem('agentpass_selected_track', track);
+    }
+  };
+
+  const handleSelectOfficialDate = (fetchedDate: string) => {
+    setExamDate(fetchedDate);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('agentpass_exam_date', fetchedDate);
     }
   };
 
@@ -857,6 +869,19 @@ export default function CoursePage() {
           </div>
         </div>
 
+        {/* Live Official HKEAA Schedule Sync Selector */}
+        <OfficialScheduleFetcher
+          track={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+          isZh={isZh}
+          onSelectDate={handleSelectOfficialDate}
+        />
+
+        {/* One-Click Google Calendar, .ICS Download, & Email Reminder CTAs */}
+        <ExamTrackerCTA
+          isZh={isZh}
+          trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+        />
+
         {/* Track Switcher & Pace Card */}
         <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
@@ -911,7 +936,12 @@ export default function CoursePage() {
               <input
                 type="date"
                 value={examDate}
-                onChange={(e) => setExamDate(e.target.value)}
+                onChange={(e) => {
+                  setExamDate(e.target.value);
+                  if (typeof window !== 'undefined') {
+                    localStorage.setItem('agentpass_exam_date', e.target.value);
+                  }
+                }}
                 className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-slate-900 font-bold focus:outline-none focus:border-blue-500 transition"
               />
             </div>
