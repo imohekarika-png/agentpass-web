@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
 import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { 
   BookOpen, 
   CheckCircle2, 
@@ -21,7 +22,9 @@ import {
   ChevronRight,
   Scale,
   Zap,
-  FileText
+  FileText,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 
 interface DoNotConfusePair {
@@ -781,6 +784,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
 
 export default function CoursePage() {
   const { language, locale } = useLanguage();
+  const { isPaidUser } = useAuth();
+
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
@@ -827,10 +832,22 @@ export default function CoursePage() {
         {/* Top Header Banner Container */}
         <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
-              <BookOpen className="h-3.5 w-3.5 text-blue-600" />
-              <span>Official HK EAA Licensing Syllabi & Memory Engineering</span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">
+                <BookOpen className="h-3.5 w-3.5 text-blue-600" />
+                <span>Official HK EAA Licensing Syllabi & Memory Engineering</span>
+              </span>
+
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+                isPaidUser
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                  : 'bg-amber-50 border-amber-300 text-amber-900'
+              }`}>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>{isPaidUser ? 'PRO ACCESS (UNLOCKED)' : 'FREE PREVIEW MODE'}</span>
+              </span>
             </div>
+
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               {isZh ? '20 大主題單元與精讀課程' : '20 Topic Block Lessons'}
             </h1>
@@ -968,95 +985,108 @@ export default function CoursePage() {
 
         {/* Topic Block Lesson Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {activeBlocks.map((block) => (
-            <div
-              key={block.num}
-              className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-4 flex flex-col justify-between hover:border-blue-300 hover:shadow-md transition group relative"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-700">
-                    {block.num} • Part {block.part}
-                  </span>
+          {activeBlocks.map((block, idx) => {
+            const isFreeBlock = idx < 3;
+            const isBlockLocked = !isPaidUser && !isFreeBlock;
 
-                  <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md border border-amber-200 bg-amber-50 text-amber-800">
-                    {block.level}
-                  </span>
-                </div>
+            return (
+              <div
+                key={block.num}
+                className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-4 flex flex-col justify-between hover:border-blue-300 hover:shadow-md transition group relative"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 rounded-xl bg-blue-50 border border-blue-200 text-xs font-mono font-bold text-blue-700">
+                      {block.num} • Part {block.part}
+                    </span>
 
-                <div 
-                  onClick={() => {
-                    setActiveLessonBlock(block);
-                    setModalTab('notes');
-                  }}
-                  className="cursor-pointer space-y-2 group-hover:text-blue-600 transition"
-                >
-                  <h3 className="text-lg font-bold flex items-center justify-between text-slate-900">
-                    <span>{isZh ? block.titleZh : block.titleEn}</span>
-                    <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition" />
-                  </h3>
-                  <p className="text-xs text-slate-600 leading-relaxed">
-                    {isZh ? block.summaryZh : block.summaryEn}
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {block.keyStatutes.map((st, i) => (
-                      <span key={i} className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700">
-                        {st}
+                    <div className="flex items-center gap-1.5">
+                      {isBlockLocked && (
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-900 flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          <span>PRO LESSON</span>
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md border border-amber-200 bg-amber-50 text-amber-800">
+                        {block.level}
                       </span>
-                    ))}
+                    </div>
                   </div>
 
-                  <button
-                    type="button"
+                  <div 
                     onClick={() => {
                       setActiveLessonBlock(block);
                       setModalTab('notes');
                     }}
-                    className="text-xs font-bold text-amber-600 hover:text-amber-700 transition flex items-center gap-1 cursor-pointer"
+                    className="cursor-pointer space-y-2 group-hover:text-blue-600 transition"
                   >
-                    <BookOpen className="h-3.5 w-3.5" />
-                    <span>{isZh ? '精讀課文' : 'Lesson'}</span>
-                  </button>
+                    <h3 className="text-lg font-bold flex items-center justify-between text-slate-900">
+                      <span>{isZh ? block.titleZh : block.titleEn}</span>
+                      <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition" />
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      {isZh ? block.summaryZh : block.summaryEn}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Dual Practice Action Bar */}
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                  {block.id === 'b14' ? (
-                    <Link
-                      href="/case-study"
-                      className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition col-span-2 shadow-sm"
-                    >
-                      <FileText className="h-3.5 w-3.5 text-slate-950" />
-                      <span>{isZh ? '個案實務 & POIM 查冊' : 'Case Study & POIM Viewer'}</span>
-                    </Link>
-                  ) : (
-                    <>
-                      <Link
-                        href={`/quiz?block=${block.id}`}
-                        className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
-                      >
-                        <Target className="h-3.5 w-3.5 !text-white" />
-                        <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
-                      </Link>
+                <div className="pt-3 border-t border-slate-200 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {block.keyStatutes.map((st, i) => (
+                        <span key={i} className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-700">
+                          {st}
+                        </span>
+                      ))}
+                    </div>
 
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveLessonBlock(block);
+                        setModalTab('notes');
+                      }}
+                      className="text-xs font-bold text-amber-600 hover:text-amber-700 transition flex items-center gap-1 cursor-pointer"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>{isZh ? '精讀課文' : 'Lesson'}</span>
+                    </button>
+                  </div>
+
+                  {/* Dual Practice Action Bar */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                    {block.id === 'b14' ? (
                       <Link
-                        href={`/flashcards?block=${block.id}`}
-                        className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
+                        href="/case-study"
+                        className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition col-span-2 shadow-sm"
                       >
-                        <Zap className="h-3.5 w-3.5 !text-white" />
-                        <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
+                        <FileText className="h-3.5 w-3.5 text-slate-950" />
+                        <span>{isZh ? '個案實務 & POIM 查冊' : 'Case Study & POIM Viewer'}</span>
                       </Link>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <Link
+                          href={`/quiz?block=${block.id}`}
+                          className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
+                        >
+                          <Target className="h-3.5 w-3.5 !text-white" />
+                          <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
+                        </Link>
+
+                        <Link
+                          href={`/flashcards?block=${block.id}`}
+                          className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
+                        >
+                          <Zap className="h-3.5 w-3.5 !text-white" />
+                          <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
+                        </Link>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>
