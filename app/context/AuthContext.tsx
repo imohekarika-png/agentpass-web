@@ -5,11 +5,12 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 export type UserTier = 'FREE_PREVIEW' | 'EAQE_PRO' | 'SQE_PRO' | 'ALL_ACCESS_PRO' | 'ADMIN_BUILDER';
 
-interface AuthContextType {
+export interface AuthContextType {
   userEmail: string;
   userTier: UserTier;
   isPaidUser: boolean;
   isAdmin: boolean;
+  isMounted: boolean;
   setSession: (email: string, tier: UserTier) => void;
   resetToFree: () => void;
 }
@@ -19,6 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   userTier: 'FREE_PREVIEW',
   isPaidUser: false,
   isAdmin: false,
+  isMounted: false,
   setSession: () => {},
   resetToFree: () => {}
 });
@@ -26,14 +28,14 @@ const AuthContext = createContext<AuthContextType>({
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string>('guest@agentpass.hk');
   const [userTier, setUserTier] = useState<UserTier>('FREE_PREVIEW');
+  const [isMounted, setIsMounted] = useState<boolean>(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedEmail = localStorage.getItem('agentpass_user_email') || 'guest@agentpass.hk';
-      const storedTier = (localStorage.getItem('agentpass_user_tier') as UserTier) || 'FREE_PREVIEW';
-      setUserEmail(storedEmail);
-      setUserTier(storedTier);
-    }
+    const storedEmail = localStorage.getItem('agentpass_user_email') || 'guest@agentpass.hk';
+    const storedTier = (localStorage.getItem('agentpass_user_tier') as UserTier) || 'FREE_PREVIEW';
+    setUserEmail(storedEmail);
+    setUserTier(storedTier);
+    setIsMounted(true);
   }, []);
 
   const setSession = (email: string, tier: UserTier) => {
@@ -63,6 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         userTier,
         isPaidUser,
         isAdmin,
+        isMounted,
         setSession,
         resetToFree
       }}

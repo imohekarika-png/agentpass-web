@@ -1,7 +1,7 @@
 // app/quiz/page.tsx
 'use client';
 
-import React, { useState, useRef, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
