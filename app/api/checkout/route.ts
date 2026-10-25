@@ -60,16 +60,22 @@ async function resolvePriceId(tier: TargetTier, interval: BillingInterval): Prom
 
   if (interval === 'monthly') {
     const monthlyPrice = prices.data.find(
-      (p) => p.type === 'recurring' && p.recurring?.interval === 'month' && p.recurring?.interval_count === 1
+      (p: any) =>
+        p.type === 'recurring' &&
+        p.recurring?.interval === 'month' &&
+        p.recurring?.interval_count === 1
     );
     if (monthlyPrice) return monthlyPrice.id;
   } else if (interval === '3_monthly') {
     const threeMonthPrice = prices.data.find(
-      (p) => p.type === 'recurring' && p.recurring?.interval === 'month' && p.recurring?.interval_count === 3
+      (p: any) =>
+        p.type === 'recurring' &&
+        p.recurring?.interval === 'month' &&
+        p.recurring?.interval_count === 3
     );
     if (threeMonthPrice) return threeMonthPrice.id;
   } else if (interval === 'one_time') {
-    const oneTimePrice = prices.data.find((p) => p.type === 'one_time');
+    const oneTimePrice = prices.data.find((p: any) => p.type === 'one_time');
     if (oneTimePrice) return oneTimePrice.id;
   }
 
