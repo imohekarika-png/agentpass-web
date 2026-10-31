@@ -20,23 +20,42 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md text-white transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
         
-        {/* Brand Logo with Original Icon */}
-        <Link 
+        {/* Brand Logo: Clean Vector Mark + Proportional Typography */}
+<Link 
   href="/" 
-  className="flex items-center gap-1.5 font-black tracking-tight text-xl group select-none"
+  className="flex items-center gap-2 group select-none transition-transform"
+  aria-label="AgentPass Home"
 >
-  <div className="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition-transform group-hover:scale-105">
-    <Image
-      src="/icon.png"
-      alt="AgentPass Logo"
-      width={32}
-      height={32}
-      className="w-full h-full object-contain"
-      priority
-    />
+  {/* Exact Vector Emblem with zero whitespace margins */}
+  <div className="flex items-center justify-center transition-transform group-hover:scale-105">
+    <svg 
+      viewBox="0 0 801 848" 
+      fill="none" 
+      xmlns="http://www.w3.org/2000/svg"
+      className="h-7 w-auto sm:h-8"
+      aria-hidden="true"
+    >
+      {/* Red A - Left Stem & Apex */}
+      <polygon 
+        points="365,5 5,843 197,842 262,684 149,553 221,459 309,569 363,437 387,489 507,337" 
+        fill="#E11D48" 
+      />
+      {/* Red A - Right Lower Leg */}
+      <polygon 
+        points="573,491 449,641 531,840 724,843" 
+        fill="#E11D48" 
+      />
+      {/* Gold Checkmark */}
+      <polygon 
+        points="677,124 317,579 221,461 150,554 340,771 796,220" 
+        fill="#EAB308" 
+      />
+    </svg>
   </div>
-  <span className="text-white font-extrabold tracking-tight text-lg sm:text-xl flex items-center">
-    AgentPass<span className="text-amber-400 text-xs align-top ml-0.5 font-bold">™</span>
+
+  {/* Brand Name */}
+  <span className="text-white font-black tracking-tight text-xl sm:text-2xl flex items-center leading-none">
+    AgentPass<span className="text-amber-400 text-xs font-bold align-top ml-0.5">™</span>
   </span>
 </Link>
 
