@@ -1,234 +1,196 @@
-// components/Navbar.tsx & app/components/Navbar.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
-import { usePathname, useRouter } from 'next/navigation';
-import { useLanguage } from '@/app/context/LanguageContext';
-import logoImg from '@/components/logo.png';
-import { 
-  BookOpen, 
-  HelpCircle, 
-  Layers, 
-  LayoutDashboard, 
-  PartyPopper, 
-  LogIn, 
-  LogOut,
-  Globe, 
-  Menu, 
-  X,
-  Award,
-  Compass
-} from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
-  const { language, setLanguage, locale } = useLanguage();
-  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
-  const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
-
   const pathname = usePathname();
-  const router = useRouter();
-
+  const [studyMenuOpen, setStudyMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [user, setUser] = useState<{ name?: string; email?: string } | null>(null);
+  const [langZh, setLangZh] = useState(true);
 
-  const syncUser = () => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('agentpass_user');
-      if (stored) {
-        try {
-          setUser(JSON.parse(stored));
-        } catch {
-          setUser(null);
-        }
-      } else {
-        setUser(null);
-      }
-    }
-  };
-
-  useEffect(() => {
-    setIsMounted(true);
-    syncUser();
-
-    const handleStorage = () => syncUser();
-    window.addEventListener('storage', handleStorage);
-    window.addEventListener('agentpass_auth_change', handleStorage);
-
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.removeEventListener('agentpass_auth_change', handleStorage);
-    };
-  }, [pathname]);
-
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('agentpass_user');
-      window.dispatchEvent(new Event('agentpass_auth_change'));
-    }
-    setUser(null);
-    router.push('/login');
-  };
-
-  const toggleLanguage = () => {
-    if (setLanguage) {
-      setLanguage(isZh ? 'EN' : 'ZH');
-    }
-  };
-
-  // Dedicated navigation tabs matching Footer items
-  const navLinks = [
-    { href: '/course', labelZh: '課程大綱', labelEn: 'Syllabus', icon: BookOpen },
-    { href: '/memory-palace', labelZh: '記憶宮殿', labelEn: 'Memory Palace', icon: Compass },
-    { href: '/quiz', labelZh: '考官陷阱', labelEn: 'Exam Traps', icon: HelpCircle },
-    { href: '/flashcards', labelZh: '速記閃卡', labelEn: 'Flashcards', icon: Layers },
-    { href: '/mock-exam', labelZh: '模擬考場', labelEn: 'Mock Exam', icon: Award },
-    { href: '/dashboard', labelZh: '溫習儀表板', labelEn: 'Dashboard', icon: LayoutDashboard },
-    { href: '/welcome', labelZh: '迎新指引', labelEn: 'Welcome', icon: PartyPopper },
-  ];
+  // Check active routes
+  const isStudyActive = ['/syllabus', '/flashcards', '/traps', '/memory-palace'].includes(pathname);
+  const isMockActive = pathname === '/mock-exam';
+  const isPricingActive = pathname === '/pricing';
+  const isDashboardActive = pathname === '/dashboard';
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-md transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md text-white transition-all">
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
+        
+        {/* Brand Logo -> Always routes to root '/' */}
+        <Link href="/" className="flex items-center gap-2.5 font-black tracking-tight text-lg group">
+          <span className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-sm group-hover:scale-105 transition-transform">
+            AP
+          </span>
+          <span className="text-white font-bold tracking-tight">
+            AgentPass<span className="text-amber-400 text-xs align-top ml-0.5 font-bold">™</span>
+          </span>
+        </Link>
+
+        {/* Desktop Navigation */}
+        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
           
-          {/* Logo & Brand Title */}
-          <Link href="/" className="flex items-center gap-0 group shrink-0">
-            <div className="relative h-11 w-11 sm:h-12 sm:w-12 group-hover:scale-105 transition flex items-center justify-center -mr-1">
-              <Image
-                src={logoImg}
-                alt="AgentPass Logo"
-                fill
-                className="object-contain scale-125"
-                priority
-              />
-            </div>
-            <div className="flex items-baseline">
-              <span className="text-2xl sm:text-3xl font-black tracking-tighter text-white group-hover:text-indigo-400 transition leading-none">
-                AgentPass
-              </span>
-              <span className="text-[10px] sm:text-[11px] font-bold text-amber-500 ml-0.5 leading-none self-start">
-                TM
-              </span>
-            </div>
+          {/* Study Hub Dropdown */}
+          <div 
+            className="relative"
+            onMouseEnter={() => setStudyMenuOpen(true)}
+            onMouseLeave={() => setStudyMenuOpen(false)}
+          >
+            <button 
+              className={`flex items-center gap-1.5 py-2 hover:text-white transition cursor-pointer ${
+                isStudyActive ? 'text-amber-400 font-bold' : ''
+              }`}
+              onClick={() => setStudyMenuOpen((prev) => !prev)}
+            >
+              <span>{langZh ? '備考專區' : 'Study Hub'}</span>
+              <svg className={`w-3.5 h-3.5 text-slate-400 transition-transform ${studyMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {studyMenuOpen && (
+              <div className="absolute top-full left-0 w-64 p-2 bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-2xl shadow-2xl space-y-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                <Link 
+                  href="/syllabus" 
+                  onClick={() => setStudyMenuOpen(false)}
+                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-800 transition"
+                >
+                  <span className="text-base">📖</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{langZh ? '考試大綱精讀' : 'Syllabus & Cap. Guide'}</p>
+                    <p className="text-[10px] text-slate-400">{langZh ? 'Cap. 511 及 20 個核心模組' : 'Statutory framework'}</p>
+                  </div>
+                </Link>
+
+                <Link 
+                  href="/flashcards" 
+                  onClick={() => setStudyMenuOpen(false)}
+                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-800 transition"
+                >
+                  <span className="text-base">⚡</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{langZh ? '法規速記閃卡' : 'Statutory Flashcards'}</p>
+                    <p className="text-[10px] text-slate-400">{langZh ? '艾賓浩斯間隔記憶重要數字' : 'Active recall engine'}</p>
+                  </div>
+                </Link>
+
+                <Link 
+                  href="/traps" 
+                  onClick={() => setStudyMenuOpen(false)}
+                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-800 transition"
+                >
+                  <span className="text-base">⚠️</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{langZh ? '常規陷阱題庫' : 'Exam Trap Radar'}</p>
+                    <p className="text-[10px] text-slate-400">{langZh ? '查冊釘契與易錯盲點剖析' : 'Common trap scenarios'}</p>
+                  </div>
+                </Link>
+
+                <Link 
+                  href="/memory-palace" 
+                  onClick={() => setStudyMenuOpen(false)}
+                  className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-800 transition"
+                >
+                  <span className="text-base">🏛️</span>
+                  <div>
+                    <p className="text-xs font-bold text-white">{langZh ? '記憶宮殿' : 'Memory Palace'}</p>
+                    <p className="text-[10px] text-slate-400">{langZh ? '圖像化記憶重要罰則與期限' : 'Visual mnemonics'}</p>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </div>
+
+          {/* Standalone Mock Exam */}
+          <Link 
+            href="/mock-exam" 
+            className={`flex items-center gap-1.5 hover:text-white transition ${
+              isMockActive ? 'text-amber-400 font-bold' : ''
+            }`}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span>{langZh ? '全真模擬考' : 'Mock Exam'}</span>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-1">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
+          {/* Pricing Route */}
+          <Link 
+            href="/pricing" 
+            className={`hover:text-white transition ${
+              isPricingActive ? 'text-amber-400 font-bold' : ''
+            }`}
+          >
+            <span>{langZh ? '收費方案' : 'Pricing'}</span>
+          </Link>
 
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                    isActive 
-                      ? 'text-indigo-400 bg-indigo-950/60 font-extrabold border-b-2 border-indigo-500' 
-                      : 'text-slate-300 hover:text-indigo-400 hover:bg-slate-900/60'
-                  }`}
-                >
-                  <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
-                  <span>{isZh ? link.labelZh : link.labelEn}</span>
-                </Link>
-              );
-            })}
-          </div>
+          {/* Dashboard Route */}
+          <Link 
+            href="/dashboard" 
+            className={`hover:text-white transition ${
+              isDashboardActive ? 'text-amber-400 font-bold' : ''
+            }`}
+          >
+            <span>{langZh ? '學習進度' : 'Dashboard'}</span>
+          </Link>
+        </nav>
 
-          {/* Right Action Controls */}
-          <div className="hidden md:flex items-center gap-2.5 shrink-0">
-            
-            {/* Language Switcher */}
-            <button
-              onClick={toggleLanguage}
-              className="px-3.5 py-1.5 rounded-xl border border-slate-800 bg-slate-900/80 text-xs font-bold text-slate-200 hover:border-slate-700 hover:text-white transition flex items-center gap-1.5 cursor-pointer"
-            >
-              <Globe className="h-3.5 w-3.5 text-indigo-400" />
-              <span>{isZh ? 'EN' : '繁體中文'}</span>
-            </button>
+        {/* Right Action Tools */}
+        <div className="flex items-center gap-3">
+          
+          {/* Language Toggle */}
+          <button
+            onClick={() => setLangZh(!langZh)}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-800"
+          >
+            <svg className="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+            </svg>
+            <span>{langZh ? '繁體中文' : 'English'}</span>
+          </button>
 
-            {/* User Session Handler */}
-            {isMounted && user ? (
-              <div className="flex items-center gap-2 border-l border-slate-800 pl-2.5">
-                <Link 
-                  href="/dashboard" 
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-emerald-500/40 hover:border-emerald-500 transition"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                  </span>
-                  <span className="text-xs font-bold text-emerald-300 max-w-[100px] truncate">
-                    {user.name || user.email?.split('@')[0] || (isZh ? '已登入' : 'Logged In')}
-                  </span>
-                </Link>
+          {/* Primary CTA */}
+          <Link 
+            href="/mock-exam" 
+            className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm hover:shadow-amber-500/20"
+          >
+            <span>{langZh ? '免費體驗 10 題' : 'Free Preview'}</span>
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
 
-                <button
-                  onClick={handleLogout}
-                  title={isZh ? '登出帳號' : 'Sign Out'}
-                  className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-rose-400 hover:border-rose-500/40 transition cursor-pointer"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            ) : isMounted ? (
-              <Link
-                href="/login"
-                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 !text-white font-extrabold text-xs shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-              >
-                <LogIn className="h-3.5 w-3.5 !text-white" />
-                <span>{isZh ? '學員登入' : 'Login'}</span>
-              </Link>
-            ) : null}
-          </div>
-
-          {/* Mobile Drawer Toggle */}
-          <div className="flex items-center gap-2 lg:hidden">
-            <button
-              onClick={toggleLanguage}
-              className="p-2 rounded-xl border border-slate-800 bg-slate-900 text-xs font-bold text-indigo-400"
-            >
-              {isZh ? 'EN' : '中'}
-            </button>
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </button>
-          </div>
-
+          {/* Mobile Menu Button */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {mobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
       </div>
 
-      {/* Mobile Drawer Menu */}
+      {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-4 space-y-1 shadow-2xl">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
-                  isActive 
-                    ? 'text-indigo-400 font-bold bg-slate-900 border-l-2 border-indigo-500 pl-4' 
-                    : 'text-slate-300 hover:bg-slate-900'
-                }`}
-              >
-                <Icon className={`h-4 w-4 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />
-                <span>{isZh ? link.labelZh : link.labelEn}</span>
-              </Link>
-            );
-          })}
+        <div className="md:hidden border-b border-slate-800 bg-slate-950 px-4 pt-2 pb-6 space-y-3">
+          <div className="grid grid-cols-2 gap-2 pb-2 border-b border-slate-800 text-xs">
+            <Link href="/syllabus" onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg bg-slate-900 text-slate-200">📖 考試大綱</Link>
+            <Link href="/flashcards" onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg bg-slate-900 text-slate-200">⚡ 法規閃卡</Link>
+            <Link href="/traps" onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg bg-slate-900 text-slate-200">⚠️ 常規陷阱</Link>
+            <Link href="/memory-palace" onClick={() => setMobileMenuOpen(false)} className="p-2 rounded-lg bg-slate-900 text-slate-200">🏛️ 記憶宮殿</Link>
+          </div>
+          <Link href="/mock-exam" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-bold text-amber-400">全真模擬考 (Mock Exam)</Link>
+          <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-200">收費方案 (Pricing)</Link>
+          <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-sm font-semibold text-slate-200">學習儀表板 (Dashboard)</Link>
         </div>
       )}
-    </nav>
+    </header>
   );
 }
