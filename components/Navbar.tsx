@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
@@ -10,7 +11,6 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langZh, setLangZh] = useState(true);
 
-  // Check active routes
   const isStudyActive = ['/syllabus', '/flashcards', '/traps', '/memory-palace'].includes(pathname);
   const isMockActive = pathname === '/mock-exam';
   const isPricingActive = pathname === '/pricing';
@@ -20,11 +20,18 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-950/95 backdrop-blur-md text-white transition-all">
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
         
-        {/* Brand Logo -> Always routes to root '/' */}
+        {/* Brand Logo with Original Icon */}
         <Link href="/" className="flex items-center gap-2.5 font-black tracking-tight text-lg group">
-          <span className="w-7 h-7 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-black text-sm shadow-sm group-hover:scale-105 transition-transform">
-            AP
-          </span>
+          <div className="relative w-7 h-7 flex items-center justify-center group-hover:scale-105 transition-transform">
+            <Image
+              src="/icon.png"
+              alt="AgentPass Logo"
+              width={28}
+              height={28}
+              className="w-7 h-7 object-contain"
+              priority
+            />
+          </div>
           <span className="text-white font-bold tracking-tight">
             AgentPass<span className="text-amber-400 text-xs align-top ml-0.5 font-bold">™</span>
           </span>
@@ -104,7 +111,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Standalone Mock Exam */}
           <Link 
             href="/mock-exam" 
             className={`flex items-center gap-1.5 hover:text-white transition ${
@@ -115,7 +121,6 @@ export default function Navbar() {
             <span>{langZh ? '全真模擬考' : 'Mock Exam'}</span>
           </Link>
 
-          {/* Pricing Route */}
           <Link 
             href="/pricing" 
             className={`hover:text-white transition ${
@@ -125,7 +130,6 @@ export default function Navbar() {
             <span>{langZh ? '收費方案' : 'Pricing'}</span>
           </Link>
 
-          {/* Dashboard Route */}
           <Link 
             href="/dashboard" 
             className={`hover:text-white transition ${
@@ -138,8 +142,6 @@ export default function Navbar() {
 
         {/* Right Action Tools */}
         <div className="flex items-center gap-3">
-          
-          {/* Language Toggle */}
           <button
             onClick={() => setLangZh(!langZh)}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition border border-slate-800"
@@ -150,7 +152,6 @@ export default function Navbar() {
             <span>{langZh ? '繁體中文' : 'English'}</span>
           </button>
 
-          {/* Primary CTA */}
           <Link 
             href="/mock-exam" 
             className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition shadow-sm hover:shadow-amber-500/20"
@@ -161,7 +162,6 @@ export default function Navbar() {
             </svg>
           </Link>
 
-          {/* Mobile Menu Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"

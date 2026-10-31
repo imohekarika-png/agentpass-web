@@ -48,13 +48,12 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Real-time Candidate Notice */}
               <p className="text-xs text-slate-400 font-medium">
                 ⚡ Aligned with latest EAA practice circulars • No credit card required to sample.
               </p>
             </div>
 
-            {/* Right Column: Interactive Track Target Selector */}
+            {/* Right Column: Track Selector */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 border border-slate-200 space-y-5">
                 <div className="border-b border-slate-100 pb-4">
@@ -149,7 +148,7 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 3: THE 3-STEP PASS ENGINE (CONSOLIDATED)
+          STAGE 3: THE 3-STEP PASS ENGINE
          ========================================================= */}
       <section className="py-16 sm:py-24 bg-slate-50 border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -161,8 +160,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Step 1 */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4 relative">
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">01</span>
               <h3 className="text-xl font-bold text-slate-950">Study Statutory Blocks</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -173,8 +171,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4 relative">
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">02</span>
               <h3 className="text-xl font-bold text-slate-950">Active Recall & Flashcards</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -185,8 +182,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4 relative">
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">03</span>
               <h3 className="text-xl font-bold text-slate-950">Dual-Stage Mock Exam</h3>
               <p className="text-sm text-slate-600 leading-relaxed">
@@ -202,7 +198,7 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 4: INTERACTIVE SAMPLE QUESTION (CONVERSION HOOK)
+          STAGE 4: INTERACTIVE SAMPLE QUESTION
          ========================================================= */}
       <section className="py-16 sm:py-20 bg-slate-950 text-white border-b border-slate-800">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
@@ -269,7 +265,7 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 5: EAQE VS. SQE EXAM COMPARISON TABLE
+          STAGE 5: EAQE VS. SQE COMPARISON TABLE
          ========================================================= */}
       <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -350,7 +346,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* 3-Month Pass (Featured) */}
+            {/* 3-Month Pass */}
             <div className="bg-white rounded-3xl p-8 border-2 border-amber-500 shadow-xl flex flex-col justify-between space-y-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
                 MOST POPULAR • SAVE 24%
@@ -392,9 +388,9 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 7: URGENCY CTA & STATUTORY FOOTER
+          STAGE 7: URGENCY CTA BANNER (Home page ends here; global layout footer displays below)
          ========================================================= */}
-      <section className="bg-slate-950 text-white py-16 border-b border-slate-800">
+      <section className="bg-slate-950 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
           <h2 className="text-3xl font-black text-white">Next EAA Exam Season Is Approaching</h2>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
@@ -410,56 +406,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="bg-slate-950 text-slate-400 py-12 text-xs border-t border-slate-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-3">
-              <span className="font-bold text-white text-sm">AgentPass™</span>
-              <p className="text-slate-500 text-[11px] leading-relaxed">
-                AI-powered prep platform engineered specifically for Hong Kong EAQE & SQE licensing exam candidates.
-              </p>
-            </div>
-
-            <div>
-              <p className="font-bold text-white mb-2">Navigation</p>
-              <ul className="space-y-1.5 text-slate-400">
-                <li><Link href="/syllabus" className="hover:text-white">Course Syllabus</Link></li>
-                <li><Link href="/mock-exam" className="hover:text-white">Mock Exam Suite</Link></li>
-                <li><Link href="/flashcards" className="hover:text-white">Legal Flashcards</Link></li>
-                <li><Link href="/pricing" className="hover:text-white">Pricing Plans</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="font-bold text-white mb-2">Legal & Privacy</p>
-              <ul className="space-y-1.5 text-slate-400">
-                <li><Link href="/privacy" className="hover:text-white">Privacy Policy (PDPO)</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="font-bold text-white mb-2">Support</p>
-              <ul className="space-y-1.5 text-slate-400">
-                <li>Email: support@agentpass.hk</li>
-                <li>WhatsApp: +852 5432 7572</li>
-                <li>Hours: Mon–Fri 09:00 – 18:00 HKT</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-900 pt-6 text-[11px] text-slate-500 space-y-2">
-            <p>
-              <strong>EAA Syllabus Aligned • Independent Prep Notice:</strong> AgentPass™ is an independent digital preparation product. Study notes and statutory explanations are compiled directly from Cap. 511, Cap. 219, and official EAA syllabi. AgentPass™ is not affiliated with, sponsored by, or endorsed by the Hong Kong Estate Agents Authority (EAA).
-            </p>
-            <p>© 2026 Valor Spatial Limited. All rights reserved. Hong Kong SAR.</p>
-          </div>
-
-        </div>
-      </footer>
 
     </div>
   );
