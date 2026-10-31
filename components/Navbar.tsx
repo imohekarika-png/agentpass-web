@@ -21,21 +21,24 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 h-16">
         
         {/* Brand Logo with Original Icon */}
-        <Link href="/" className="flex items-center gap-2.5 font-black tracking-tight text-lg group">
-          <div className="relative w-7 h-7 flex items-center justify-center group-hover:scale-105 transition-transform">
-            <Image
-              src="/icon.png"
-              alt="AgentPass Logo"
-              width={28}
-              height={28}
-              className="w-7 h-7 object-contain"
-              priority
-            />
-          </div>
-          <span className="text-white font-bold tracking-tight">
-            AgentPass<span className="text-amber-400 text-xs align-top ml-0.5 font-bold">™</span>
-          </span>
-        </Link>
+        <Link 
+  href="/" 
+  className="flex items-center gap-1.5 font-black tracking-tight text-xl group select-none"
+>
+  <div className="relative w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center transition-transform group-hover:scale-105">
+    <Image
+      src="/icon.png"
+      alt="AgentPass Logo"
+      width={32}
+      height={32}
+      className="w-full h-full object-contain"
+      priority
+    />
+  </div>
+  <span className="text-white font-extrabold tracking-tight text-lg sm:text-xl flex items-center">
+    AgentPass<span className="text-amber-400 text-xs align-top ml-0.5 font-bold">™</span>
+  </span>
+</Link>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-300">
