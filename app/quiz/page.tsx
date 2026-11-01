@@ -53,46 +53,48 @@ function QuizContent() {
     }
   }, []);
 
-  // Reset index when filter or track changes
   useEffect(() => {
     setCurrentQIndex(0);
     setSelectedOptionIndex(null);
     setIsSubmitted(false);
   }, [blockParam, selectedTrack]);
 
-  // Robust, crash-proof question matching
+  // Robust, crash-proof question matching with fallback
   const activeQuestions = useMemo(() => {
     if (!RAW_QUESTION_BANK || !Array.isArray(RAW_QUESTION_BANK)) return [];
 
-    return RAW_QUESTION_BANK.filter((q: any) => {
-      // 1. Flexible block & question identifier resolution
+    const matched = RAW_QUESTION_BANK.filter((q: any) => {
       if (blockParam) {
         const bp = blockParam.toLowerCase().trim();
         const qBlockId = (q.blockId || '').toLowerCase().trim();
         const qId = (q.id || '').toLowerCase().trim();
         const qBlockNum = (q.blockNum || '').toLowerCase().trim();
 
-        // Exact match on blockId, id, or blockNum
-        const isExactMatch = qBlockId === bp || qId === bp || qBlockNum === bp;
-        
-        // Number-based match: 'q-1', 'b1', 'b-1', 'block-1' all extract digits '1'
+        if (qBlockId === bp || qId === bp || qBlockNum === bp) return true;
+
         const bpDigits = bp.replace(/\D/g, '');
         const qBlockDigits = (q.blockId || q.blockNum || '').replace(/\D/g, '');
         const qIdDigits = (q.id || '').replace(/\D/g, '');
-        const isDigitMatch = Boolean(bpDigits && (qBlockDigits === bpDigits || qIdDigits === bpDigits));
 
-        if (!isExactMatch && !isDigitMatch) {
-          return false;
-        }
+        if (bp.startsWith('q') && qIdDigits && bpDigits === qIdDigits) return true;
+        if (bpDigits && qBlockDigits && parseInt(bpDigits, 10) === parseInt(qBlockDigits, 10)) return true;
+
+        return false;
       }
 
-      // 2. Track applicability filter
       if (selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY') {
         return false;
       }
 
       return true;
-    }).map((q: any, idx: number) => {
+    });
+
+    // Fallback: If no question matched the specific blockParam, return track questions instead of crashing
+    const listToUse = matched.length > 0 
+      ? matched 
+      : RAW_QUESTION_BANK.filter((q: any) => !(selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY'));
+
+    return listToUse.map((q: any, idx: number) => {
       const isLocked = !isPaidUser && idx >= 10;
       if (isLocked) {
         return {
@@ -108,9 +110,8 @@ function QuizContent() {
     });
   }, [blockParam, selectedTrack, isPaidUser]);
 
-  // Safe question index boundary clamp
   const safeIndex = Math.min(Math.max(0, currentQIndex), Math.max(0, activeQuestions.length - 1));
-  const currentQ = activeQuestions[safeIndex] || null;
+  const currentQ = activeQuestions[safeIndex] || (RAW_QUESTION_BANK ? RAW_QUESTION_BANK[0] : null);
 
   const handleSelectOption = (index: number) => {
     if (currentQ?.isLocked) {
@@ -175,7 +176,6 @@ function QuizContent() {
     }
   };
 
-  // Prevent hydration mismatch
   if (!mounted) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center font-bold text-slate-500">
@@ -185,7 +185,6 @@ function QuizContent() {
     );
   }
 
-  // Graceful Empty State (Eliminates crash overlay)
   if (!currentQ || activeQuestions.length === 0) {
     return (
       <div className="min-h-screen py-16 px-4 bg-slate-50 flex items-center justify-center">
@@ -208,19 +207,12 @@ function QuizContent() {
             >
               {isZh ? '查看全部 130 題' : 'View All 130 Questions'}
             </Link>
-            <Link
-              href="/course"
-              className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition"
-            >
-              {isZh ? '返回課程大綱' : 'Back to Syllabus'}
-            </Link>
           </div>
         </div>
       </div>
     );
   }
 
-  // Safe options and question field resolution
   const options = isZh
     ? (currentQ.optionsZh || currentQ.options?.map((o: any) => o.text_zh || o.text) || [])
     : (currentQ.optionsEn || currentQ.options?.map((o: any) => o.text || o.text_zh) || []);
@@ -379,7 +371,6 @@ function QuizContent() {
               </div>
             </div>
 
-            {/* Block Filter Tag with ✕ Button */}
             {blockParam && (
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold">
                 <span>{isZh ? `過濾: ${blockParam}` : `Filter: ${blockParam}`}</span>
@@ -405,7 +396,6 @@ function QuizContent() {
         {/* Question Card */}
         <div ref={questionCardRef} className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6 scroll-mt-20">
           
-          {/* Card Top Header */}
           <div className="flex justify-between items-center border-b border-slate-100 pb-3 flex-wrap gap-2">
             <span className="px-3 py-1 bg-blue-50 text-blue-700 rounded-xl text-xs font-mono font-bold">
               {currentQ.blockNum || currentQ.blockId || 'Block'} • {topicName}
@@ -417,12 +407,10 @@ function QuizContent() {
             )}
           </div>
 
-          {/* Question Text */}
           <h3 className="text-base sm:text-lg font-bold text-slate-950 leading-relaxed">
             {questionTitle}
           </h3>
 
-          {/* Options */}
           <div className="space-y-3">
             {options.map((opt: string, idx: number) => {
               const isSelected = selectedOptionIndex === idx;
@@ -459,7 +447,6 @@ function QuizContent() {
             })}
           </div>
 
-          {/* Explanation Banner */}
           {isSubmitted && !currentQ.isLocked && explanationText && (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-950 rounded-2xl space-y-1 animate-in fade-in duration-150">
               <span className="font-bold text-[10px] font-mono text-amber-900 block uppercase">
@@ -469,7 +456,6 @@ function QuizContent() {
             </div>
           )}
 
-          {/* Bottom Controls */}
           <div className="pt-4 border-t border-slate-100 flex justify-between items-center gap-3">
             <button 
               onClick={handleResetQuiz} 

@@ -16,6 +16,7 @@ import {
 interface ReviewItem {
   id: string;
   blockNum: string;
+  blockId?: string;
   titleZh: string;
   titleEn: string;
   lastReviewed: string;
@@ -28,6 +29,7 @@ const DEFAULT_REVIEWS: ReviewItem[] = [
   {
     id: 'b1',
     blockNum: 'Block 01',
+    blockId: 'b1',
     titleZh: 'EAA 架構與持牌資格',
     titleEn: 'EAA Structure & Licensing Qualifications',
     lastReviewed: '2026-10-12',
@@ -38,6 +40,7 @@ const DEFAULT_REVIEWS: ReviewItem[] = [
   {
     id: 'b4',
     blockNum: 'Block 04',
+    blockId: 'b4',
     titleZh: '客戶存款託管與獨立信託帳戶',
     titleEn: 'Client Money Custody & Trust Accounts',
     lastReviewed: '2026-10-13',
@@ -48,6 +51,7 @@ const DEFAULT_REVIEWS: ReviewItem[] = [
   {
     id: 'b16',
     blockNum: 'Block 16',
+    blockId: 'b16',
     titleZh: '業主與租客條例 Cap. 7',
     titleEn: 'Landlord & Tenant Ordinance Cap. 7',
     lastReviewed: '2026-10-07',
@@ -66,7 +70,6 @@ export default function DashboardPage() {
   const [selectedTrack, setSelectedTrack] = useState<string>('sqe');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Safe client-side hydration for localStorage
   useEffect(() => {
     setIsMounted(true);
     
@@ -81,7 +84,6 @@ export default function DashboardPage() {
         if (Array.isArray(syncedSRSQueue) && syncedSRSQueue.length > 0) {
           setReviews(syncedSRSQueue);
         } else {
-          // Fallback to default if no local data exists yet
           setReviews(DEFAULT_REVIEWS);
         }
       } catch (e) {
@@ -97,7 +99,26 @@ export default function DashboardPage() {
     }
   };
 
-  // Prevent hydration mismatch crash by returning null until client loads
+  // Resolves whether item.id is a question ID (q-1) or block ID (b1) and returns a clean target
+  const getReviewHref = (item: ReviewItem) => {
+    if (item.blockId && item.blockId.startsWith('b')) {
+      return `/quiz?block=${item.blockId}`;
+    }
+
+    if (item.blockNum) {
+      const digits = item.blockNum.replace(/\D/g, '');
+      if (digits) {
+        return `/quiz?block=b${parseInt(digits, 10)}`;
+      }
+    }
+
+    if (item.id && item.id.startsWith('b')) {
+      return `/quiz?block=${item.id}`;
+    }
+
+    return `/quiz?block=${item.id}`;
+  };
+
   if (!isMounted) return null;
 
   return (
@@ -130,14 +151,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Live Official HKEAA Schedule Sync Selector */}
+        {/* Live Schedule Sync */}
         <OfficialScheduleFetcher
           track={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
           isZh={isZh}
           onSelectDate={handleSelectOfficialDate}
         />
 
-        {/* One-Click Google Calendar, .ICS Download, & Email Reminder CTAs */}
+        {/* Calendar & Reminder CTAs */}
         <ExamTrackerCTA
           isZh={isZh}
           trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
@@ -200,7 +221,7 @@ export default function DashboardPage() {
                   </div>
 
                   <Link
-                    href={`/quiz?block=${item.id}`}
+                    href={getReviewHref(item)}
                     className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <span className="!text-white">{isZh ? '立即複習' : 'Review Now'}</span>
