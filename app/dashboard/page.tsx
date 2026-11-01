@@ -99,7 +99,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Safely maps legacy items in localStorage to clean block targets
+  // Maps any item format (even old q-1 entries) to a valid quiz block URL
   const getReviewHref = (item: ReviewItem) => {
     if (item.blockId && item.blockId.startsWith('b')) {
       return `/quiz?block=${item.blockId}`;
