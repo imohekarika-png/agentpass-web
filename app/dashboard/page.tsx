@@ -38,7 +38,7 @@ const DEFAULT_REVIEWS: ReviewItem[] = [
   {
     id: 'b4',
     blockNum: 'Block 04',
-    titleZh: '客戶存款 (Client Money) 託管與獨立信託帳戶',
+    titleZh: '客戶存款託管與獨立信託帳戶',
     titleEn: 'Client Money Custody & Trust Accounts',
     lastReviewed: '2026-10-13',
     nextReviewDate: '2026-10-14',
@@ -48,7 +48,7 @@ const DEFAULT_REVIEWS: ReviewItem[] = [
   {
     id: 'b16',
     blockNum: 'Block 16',
-    titleZh: '業主與租客 (綜合) 條例 Cap. 7',
+    titleZh: '業主與租客條例 Cap. 7',
     titleEn: 'Landlord & Tenant Ordinance Cap. 7',
     lastReviewed: '2026-10-07',
     nextReviewDate: '2026-10-14',
@@ -62,10 +62,14 @@ export default function DashboardPage() {
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
-  const [reviews, setReviews] = useState<ReviewItem[]>(DEFAULT_REVIEWS);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [selectedTrack, setSelectedTrack] = useState<string>('sqe');
+  const [isMounted, setIsMounted] = useState(false);
 
+  // Safe client-side hydration for localStorage
   useEffect(() => {
+    setIsMounted(true);
+    
     if (typeof window !== 'undefined') {
       const savedTrack = localStorage.getItem('agentpass_selected_track');
       if (savedTrack) setSelectedTrack(savedTrack);
@@ -76,9 +80,13 @@ export default function DashboardPage() {
         );
         if (Array.isArray(syncedSRSQueue) && syncedSRSQueue.length > 0) {
           setReviews(syncedSRSQueue);
+        } else {
+          // Fallback to default if no local data exists yet
+          setReviews(DEFAULT_REVIEWS);
         }
       } catch (e) {
         console.warn('Failed to load dynamic SRS Queue:', e);
+        setReviews(DEFAULT_REVIEWS);
       }
     }
   }, []);
@@ -89,14 +97,15 @@ export default function DashboardPage() {
     }
   };
 
+  // Prevent hydration mismatch crash by returning null until client loads
+  if (!isMounted) return null;
+
   return (
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 transition-colors duration-300">
       <div className="max-w-6xl mx-auto space-y-10">
 
         {/* Header Banner */}
-        <div 
-          className="p-8 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6"
-        >
+        <div className="p-8 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
               <LayoutDashboard className="h-3.5 w-3.5" />
@@ -136,34 +145,26 @@ export default function DashboardPage() {
 
         {/* Performance Overview Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div 
-            className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-lg space-y-2"
-          >
+          <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Active Track</span>
             <span className="text-xl font-black text-indigo-600">
               {selectedTrack.toUpperCase()} {selectedTrack === 'sqe' ? '(16 Blocks)' : '(20 Blocks)'}
             </span>
           </div>
 
-          <div 
-            className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-lg space-y-2"
-          >
+          <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Due Today for Review</span>
             <span className="text-xl font-black text-amber-600">{reviews.length} Topic Blocks</span>
           </div>
 
-          <div 
-            className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-lg space-y-2"
-          >
+          <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Overall Mastery Level</span>
             <span className="text-xl font-black text-emerald-600">68% Pass Confidence</span>
           </div>
         </div>
 
         {/* Spaced Repetition Review Table */}
-        <div 
-          className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl space-y-6"
-        >
+        <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-6">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
             <div className="flex items-center gap-2 text-base font-extrabold text-slate-900">
               <Calendar className="h-5 w-5 text-amber-500" />
@@ -176,7 +177,7 @@ export default function DashboardPage() {
             {reviews.map((item) => (
               <div 
                 key={item.id}
-                className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs transition-all hover:border-slate-300"
+                className="p-4 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm transition-all hover:border-slate-300 hover:shadow-md"
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -192,7 +193,7 @@ export default function DashboardPage() {
                   </h3>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-3 shrink-0 mt-2 sm:mt-0">
                   <div className="text-right">
                     <span className="text-xs font-mono font-bold block text-emerald-700">{item.accuracy}% Accuracy</span>
                     <span className="text-[10px] text-slate-500">Next: {item.nextReviewDate}</span>
@@ -200,7 +201,7 @@ export default function DashboardPage() {
 
                   <Link
                     href={`/quiz?block=${item.id}`}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 cursor-pointer"
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
                   >
                     <span className="!text-white">{isZh ? '立即複習' : 'Review Now'}</span>
                     <ArrowRight className="h-3.5 w-3.5 !text-white" />
@@ -208,6 +209,13 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+            
+            {reviews.length === 0 && (
+              <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                <p className="text-sm font-bold text-slate-700">{isZh ? '今日無需溫習！' : 'You are all caught up for today!'}</p>
+                <p className="text-xs text-slate-500 mt-1">{isZh ? '前往題庫挑戰新單元來建立記憶階梯。' : 'Practice new blocks in the quiz bank to build your ladder.'}</p>
+              </div>
+            )}
           </div>
         </div>
 
