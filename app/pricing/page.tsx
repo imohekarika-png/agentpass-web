@@ -13,7 +13,7 @@ import {
   Building2,
   Calendar,
   Zap,
-  HelpCircle
+  HelpCircle,
 } from 'lucide-react';
 
 type BillingInterval = 'monthly' | '3_monthly' | 'one_time';
@@ -28,34 +28,6 @@ export default function PricingPage() {
 
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('3_monthly');
   const [loadingTier, setLoadingTier] = useState<PaidTier | null>(null);
-
-  const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
-    setLoadingTier(tier);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tier,
-          billingInterval,
-          email: userEmail !== 'guest@agentpass.hk' ? userEmail : '',
-          track,
-        }),
-      });
-
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert(data.error || 'Failed to initialize payment gateway.');
-        setLoadingTier(null);
-      }
-    } catch (err: any) {
-      console.error('Checkout error:', err);
-      alert('Unable to connect to Stripe gateway. Please try again.');
-      setLoadingTier(null);
-    }
-  };
 
   const TIERS = [
     {
@@ -74,15 +46,15 @@ export default function PricingPage() {
         '完整 130 題核心條例練習庫與常規陷阱剖析',
         '精讀法規速記閃卡 (Active Recall 閃卡引擎)',
         'EAA 官方 60% 及格線雷達診斷報告',
-        '手機 / 平板 / 電腦跨裝置隨時同步'
+        '手機 / 平板 / 電腦跨裝置隨時同步',
       ],
       featuresEn: [
         'Full 60-Question Official Mock Exam (Part I 50 Qs + Part II 10 Qs)',
         'Full 130-Question statutory practice bank with trap explanations',
         'Legal active recall flashcards with statutory citations',
         'Official 60% passing mark diagnostic performance radar',
-        'Cross-device mobile, tablet, and desktop syncing'
-      ]
+        'Cross-device mobile, tablet, and desktop syncing',
+      ],
     },
     {
       id: 'EAQE_PRO' as const,
@@ -102,7 +74,7 @@ export default function PricingPage() {
         '完整 130 題核心題庫與《建築物條例》《大廈管理條例》深度解析',
         '大牌經理控制、浮動押記、未決訴訟 (Lis Pendens) 深度精解',
         '艾賓浩斯 SRS 錯題自動複習排程',
-        '3 小時官方嚴格倒數模擬計時器'
+        '3 小時官方嚴格倒數模擬計時器',
       ],
       featuresEn: [
         'Full 100-Question Master Mock Exam (Part I 80 Qs + Part II 20 Qs)',
@@ -110,8 +82,8 @@ export default function PricingPage() {
         'Full 130-Question bank including Cap. 123 & Cap. 344 analysis',
         'Senior manager controls, negative pledges & corporate searches',
         'Automated Leitner/SRS spaced repetition mistake queue',
-        'Official 3-hour exam countdown simulation mode'
-      ]
+        'Official 3-hour exam countdown simulation mode',
+      ],
     },
     {
       id: 'ALL_ACCESS_PRO' as const,
@@ -130,7 +102,7 @@ export default function PricingPage() {
         '完整 130 題題庫與全套 20 大主題法規速記閃卡',
         '優先排程 AI 弱點診斷導師解析',
         '考前衝刺核心必背條例數字總整理',
-        '考季保證：未及格免費展期至及格為止'
+        '考季保證：未及格免費展期至及格為止',
       ],
       featuresEn: [
         'Simultaneous access to both EAQE (100 Qs) and SQE (60 Qs) suites',
@@ -138,10 +110,44 @@ export default function PricingPage() {
         'Full 130-question bank & complete active recall deck',
         'Priority AI Diagnostic Weakness Tutoring',
         'High-yield statutory numbers & formula cheat sheet',
-        'Exam season pass: Free extension until qualified'
-      ]
-    }
+        'Exam season pass: Free extension until qualified',
+      ],
+    },
   ];
+
+  const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
+    setLoadingTier(tier);
+    try {
+      const selectedTier = TIERS.find((t) => t.id === tier);
+      let currentPrice = selectedTier?.price3Monthly || 480;
+      if (billingInterval === 'monthly') currentPrice = selectedTier?.priceMonthly || 198;
+      if (billingInterval === 'one_time') currentPrice = selectedTier?.priceOneTime || 500;
+
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tier,
+          billingInterval,
+          email: userEmail && userEmail !== 'guest@agentpass.hk' ? userEmail : undefined,
+          track,
+          amount: currentPrice,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error || 'Failed to initialize payment gateway.');
+        setLoadingTier(null);
+      }
+    } catch (err: any) {
+      console.error('Checkout error:', err);
+      alert('Unable to connect to Stripe gateway. Please try again.');
+      setLoadingTier(null);
+    }
+  };
 
   return (
     <div className="min-h-screen py-10 sm:py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
