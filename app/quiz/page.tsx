@@ -23,7 +23,7 @@ import {
   X
 } from 'lucide-react';
 
-function QuizContent() {
+function QuizCore() {
   const { language, locale } = useLanguage();
   const { isPaidUser, isAdmin, setSession } = useAuth() as any;
   
@@ -31,7 +31,7 @@ function QuizContent() {
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const searchParams = useSearchParams();
-  const blockParam = searchParams.get('block');
+  const blockParam = searchParams ? searchParams.get('block') : null;
 
   const [mounted, setMounted] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<'SQE' | 'EAQE'>('EAQE');
@@ -59,19 +59,25 @@ function QuizContent() {
     setIsSubmitted(false);
   }, [blockParam, selectedTrack]);
 
-  // Robust, crash-proof question matching with fallback
+  // Robust, crash-proof questions resolver
   const activeQuestions = useMemo(() => {
-    if (!RAW_QUESTION_BANK || !Array.isArray(RAW_QUESTION_BANK)) return [];
+    const rawList = Array.isArray(RAW_QUESTION_BANK) ? RAW_QUESTION_BANK : [];
+    if (rawList.length === 0) return [];
 
-    const matched = RAW_QUESTION_BANK.filter((q: any) => {
+    let filtered = rawList.filter((q: any) => {
+      if (!q) return false;
+
+      // 1. Resolve block query parameter
       if (blockParam) {
         const bp = blockParam.toLowerCase().trim();
         const qBlockId = (q.blockId || '').toLowerCase().trim();
         const qId = (q.id || '').toLowerCase().trim();
         const qBlockNum = (q.blockNum || '').toLowerCase().trim();
 
+        // Exact match against question ID, block ID, or block name
         if (qBlockId === bp || qId === bp || qBlockNum === bp) return true;
 
+        // Number extraction: 'q-1', 'b1', 'block-1' all map to digit '1'
         const bpDigits = bp.replace(/\D/g, '');
         const qBlockDigits = (q.blockId || q.blockNum || '').replace(/\D/g, '');
         const qIdDigits = (q.id || '').replace(/\D/g, '');
@@ -82,6 +88,7 @@ function QuizContent() {
         return false;
       }
 
+      // 2. Track applicability filter
       if (selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY') {
         return false;
       }
@@ -89,12 +96,12 @@ function QuizContent() {
       return true;
     });
 
-    // Fallback: If no question matched the specific blockParam, return track questions instead of crashing
-    const listToUse = matched.length > 0 
-      ? matched 
-      : RAW_QUESTION_BANK.filter((q: any) => !(selectedTrack === 'SQE' && q.trackApplicability === 'EAQE_ONLY'));
+    // Fallback: If zero items matched the query, load full track questions instead of leaving an empty array
+    if (filtered.length === 0) {
+      filtered = rawList.filter((q: any) => !(selectedTrack === 'SQE' && q?.trackApplicability === 'EAQE_ONLY'));
+    }
 
-    return listToUse.map((q: any, idx: number) => {
+    return filtered.map((q: any, idx: number) => {
       const isLocked = !isPaidUser && idx >= 10;
       if (isLocked) {
         return {
@@ -111,7 +118,7 @@ function QuizContent() {
   }, [blockParam, selectedTrack, isPaidUser]);
 
   const safeIndex = Math.min(Math.max(0, currentQIndex), Math.max(0, activeQuestions.length - 1));
-  const currentQ = activeQuestions[safeIndex] || (RAW_QUESTION_BANK ? RAW_QUESTION_BANK[0] : null);
+  const currentQ = activeQuestions[safeIndex] || (RAW_QUESTION_BANK && RAW_QUESTION_BANK[0] ? RAW_QUESTION_BANK[0] : null);
 
   const handleSelectOption = (index: number) => {
     if (currentQ?.isLocked) {
@@ -185,7 +192,7 @@ function QuizContent() {
     );
   }
 
-  if (!currentQ || activeQuestions.length === 0) {
+  if (!currentQ) {
     return (
       <div className="min-h-screen py-16 px-4 bg-slate-50 flex items-center justify-center">
         <div className="max-w-md w-full bg-white p-8 rounded-3xl border border-slate-200 text-center space-y-4 shadow-sm">
@@ -193,13 +200,8 @@ function QuizContent() {
             <HelpCircle className="w-6 h-6" />
           </div>
           <h2 className="text-lg font-bold text-slate-900">
-            {isZh ? '此分類暫無試題' : 'No Questions Found for Filter'}
+            {isZh ? '載入題庫中' : 'Loading Question Bank'}
           </h2>
-          <p className="text-xs text-slate-500 leading-relaxed">
-            {isZh
-              ? `未能在 ${selectedTrack} 軌道中找到標籤 "${blockParam}" 的試題。請清除過濾條件查看完整 130 題庫。`
-              : `No questions match block "${blockParam}" under track ${selectedTrack}. Reset filter to access the complete question bank.`}
-          </p>
           <div className="flex gap-2 justify-center pt-2">
             <Link
               href="/quiz"
@@ -213,9 +215,10 @@ function QuizContent() {
     );
   }
 
+  // Safe fallback resolution for all fields
   const options = isZh
-    ? (currentQ.optionsZh || currentQ.options?.map((o: any) => o.text_zh || o.text) || [])
-    : (currentQ.optionsEn || currentQ.options?.map((o: any) => o.text || o.text_zh) || []);
+    ? (currentQ.optionsZh || currentQ.options?.map((o: any) => (typeof o === 'string' ? o : o.text_zh || o.text)) || [])
+    : (currentQ.optionsEn || currentQ.options?.map((o: any) => (typeof o === 'string' ? o : o.text || o.text_zh)) || []);
 
   const questionTitle = isZh
     ? (currentQ.questionZh || currentQ.stem_zh || currentQ.stem || '')
@@ -447,6 +450,7 @@ function QuizContent() {
             })}
           </div>
 
+          {/* Explanation Banner */}
           {isSubmitted && !currentQ.isLocked && explanationText && (
             <div className="p-4 bg-amber-50 border border-amber-200 text-amber-950 rounded-2xl space-y-1 animate-in fade-in duration-150">
               <span className="font-bold text-[10px] font-mono text-amber-900 block uppercase">
@@ -456,6 +460,7 @@ function QuizContent() {
             </div>
           )}
 
+          {/* Bottom Controls */}
           <div className="pt-4 border-t border-slate-100 flex justify-between items-center gap-3">
             <button 
               onClick={handleResetQuiz} 
@@ -497,7 +502,7 @@ export default function QuizPage() {
         Loading Quiz Module...
       </div>
     }>
-      <QuizContent />
+      <QuizCore />
     </Suspense>
   );
 }

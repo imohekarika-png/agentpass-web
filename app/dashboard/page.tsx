@@ -99,7 +99,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Resolves whether item.id is a question ID (q-1) or block ID (b1) and returns a clean target
+  // Safely maps legacy items in localStorage to clean block targets
   const getReviewHref = (item: ReviewItem) => {
     if (item.blockId && item.blockId.startsWith('b')) {
       return `/quiz?block=${item.blockId}`;
