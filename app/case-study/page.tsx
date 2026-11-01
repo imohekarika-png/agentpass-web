@@ -1,9 +1,10 @@
 // app/case-study/page.tsx
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { 
   CheckCircle2, 
   XCircle, 
@@ -13,7 +14,16 @@ import {
   FileText,
   Building2,
   Key,
-  Home
+  Home,
+  Scale,
+  ShieldAlert,
+  AlertTriangle,
+  RotateCcw,
+  Sparkles,
+  Lock,
+  ChevronRight,
+  ShieldCheck,
+  Search
 } from 'lucide-react';
 
 interface CaseStudyQuestion {
@@ -35,6 +45,7 @@ interface CaseStudyScenario {
   titleEn: string;
   badgeZh: string;
   badgeEn: string;
+  track: 'SQE_EAQE' | 'EAQE_ONLY';
   icon: any;
   narrativeZh: string;
   narrativeEn: string;
@@ -50,13 +61,14 @@ interface CaseStudyScenario {
 }
 
 const CASE_STUDY_SCENARIOS: CaseStudyScenario[] = [
-  // Case 1: Probate & UBW
+  // 1. Sole Executor & UBW Removal Order
   {
     id: 'case-1',
     titleZh: '遺囑執行人與違建清拆令',
     titleEn: 'Sole Executor & UBW Removal Order',
-    badgeZh: '遺產物業 / 屋宇署釘牌',
+    badgeZh: '遺產物業 / 屋宇署釘契',
     badgeEn: 'Probate Property / Buildings Dept Order',
+    track: 'SQE_EAQE',
     icon: FileText,
     narrativeZh: 'Mr. Wan 作為 Smart Mansion 單位之單獨遺囑執行人，委託 Smart Agency 地產代理 Sunny 以 $8,000,000 出售物業。買家 Polly 經 Sunny 視察單位。Sunny 知悉陽台設有未經批准之違例建築工程 (UBW) 及屋宇署 Cap. 123 s.24 清拆令，但未向 Polly 警示按揭批核風險。',
     narrativeEn: 'Mr. Wan acts as the sole executor for Smart Mansion. Vendor instructed agent Sunny of Smart Agency to market the unit at $8,000,000. Purchaser Polly inspected the flat via Sunny. Sunny was aware of an unauthorized building work (UBW) on the balcony and a Cap. 123 s.24 removal order, but failed to warn Polly regarding potential mortgage restrictions.',
@@ -117,32 +129,33 @@ const CASE_STUDY_SCENARIOS: CaseStudyScenario[] = [
         questionEn: 'The Incumbrances section shows a Buildings Dept s.24 removal order. How must the agent disclose this to buyer Polly?',
         optionsZh: [
           'A. 無需披露，因清拆違建屬業主與屋宇署之間的事宜',
-          'B. 必須在 Form 1 清楚註明，並警告買方該清拆令可能影響銀行按揭批核',
+          'B. 必須在物業資料表格清楚註明，並警告買方該清拆令可能影響銀行按揭批核',
           'C. 只要買方簽署「按現狀 (As-is)」條款即免除代理責任',
           'D. 口頭通知買方即可，無需提供土地查冊副本'
         ],
         optionsEn: [
           'A. No disclosure required as UBW is between landlord and Buildings Dept',
-          'B. Must state clearly in Form 1 and warn buyer that it may jeopardize mortgage approval',
+          'B. Must state clearly in property information form and warn buyer that it may jeopardize mortgage approval',
           'C. Signing an "As-is" clause automatically absolves agent liability',
           'D. Verbal notice is sufficient without delivering land search copy'
         ],
         answerIndex: 1,
-        explanationZh: '✓ 代理必須進行盡職審查 (Due Diligence)，於 Form 1 披露 subsisting orders 並警示買方銀行按揭風險。',
-        explanationEn: '✓ Agents must exercise due diligence, record subsisting orders on Form 1, and advise buyers on mortgage risks.',
-        statuteRefZh: '《屋宇條例》第 123 章 24 條與《操守指引》第 3 條',
-        statuteRefEn: 'Cap. 123 s.24 & Practice Regulation s.3'
+        explanationZh: '✓ 代理必須進行盡職審查 (Due Diligence)，於表格中披露現存命令並警示買方銀行按揭風險。',
+        explanationEn: '✓ Agents must exercise due diligence, record subsisting orders, and advise buyers on mortgage risks.',
+        statuteRefZh: '《屋宇條例》第 123 章 24 條與《操守守則》',
+        statuteRefEn: 'Cap. 123 s.24 & Practice Regulation'
       }
     ]
   },
 
-  // Case 2: Company Vendor (Two Searches)
+  // 2. Company Vendor (Two Searches)
   {
     id: 'case-2',
     titleZh: '有限公司賣家與雙重查冊法則',
     titleEn: 'Company Vendor & Two-Search Rule',
-    badgeZh: '公司業主 / 商業登記與公司註冊處',
-    badgeEn: 'Company Vendor / Companies Registry Search',
+    badgeZh: '公司業主 / 浮動押記',
+    badgeEn: 'Corporate Vendor / Floating Charge',
+    track: 'EAQE_ONLY',
     icon: Building2,
     narrativeZh: '賣方為「Apex Profits Limited」，委託代理 Ken 出售商業單位。土地查冊顯示物業登記於 Apex Profits 名下且無押記。代理 Ken 僅提供了土地查冊副本，未進行公司註冊處 (Companies Registry) 查冊。買方簽約後發現該公司已向另一財務公司發行包含浮動押記 (Floating Charge) 的債權證。',
     narrativeEn: 'Vendor is "Apex Profits Limited", instructing agent Ken to sell a commercial unit. Land search shows property registered under Apex Profits with no incumbrances. Ken supplied only the Land Registry search without conducting a Companies Registry charge search. Buyer later discovered an active Floating Charge debenture filed at Companies Registry.',
@@ -220,13 +233,14 @@ const CASE_STUDY_SCENARIOS: CaseStudyScenario[] = [
     ]
   },
 
-  // Case 3: Power of Attorney
+  // 3. Power of Attorney Verification
   {
     id: 'case-3',
     titleZh: '授權書 (Power of Attorney) 交易驗證',
     titleEn: 'Power of Attorney Verification',
-    badgeZh: '授權書 / 註冊摘要與撤銷風險',
+    badgeZh: '授權書 / 撤銷風險',
     badgeEn: 'Power of Attorney / Revocation Risk',
+    track: 'SQE_EAQE',
     icon: Key,
     narrativeZh: '賣方業主移民海外，授權其表弟 David 以授權書 (POA) 代表簽署臨約。查冊顯示該授權書於 18 個月前於土地註冊處註冊。代理 May 安排買方簽署合約並將訂金抬頭直接開給受托人 David。',
     narrativeEn: 'Vendor emigrated overseas and granted a Power of Attorney (POA) to cousin David. Land search shows POA registered 18 months ago. Agent May arranged buyer to sign PASP and issue deposit cheque made payable directly to attorney David.',
@@ -306,13 +320,14 @@ const CASE_STUDY_SCENARIOS: CaseStudyScenario[] = [
     ]
   },
 
-  // Case 4: Sub-divided Unit (Cap. 7 Part IVA)
+  // 4. Sub-divided Unit & Part IVA
   {
     id: 'case-4',
     titleZh: '劏房租務管制與 Form CR109 申報',
     titleEn: 'Sub-divided Unit Rent Control & Form CR109',
-    badgeZh: '劏房管制 / Cap. 7 Part IVA / CR109',
+    badgeZh: '劏房管制 / Cap. 7 Part IVA',
     badgeEn: 'Part IVA Tenancy / RVD CR109 Notice',
+    track: 'SQE_EAQE',
     icon: Home,
     narrativeZh: '業主張先生將深水埗住宅單位改建為 3 個劏房 (Sub-divided Units)。租客 Lee 擬承租其中 1 個劏房。代理 Tim 協助擬定租約，但未提醒業主提交差餉物業估價署 Form CR109，亦未說明 Cap. 7 Part IVA 規定的「2+2」四年租務保障期。',
     narrativeEn: 'Landlord Mr. Cheung partitioned a Sham Shui Po residential flat into 3 sub-divided units. Tenant Lee intends to lease 1 unit. Agent Tim prepared the tenancy agreement but failed to remind landlord to submit Form CR109 to RVD within 1 month and omitted explaining the 2+2 (4-year) tenure protection under Cap. 7 Part IVA.',
@@ -388,11 +403,361 @@ const CASE_STUDY_SCENARIOS: CaseStudyScenario[] = [
         statuteRefEn: 'Cap. 7 Part IV & Form CR109 Rules'
       }
     ]
+  },
+
+  // 5. Charging Orders & Judgment Debts
+  {
+    id: 'case-5',
+    titleZh: '法庭押記令與破產清盤呈請',
+    titleEn: 'Charging Order Nisi vs Absolute & Winding-Up',
+    badgeZh: '高等法院判令 / 釘契查冊',
+    badgeEn: 'High Court Judgments / Incumbrances',
+    track: 'EAQE_ONLY',
+    icon: Scale,
+    narrativeZh: '賣方持有灣仔商住物業。土地查冊 Incumbrances 欄出現兩筆法庭文書：一筆為高等法院發出之「Charging Order Nisi」（暫准押記令），另一筆為債權人入稟之「Winding-Up Petition」（清盤呈請）。買家有意購入，代理告知買家「只要成交前還清款項，押記 Nisi 便不算正式釘契」。',
+    narrativeEn: 'Vendor owns a Wan Chai commercial-residential property. Land search Incumbrances shows two court entries: a High Court "Charging Order Nisi" and a creditor "Winding-Up Petition". Buyer is eager to purchase. Agent advised buyer that "as long as debt is paid before completion, Order Nisi is not a formal encumbrance".',
+    landSearch: {
+      propertyZh: [
+        '地段編號：內地段第 3400 號',
+        '物業地址：灣仔告士打道 168 號 海星大廈 18 樓 A 室',
+        '批約年期：99 年可續期'
+      ],
+      propertyEn: [
+        'Lot No.: Inland Lot No. 3400',
+        'Address: Flat A, 18/F, Star Ocean Building, Wan Chai',
+        'Lease Term: 99 years renewable'
+      ],
+      ownerZh: [
+        '登記業主：Glorious Star Holdings Limited',
+        '代價：$22,000,000 (摘要編號 UB77011)'
+      ],
+      ownerEn: [
+        'Registered Owner: Glorious Star Holdings Limited',
+        'Consideration: $22,000,000 (Memorial No. UB77011)'
+      ],
+      incumbrancesZh: [
+        '1. 暫准押記令：高等法院訴訟第 2024/991 號 (Charging Order Nisi)',
+        '2. 清盤呈請：香港高等法院呈請書 (Winding-Up Petition No. 2024/11)'
+      ],
+      incumbrancesEn: [
+        '1. Charging Order Nisi: High Court Action No. 2024/991',
+        '2. Winding-Up Petition: High Court Companies Winding-Up No. 2024/11'
+      ]
+    },
+    questions: [
+      {
+        id: 501,
+        questionZh: '若公司已被呈請清盤（Winding-up Petition 已登記），在此之後簽立之物業轉讓合約法律效力為何？',
+        questionEn: 'If a winding-up petition has been presented against the vendor company, what is the legal effect of property dispositions made thereafter?',
+        optionsZh: [
+          'A. 只要買方不知情即完全有效',
+          'B. 除非獲法院認可令 (Validation Order)，否則在法律上一律無效 (Void)',
+          'C. 自動由破產管理官代為完成交易',
+          'D. 買方可直接沒收物業訂金'
+        ],
+        optionsEn: [
+          'A. Completely valid as long as buyer had no actual notice',
+          'B. Wholly void by law unless validated by court order (Validation Order)',
+          'C. Automatically completed by the Official Receiver',
+          'D. Buyer may forfeit the deposit directly'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 依據《公司(清盤及雜項條文)條例》(Cap. 32) 第 182 條，在清盤呈請開始後對公司財產的任何處置，除非獲法院命令認可，否則一律無效。',
+        explanationEn: '✓ Under s.182 of Cap. 32, any disposition of company property made after the commencement of winding-up is void unless validated by the court.',
+        statuteRefZh: '《公司(清盤及雜項條文)條例》Cap. 32 s.182',
+        statuteRefEn: 'Companies (Winding Up) Ordinance Cap. 32 s.182'
+      },
+      {
+        id: 502,
+        questionZh: '關於「Charging Order Nisi」（暫准押記令），下列哪項敘述完全正確？',
+        questionEn: 'Regarding a "Charging Order Nisi", which statement is legally accurate?',
+        optionsZh: [
+          'A. 代表物業已可直接由執達主任安排拍賣',
+          'B. 屬法庭發出的臨時押記，於聆訊確認為 Charging Order Absolute 前，債務人仍可清償或抗辯',
+          'C. 該押記不屬於可註冊之土地負擔',
+          'D. 買家可完全忽視該令並要求銀行如常批出按揭'
+        ],
+        optionsEn: [
+          'A. Means the bailiff can auction the property immediately',
+          'B. It is a provisional court order; debtor may discharge or contest before Order Absolute',
+          'C. It is an unregistrable instrument at the Land Registry',
+          'D. Buyer may ignore the order and obtain mortgages without issue'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ Order Nisi 為暫准押記令，債務人有權在指定聆訊中抗辯或清償欠款；確認後法庭才蓋印為 Charging Order Absolute。',
+        explanationEn: '✓ An Order Nisi is provisional. The debtor can contest or settle the judgment debt prior to the court granting a Charging Order Absolute.',
+        statuteRefZh: '《高等法院規則》第 50 號命令',
+        statuteRefEn: 'Rules of the High Court Order 50'
+      }
+    ]
+  },
+
+  // 6. DMC Breach & Building Management
+  {
+    id: 'case-6',
+    titleZh: '大廈公契 (DMC) 違契加建與欠繳管理費',
+    titleEn: 'DMC Breach, Roof Exclusive Possession & Charge',
+    badgeZh: '大廈管理條例 / 押記備忘錄',
+    badgeEn: 'Cap. 344 / Memorial of Charge',
+    track: 'SQE_EAQE',
+    icon: Building2,
+    narrativeZh: '賣方為北角翠華大廈頂層單位業主，擁有天台之專用使用權 (Exclusive Possession)。賣方於天台建造了一間有冷氣及浴室之玻璃屋。土地查冊顯示：業主立案法團依 Cap. 344 第 19 條註冊了一項「押記備忘錄」(Memorial of Charge)，原因是原業主拖欠過去 1 年之大維修集資款及管理費共港幣 $120,000。',
+    narrativeEn: 'Vendor owns the top-floor flat of Tsui Wah Building with exclusive possession of the roof. Vendor built an air-conditioned glasshouse on the roof. Land search shows: Incorporated Owners registered a Memorial of Charge under Cap. 344 s.19 for unpaid renovation contributions and management fees totaling HK$120,000.',
+    landSearch: {
+      propertyZh: [
+        '地段編號：內地段第 7120 號',
+        '物業地址：北角英皇道 450 號 翠華大廈 24 樓頂層及天台',
+        '批約年期：75 年可續期'
+      ],
+      propertyEn: [
+        'Lot No.: Inland Lot No. 7120',
+        'Address: Flat 24/F and Roof, Tsui Wah Building, North Point',
+        'Lease Term: 75 years renewable'
+      ],
+      ownerZh: [
+        '登記業主：李志明 (Lee Chi Ming)',
+        '代價：$11,500,000 (摘要編號 UB61022)'
+      ],
+      ownerEn: [
+        'Registered Owner: Lee Chi Ming',
+        'Consideration: $11,500,000 (Memorial No. UB61022)'
+      ],
+      incumbrancesZh: [
+        '1. 押記備忘錄：翠華大廈業主立案法團 (摘要編號 UB99881 - 欠繳管理費及維修費)',
+        '2. 按揭：恒生銀行有限公司'
+      ],
+      incumbrancesEn: [
+        '1. Memorial of Charge: The Incorporated Owners of Tsui Wah Building (Mem UB99881)',
+        '2. Mortgage: Hang Seng Bank Limited'
+      ]
+    },
+    questions: [
+      {
+        id: 601,
+        questionZh: '頂層業主雖擁有天台之專用權 (Exclusive Possession)，在天台加建玻璃屋之法律地位為何？',
+        questionEn: 'Although the top floor owner has exclusive possession of the roof, what is the legal status of building a glasshouse on the roof?',
+        optionsZh: [
+          'A. 完全合法，因專用權包含永久加建權',
+          'B. 構成違反大廈公契 (DMC) 及《建築物條例》之違例建築工程 (UBW)',
+          'C. 只要不遮擋走火通道即屬合法',
+          'D. 只要向差估署申報即可免拆'
+        ],
+        optionsEn: [
+          'A. Fully lawful as exclusive possession confers unlimited building rights',
+          'B. Constitutes a breach of DMC and unauthorized building works (UBW) under Cap. 123',
+          'C. Lawful provided fire escape routes are not obstructed',
+          'D. Immune from demolition once notified to RVD'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 專用使用權受公契及建築物條例雙重約束。未經屋宇署批准加建結構物屬 UBW，法團及屋宇署均可依公契及法例強制拆除。',
+        explanationEn: '✓ Exclusive possession is subject to DMC covenants and Cap. 123. Rooftop structures without BD approval are illegal UBWs.',
+        statuteRefZh: '《建築物管理條例》Cap. 344 與《建築物條例》Cap. 123',
+        statuteRefEn: 'Cap. 344 & Buildings Ordinance Cap. 123'
+      },
+      {
+        id: 602,
+        questionZh: '關於法團註冊之「押記備忘錄」(Memorial of Charge)，新買家若成交將面臨甚麼後果？',
+        questionEn: 'What is the legal consequence to a purchaser if completing with the registered Memorial of Charge outstanding?',
+        optionsZh: [
+          'A. 該筆債務自動註銷，法團不能向新買家追討',
+          'B. 押記對物業具有約束力，法團有權向法庭申請出售命令拍賣該物業以抵償欠款',
+          'C. 只有前業主會被通緝，與物業無關',
+          'D. 買家只需繳交一半金額'
+        ],
+        optionsEn: [
+          'A. Debt automatically extinguished; corporation cannot enforce against buyer',
+          'B. Charge binds the property; corporation may apply for order for sale to auction the unit',
+          'C. Personal remedy only against former owner; flat is unencumbered',
+          'D. Purchaser only liable for 50% of the arrears'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 依 Cap. 344 第 19 條，押記備忘錄隨土地轉移。若賣方在成交日前未清償並解除註冊，法團可向法庭申請拍賣該物業抵債。',
+        explanationEn: '✓ Under Cap. 344 s.19, the charge attaches to the flat. If not discharged, the corporation can seek a court order to sell the property.',
+        statuteRefZh: '《建築物管理條例》第 344 章第 19 條',
+        statuteRefEn: 'Building Management Ordinance Cap. 344 s.19'
+      }
+    ]
+  },
+
+  // 7. Joint Tenancy Severance & Bankruptcy
+  {
+    id: 'case-7',
+    titleZh: '聯權共有中斷 (Severance) 與破產受託人',
+    titleEn: 'Joint Tenancy Severance & Bankruptcy Trustee',
+    badgeZh: '長命契中斷 / 分權共有',
+    badgeEn: 'Severance / Tenancy in Common',
+    track: 'SQE_EAQE',
+    icon: FileText,
+    narrativeZh: '陳先生與弟弟以聯權共有（Joint Tenancy / 長命契）共同持有荃灣愉景新城住宅。弟弟因生意失敗於 6 個月前被頒布破產令。陳先生其後獨自委託代理出售整套物業，宣稱「長命契物業只要其中一個業主簽約，買家就可順利成交」。',
+    narrativeEn: 'Mr. Chan and his brother held a Discovery Park flat as Joint Tenants. Brother was adjudicated bankrupt 6 months ago. Mr. Chan instructed an agent to sell the whole flat, claiming "in joint tenancy, one living brother’s signature is sufficient to pass title".',
+    landSearch: {
+      propertyZh: [
+        '地段編號：荃灣市地段第 350 號',
+        '物業地址：荃灣愉景新城 3 座 22 樓 C 室',
+        '批約年期：自 1990 年起計至 2047 年'
+      ],
+      propertyEn: [
+        'Lot No.: Tsuen Wan Town Lot No. 350',
+        'Address: Flat C, 22/F, Tower 3, Discovery Park, Tsuen Wan',
+        'Lease Term: From 1990 until 2047'
+      ],
+      ownerZh: [
+        '登記業主：陳大文 及 陳小武 (以聯權共有方式持有)',
+        '代價：$6,800,000 (摘要編號 UB40192)'
+      ],
+      ownerEn: [
+        'Registered Owner: Chan Tai Man & Chan Siu Mo (as Joint Tenants)',
+        'Consideration: $6,800,000 (Memorial No. UB40192)'
+      ],
+      incumbrancesZh: [
+        '1. 破產令：香港高等法院破產案第 2024/501 號 (針對陳小武)',
+        '2. 按揭：中信銀行 (國際) 有限公司'
+      ],
+      incumbrancesEn: [
+        '1. Bankruptcy Order: High Court Bankruptcy Case No. 2024/501 (re: Chan Siu Mo)',
+        '2. Mortgage: China CITIC Bank International Ltd'
+      ]
+    },
+    questions: [
+      {
+        id: 701,
+        questionZh: '當其中一名聯權共有人（Joint Tenant）破產，其共有產權形式產生何種法律轉變？',
+        questionEn: 'When one of the Joint Tenants is declared bankrupt, what legal conversion occurs to the co-ownership?',
+        optionsZh: [
+          'A. 毫無影響，長存權（Survivorship）仍然維持',
+          'B. 聯權共有自動中斷（Severance），轉化為分權共有（Tenants in Common），破產者之 50% 份額歸破產受託人',
+          'C. 破產人的份額自動贈予健在的共有人',
+          'D. 物業由政府即時無償沒收'
+        ],
+        optionsEn: [
+          'A. No change; right of survivorship remains intact',
+          'B. Joint tenancy is automatically severed into a tenancy in common; 50% share vests in Trustee',
+          'C. Bankrupt share is gifted automatically to the co-owner',
+          'D. Property is immediately confiscated by the Government'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 破產破壞了四同原則（Four Unities），聯權共有自動被切斷（Severance），破產人之半數份額歸破產管理官／破產受託人處置。',
+        explanationEn: '✓ Bankruptcy severs the joint tenancy by operation of law. The bankrupt’s undivided 50% share vests in the Trustee in Bankruptcy.',
+        statuteRefZh: '《物業轉易及物業條例》Cap. 219 s.24 及《破產條例》Cap. 6',
+        statuteRefEn: 'Cap. 219 s.24 & Bankruptcy Ordinance Cap. 6'
+      },
+      {
+        id: 702,
+        questionZh: '陳先生能否獨自簽約將「整套物業」合法出售予買家？',
+        questionEn: 'Can Mr. Chan sign alone to validly assign the entire property to a purchaser?',
+        optionsZh: [
+          'A. 可以，只要合約列明是長命契即可',
+          'B. 絕對不能。出售整個物業必須由陳先生及破產受託人（Trustee in Bankruptcy）共同簽署轉讓契',
+          'C. 只要買家全數付清現金即可',
+          'D. 經地產代理見證簽署即可'
+        ],
+        optionsEn: [
+          'A. Yes, provided contract indicates joint tenancy',
+          'B. Absolutely NO. Conveying the whole title requires both Mr. Chan and the Trustee in Bankruptcy to execute',
+          'C. Yes, if purchaser pays fully in cash',
+          'D. Yes, with estate agent attestation'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 陳先生只能獨立處置其個人 50% 不可分割份數。若要出售整套物業，必須取得破產受託人之書面同意並共同簽立契約。',
+        explanationEn: '✓ Mr. Chan can only convey his undivided half share. Selling the entire flat requires joinder of the Trustee in Bankruptcy.',
+        statuteRefZh: '《物業轉易及物業條例》Cap. 219',
+        statuteRefEn: 'Conveyancing and Property Ordinance Cap. 219'
+      }
+    ]
+  },
+
+  // 8. Industrial Lease User Covenants
+  {
+    id: 'case-8',
+    titleZh: '工廈地契用戶條款限制與整幢活化豁免',
+    titleEn: 'Industrial Lease User Clause & Revitalization Waiver',
+    badgeZh: '工廈違契 / 地政總署收地權',
+    badgeEn: 'User Covenants / Lands Dept Re-Entry',
+    track: 'EAQE_ONLY',
+    icon: AlertTriangle,
+    narrativeZh: '賣方持有觀塘開源道工廈 5 樓單位。政府租契（Government Lease）用戶限制載明為「Industrial and/or Godown purposes only」（工業及/或貨倉用途）。賣方將單位分間成多間精緻工作室，租予客戶作音樂教室及精品零售店。代理推介買家購入作商業出租收租，宣稱「工廈活化政策下所有非工業用途都已被政府默認合法」。',
+    narrativeEn: 'Vendor owns a 5th floor unit in an industrial building in Kwun Tong. Government lease user clause specifies: "Industrial and/or Godown purposes only". Vendor partitioned the floor into studio units leased for music classes and retail boutiques. Agent marketed the property as a commercial investment, claiming non-industrial uses are automatically legalized under revitalization policies.',
+    landSearch: {
+      propertyZh: [
+        '地段編號：觀塘內地段第 220 號',
+        '物業地址：觀塘開源道 72 號 豐利工業大廈 5 樓',
+        '批約年期：75 年自 1960 年起計可續期'
+      ],
+      propertyEn: [
+        'Lot No.: Kwun Tong Inland Lot No. 220',
+        'Address: 5/F, Enterprise Industrial Building, 72 Hoi Yuen Rd, Kwun Tong',
+        'Lease Term: 75 years from 1960 renewable'
+      ],
+      ownerZh: [
+        '登記業主：Top Industrial Investment Ltd',
+        '代價：$18,000,000 (摘要編號 UB33190)'
+      ],
+      ownerEn: [
+        'Registered Owner: Top Industrial Investment Ltd',
+        'Consideration: $18,000,000 (Memorial No. UB33190)'
+      ],
+      incumbrancesZh: [
+        '1. 警告信：地政總署警告信 (違反地契工業用途限制 - 零售與教室)',
+        '2. 按揭：東亞銀行有限公司'
+      ],
+      incumbrancesEn: [
+        '1. Warning Letter: Lands Department Warning Letter (Breach of User Covenant)',
+        '2. Mortgage: The Bank of East Asia, Limited'
+      ]
+    },
+    questions: [
+      {
+        id: 801,
+        questionZh: '工廈單位在未獲地政總署批准豁免前，擅自作零售商店或音樂教室，地政總署有權採取甚麼最嚴厲執法手段？',
+        questionEn: 'Without a waiver from the Lands Department, what is the most severe enforcement action Lands Dept can take for unauthorized retail/music use?',
+        optionsZh: [
+          'A. 只能處以罰款 $5,000',
+          'B. 有權收回土地（Re-entry），將該物業所有權充公沒收轉歸政府',
+          'C. 無權採取任何實質執法行動',
+          'D. 只能命令電力公司停止供電'
+        ],
+        optionsEn: [
+          'A. Issue a nominal fine of HK$5,000 only',
+          'B. Exercise statutory Right of Re-entry, forfeiting and vesting title in the Government',
+          'C. No legal power to take enforcement action',
+          'D. Order power companies to terminate electricity supply only'
+        ],
+        answerIndex: 1,
+        explanationZh: '✓ 違反地契用戶條款（User Restrictions）屬違反租契契約，地政總署除發警告信釘契外，情節嚴重可直接行使重收土地權（Re-entry）沒收物業。',
+        explanationEn: '✓ Breaching lease covenants allows Lands Department to register warning letters and exercise the statutory Right of Re-entry, forfeiting the leasehold.',
+        statuteRefZh: '《政府租契條例》與地契契約普通法',
+        statuteRefEn: 'Government Rights of Re-entry Ordinance'
+      },
+      {
+        id: 802,
+        questionZh: '關於政府推行之「工廈活化計劃」（免收豁免地價整幢改裝），申請者必須具備何種法定業權條件？',
+        questionEn: 'Under the Government Revitalization Scheme for nil-waiver industrial conversion, what mandatory ownership threshold must the applicant satisfy?',
+        optionsZh: [
+          'A. 持有該工廈 50% 不可分割份數即可',
+          'B. 持有 80% 業權份數即可申請',
+          'C. 必須為單一業權人擁有整幢工廈 100% 的不可分割份數',
+          'D. 任何單一分層單位業主均可單獨提出申請'
+        ],
+        optionsEn: [
+          'A. 50% undivided shares is sufficient',
+          'B. 80% shares is sufficient',
+          'C. Must be unified 100% single ownership of the entire industrial building',
+          'D. Any individual floor owner can apply separately'
+        ],
+        answerIndex: 2,
+        explanationZh: '✓ 工廈整幢改裝活化計劃規定申請人必須擁有該整幢工廈之 100% 單一完整業權，個別分層業主無權單獨提出申請。',
+        explanationEn: '✓ The nil-waiver fee wholesale conversion scheme strictly requires 100% unified single ownership of the whole industrial building.',
+        statuteRefZh: '發展局工廈活化政策法定指引',
+        statuteRefEn: 'Development Bureau Revitalization Policy Guidelines'
+      }
+    ]
   }
 ];
 
 export default function CaseStudyPage() {
   const { language, locale } = useLanguage();
+  const { isPaidUser } = useAuth();
+  
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
@@ -429,66 +794,118 @@ export default function CaseStudyPage() {
     setCurrentQIndex((prev) => (prev + 1) % currentScenario.questions.length);
   };
 
+  const handleResetScore = () => {
+    setScore(0);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setCurrentQIndex(0);
+  };
+
   return (
-    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
+      <div className="max-w-7xl mx-auto space-y-8">
 
         {/* Top Header Banner */}
-        <div 
-          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }}
-          className="p-6 rounded-3xl border shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-        >
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-bold text-amber-500">
-              <Award className="h-3.5 w-3.5" />
-              <span>
-                {isZh ? 'EAQE 卷二個案 (20 題) / SQE 卷二個案 (10 題)' : 'EAQE Part II (20 Questions) / SQE Part II (10 Questions)'}
+        <div className="p-6 sm:p-8 rounded-3xl border border-blue-200 bg-blue-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-300 bg-blue-100 px-3 py-1 text-xs font-bold text-blue-800">
+                <Award className="h-4 w-4" />
+                <span>
+                  {isZh ? '8 大官方全真查冊題庫 • Part II 核心考點' : '8 Master Land Search Cases • Part II Core Syllabus'}
+                </span>
+              </span>
+
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold border ${
+                isPaidUser
+                  ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                  : 'bg-amber-50 border-amber-300 text-amber-900'
+              }`}>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span>{isPaidUser ? 'PRO ACCESS (UNLOCKED)' : 'FREE PREVIEW MODE'}</span>
               </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              {isZh ? 'Part II 個案實務與土地查冊 (Land Search P-O-I-M)' : 'Part II Case Study & Land Search POIM Engine'}
+
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
+              {isZh ? 'Part II 土地查冊與個案實務 (Land Search P-O-I-M)' : 'Part II Case Studies & IRIS Land Search Engine'}
             </h1>
+            <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
+              {isZh 
+                ? '涵蓋遺產物業、屋宇署清拆令、公司浮動押記、授權書託管、劏房租管、法院暫准押記令與工廈地契用戶限制。完整掌握 Property、Owner、Incumbrances 四大抽屜解讀訣竅。'
+                : 'Master authentic Land Search extraction across Probate, UBW Orders, Corporate Charges, Powers of Attorney, Subdivided Tenancies, Charging Orders, and Industrial Covenants.'}
+            </p>
           </div>
 
-          <Link
-            href="/course"
-            className="px-4 py-2.5 rounded-2xl border border-slate-700 hover:border-indigo-500 font-bold text-xs transition flex items-center gap-2"
-          >
-            <BookOpen className="h-4 w-4 text-indigo-400" />
-            <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
-          </Link>
+          <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+            <Link
+              href="/course"
+              className="px-4 py-2.5 rounded-2xl border border-slate-300 bg-white hover:bg-slate-100 font-bold text-xs text-slate-700 transition flex items-center gap-2 shadow-sm"
+            >
+              <BookOpen className="h-4 w-4 text-blue-600" />
+              <span>{isZh ? '返回課程大綱' : 'Back to Syllabus'}</span>
+            </Link>
+
+            <Link
+              href="/mock-exam"
+              className="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition flex items-center gap-2"
+            >
+              <Award className="h-4 w-4" />
+              <span>{isZh ? '全真模擬考' : 'Mock Exam'}</span>
+            </Link>
+          </div>
         </div>
 
-        {/* Multi-Case Scenario Selector Bar */}
-        <div 
-          style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-          className="p-4 rounded-3xl border shadow-lg space-y-2"
-        >
-          <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block px-1">
-            {isZh ? '選擇考官精選個案 (Select Exam Scenario):' : 'Select Exam Case Study Scenario:'}
-          </span>
+        {/* 8-Case Scenario Selector Grid */}
+        <div className="p-4 sm:p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <span className="text-xs font-mono font-bold text-slate-400 uppercase tracking-wider block">
+              {isZh ? '選擇考官精選個案 (Select Exam Scenario):' : 'Select Exam Case Study Scenario:'}
+            </span>
+            <span className="text-xs font-bold text-slate-500">
+              {CASE_STUDY_SCENARIOS.length} {isZh ? '個完整個案' : 'Scenarios Available'}
+            </span>
+          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {CASE_STUDY_SCENARIOS.map((sc, idx) => {
               const IconComp = sc.icon;
               const isActive = sc.id === activeScenarioId;
+              const isLocked = !isPaidUser && idx >= 2;
 
               return (
                 <button
                   key={sc.id}
                   onClick={() => handleScenarioChange(sc.id)}
-                  className={`p-3 rounded-2xl border text-left transition flex items-start gap-2.5 cursor-pointer ${
+                  className={`p-3.5 rounded-2xl border text-left transition flex items-start gap-3 cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-extrabold'
-                      : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                      ? 'border-2 border-amber-500 bg-amber-50/70 shadow-sm text-slate-950 font-black'
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-700'
                   }`}
                 >
-                  <IconComp className={`h-4 w-4 shrink-0 mt-0.5 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />
-                  <div className="space-y-0.5 overflow-hidden">
-                    <span className="text-xs font-bold truncate block">
-                      {isZh ? `個案 ${idx + 1}: ${sc.titleZh}` : `Case ${idx + 1}: ${sc.titleEn}`}
+                  <div className={`p-2 rounded-xl shrink-0 mt-0.5 ${isActive ? 'bg-amber-500 text-slate-950' : 'bg-slate-100 text-slate-700'}`}>
+                    <IconComp className="h-4 w-4" />
+                  </div>
+
+                  <div className="space-y-1 overflow-hidden flex-1">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-xs font-bold truncate block">
+                        {isZh ? `個案 ${idx + 1}` : `Case ${idx + 1}`}
+                      </span>
+                      {sc.track === 'EAQE_ONLY' && (
+                        <span className="text-[9px] font-black px-1.5 py-0.2 rounded bg-rose-100 text-rose-800">
+                          EAQE
+                        </span>
+                      )}
+                      {isLocked && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-200 text-amber-900 flex items-center gap-0.5">
+                          <Lock className="h-2.5 w-2.5" /> PRO
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs font-bold text-slate-900 truncate block">
+                      {isZh ? sc.titleZh : sc.titleEn}
                     </span>
-                    <span className={`text-[10px] block truncate ${isActive ? 'text-slate-900 font-medium' : 'text-slate-400'}`}>
+                    <span className="text-[10px] text-slate-500 truncate block">
                       {isZh ? sc.badgeZh : sc.badgeEn}
                     </span>
                   </div>
@@ -502,116 +919,130 @@ export default function CaseStudyPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* Left Panel: Land Search POIM Document Viewer (5 Columns) */}
-          <div 
-            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-            className="lg:col-span-5 p-6 rounded-3xl border shadow-xl space-y-4 flex flex-col justify-between"
-          >
+          <div className="lg:col-span-5 p-6 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-4 flex flex-col justify-between">
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setActiveTab('search')}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      activeTab === 'search' ? 'bg-amber-500 text-slate-950' : 'opacity-70 hover:opacity-100'
+                      activeTab === 'search' 
+                        ? 'bg-slate-900 text-white shadow-sm' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    {isZh ? '土地查冊 (Annex PDF)' : 'Land Search Annex'}
+                    {isZh ? '土地查冊 (Annex)' : 'Land Search Annex'}
                   </button>
                   <button
                     onClick={() => setActiveTab('facts')}
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
-                      activeTab === 'facts' ? 'bg-amber-500 text-slate-950' : 'opacity-70 hover:opacity-100'
+                      activeTab === 'facts' 
+                        ? 'bg-slate-900 text-white shadow-sm' 
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    {isZh ? '個案背景故事' : 'Case Study Narrative'}
+                    {isZh ? '個案背景情境' : 'Case Scenario Narrative'}
                   </button>
                 </div>
 
-                <span className="text-[10px] font-mono font-bold opacity-60">
-                  {isZh ? 'IRIS 官方查冊範本' : 'IRIS Official Template'}
+                <span className="text-[10px] font-mono font-bold text-slate-400">
+                  {isZh ? 'IRIS 官方查冊格式' : 'IRIS Standard Template'}
                 </span>
               </div>
 
               {activeTab === 'search' ? (
-                <div className="space-y-4 text-xs font-mono">
-                  {/* Property Section */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <span className="text-amber-400 font-bold block">
+                <div className="space-y-3.5 text-xs font-mono">
+                  {/* Property Section (Blue) */}
+                  <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 space-y-1.5">
+                    <span className="text-[10px] font-black font-mono text-blue-800 flex items-center gap-1.5 uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
                       {isZh ? '(P) 物業資料 (PROPERTY PARTICULARS)' : '(P) PROPERTY PARTICULARS'}
                     </span>
                     {(isZh ? currentScenario.landSearch.propertyZh : currentScenario.landSearch.propertyEn).map((line, i) => (
-                      <p key={i} className="opacity-80">{line}</p>
+                      <p key={i} className="text-xs text-blue-950 font-medium pl-3 border-l border-blue-300">{line}</p>
                     ))}
                   </div>
 
-                  {/* Owner Section */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <span className="text-amber-400 font-bold block">
+                  {/* Owner Section (Amber) */}
+                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1.5">
+                    <span className="text-[10px] font-black font-mono text-amber-800 flex items-center gap-1.5 uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
                       {isZh ? '(O) 業主資料 (OWNER PARTICULARS)' : '(O) OWNER PARTICULARS'}
                     </span>
                     {(isZh ? currentScenario.landSearch.ownerZh : currentScenario.landSearch.ownerEn).map((line, i) => (
-                      <p key={i} className="opacity-80">{line}</p>
+                      <p key={i} className="text-xs text-amber-950 font-medium pl-3 border-l border-amber-300">{line}</p>
                     ))}
                   </div>
 
-                  {/* Incumbrances Section */}
-                  <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-1">
-                    <span className="text-amber-400 font-bold block">
+                  {/* Incumbrances Section (Rose) */}
+                  <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 space-y-1.5">
+                    <span className="text-[10px] font-black font-mono text-rose-800 flex items-center gap-1.5 uppercase">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
                       {isZh ? '(I) 業權負擔 (INCUMBRANCES)' : '(I) INCUMBRANCES'}
                     </span>
                     {(isZh ? currentScenario.landSearch.incumbrancesZh : currentScenario.landSearch.incumbrancesEn).map((line, i) => (
-                      <p key={i} className="text-rose-400 font-bold">{line}</p>
+                      <p key={i} className="text-xs text-rose-950 font-bold pl-3 border-l-2 border-rose-400">{line}</p>
                     ))}
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3 text-xs leading-relaxed opacity-85">
-                  <p className="font-bold text-amber-400">
-                    {isZh ? `【個案 ${CASE_STUDY_SCENARIOS.findIndex(s => s.id === activeScenarioId) + 1}: ${currentScenario.titleZh}】` : `[ Case ${CASE_STUDY_SCENARIOS.findIndex(s => s.id === activeScenarioId) + 1}: ${currentScenario.titleEn} ]`}
+                <div className="space-y-3 text-xs leading-relaxed text-slate-700 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                  <p className="font-bold text-slate-900 text-sm">
+                    {isZh ? `【個案：${currentScenario.titleZh}】` : `[ Scenario: ${currentScenario.titleEn} ]`}
                   </p>
-                  <p>{isZh ? currentScenario.narrativeZh : currentScenario.narrativeEn}</p>
+                  <p className="leading-relaxed">{isZh ? currentScenario.narrativeZh : currentScenario.narrativeEn}</p>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t text-[10px] font-mono opacity-50 flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
-              <span>{isZh ? `個案編號：CS-2026-${activeScenarioId.toUpperCase()}` : `Case Reference: CS-2026-${activeScenarioId.toUpperCase()}`}</span>
-              <span>{isZh ? '第 1 頁 / 共 1 頁' : 'Page 1 of 1'}</span>
+            <div className="pt-4 border-t border-slate-100 text-[10px] font-mono text-slate-400 flex items-center justify-between">
+              <span>{isZh ? `查冊案號：CS-2026-${activeScenarioId.toUpperCase()}` : `Case Ref: CS-2026-${activeScenarioId.toUpperCase()}`}</span>
+              <span>{isZh ? '共 8 個全真查冊個案' : '8 Complete Scenarios'}</span>
             </div>
           </div>
 
           {/* Right Panel: Interactive Question Engine (7 Columns) */}
-          <div 
-            style={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)' }}
-            className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 flex flex-col justify-between"
-          >
+          <div className="lg:col-span-7 p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6 flex flex-col justify-between">
             <div className="space-y-6">
-              <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: 'var(--border-color)' }}>
-                <span className="px-3 py-1 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs font-mono font-bold text-indigo-400">
-                  {isZh ? `第 ${currentQIndex + 1} 題 (共 ${currentScenario.questions.length} 題)` : `Question ${currentQIndex + 1} of ${currentScenario.questions.length}`}
-                </span>
+              
+              {/* Question Header Meta */}
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-xl bg-slate-900 text-white text-xs font-mono font-bold">
+                    {isZh ? `第 ${currentQIndex + 1} 題 (共 ${currentScenario.questions.length} 題)` : `Question ${currentQIndex + 1} of ${currentScenario.questions.length}`}
+                  </span>
+                  {currentScenario.track === 'EAQE_ONLY' && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-800">
+                      EAQE EXCLUSIVE
+                    </span>
+                  )}
+                </div>
 
-                <span className="text-xs font-mono opacity-60">
+                <span className="text-xs font-mono text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md">
                   {isZh ? currentQ.statuteRefZh : currentQ.statuteRefEn}
                 </span>
               </div>
 
+              {/* Question Stem */}
               <div className="space-y-4">
-                <h2 className="text-base sm:text-lg font-bold leading-relaxed">
+                <h2 className="text-base sm:text-lg font-bold text-slate-950 leading-relaxed">
                   {isZh ? currentQ.questionZh : currentQ.questionEn}
                 </h2>
 
+                {/* Option Buttons */}
                 <div className="space-y-3">
                   {(isZh ? currentQ.optionsZh : currentQ.optionsEn).map((opt, idx) => {
                     const isSelected = selectedOption === idx;
                     const isCorrect = idx === currentQ.answerIndex;
 
-                    let btnStyle = 'border-slate-800 bg-slate-900/60 hover:border-indigo-500/60';
+                    let btnStyle = 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-slate-800';
                     if (isAnswered) {
                       if (isCorrect) {
-                        btnStyle = 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold';
+                        btnStyle = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold';
                       } else if (isSelected) {
-                        btnStyle = 'bg-rose-600/20 border-rose-500 text-rose-300 font-bold';
+                        btnStyle = 'bg-rose-50 border-rose-500 text-rose-950 font-bold';
+                      } else {
+                        btnStyle = 'bg-slate-50 border-slate-200 text-slate-400';
                       }
                     }
 
@@ -620,38 +1051,51 @@ export default function CaseStudyPage() {
                         key={idx}
                         disabled={isAnswered}
                         onClick={() => handleSelectOption(idx)}
-                        className={`w-full text-left p-4 rounded-2xl border text-xs sm:text-sm font-medium transition cursor-pointer flex items-center justify-between ${btnStyle}`}
+                        className={`w-full text-left p-4 rounded-2xl border text-xs sm:text-sm font-semibold transition cursor-pointer flex items-center justify-between ${btnStyle}`}
                       >
-                        <span>{opt}</span>
-                        {isAnswered && isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />}
-                        {isAnswered && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-rose-400 shrink-0" />}
+                        <span className="leading-snug">{opt}</span>
+                        {isAnswered && isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 ml-2" />}
+                        {isAnswered && isSelected && !isCorrect && <XCircle className="h-4 w-4 text-rose-600 shrink-0 ml-2" />}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
+              {/* Legal Explanation Box (Emerald Theme from Traps) */}
               {isAnswered && (
-                <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-1 animate-in fade-in duration-200">
-                  <span className="text-xs font-mono font-bold text-indigo-400 uppercase block">
-                    {isZh ? '【 官方解題分析 】' : '[ Official Statutory Analysis ]'}
+                <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-1.5 animate-in fade-in duration-200">
+                  <span className="text-[10px] font-black font-mono text-emerald-800 uppercase flex items-center gap-1">
+                    <CheckCircle2 className="h-3 w-3" /> [ TRUE / 官方解題法理解析 ]
                   </span>
-                  <p className="text-xs font-semibold text-indigo-200 leading-relaxed">
+                  <p className="text-xs font-semibold text-emerald-950 leading-relaxed">
                     {isZh ? currentQ.explanationZh : currentQ.explanationEn}
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="pt-4 border-t flex items-center justify-between" style={{ borderColor: 'var(--border-color)' }}>
-              <span className="text-xs font-mono font-bold opacity-60">
-                {isZh ? `得分：${score} 分` : `Total Score: ${score}`}
-              </span>
+            {/* Bottom Actions and Navigation */}
+            <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-mono font-bold text-slate-500">
+                  {isZh ? `累積答對：${score} 題` : `Score: ${score}`}
+                </span>
+                {score > 0 && (
+                  <button
+                    onClick={handleResetScore}
+                    className="text-[11px] font-bold text-slate-400 hover:text-slate-600 flex items-center gap-1 transition"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>{isZh ? '重設計分' : 'Reset'}</span>
+                  </button>
+                )}
+              </div>
 
               {isAnswered && (
                 <button
                   onClick={handleNext}
-                  className="px-6 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-lg transition flex items-center gap-2 cursor-pointer"
+                  className="px-6 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center gap-2 cursor-pointer"
                 >
                   <span>{isZh ? '下一題' : 'Next Question'}</span>
                   <ArrowRight className="h-4 w-4" />
