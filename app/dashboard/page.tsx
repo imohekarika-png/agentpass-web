@@ -99,12 +99,8 @@ export default function DashboardPage() {
     }
   };
 
-  // Maps any item format (even old q-1 entries) to a valid quiz block URL
+  // Maps any legacy format ('q-1', 'Block 01', 'b1') to a valid block route
   const getReviewHref = (item: ReviewItem) => {
-    if (item.blockId && item.blockId.startsWith('b')) {
-      return `/quiz?block=${item.blockId}`;
-    }
-
     if (item.blockNum) {
       const digits = item.blockNum.replace(/\D/g, '');
       if (digits) {
@@ -112,11 +108,22 @@ export default function DashboardPage() {
       }
     }
 
+    if (item.blockId && item.blockId.startsWith('b')) {
+      return `/quiz?block=${item.blockId}`;
+    }
+
     if (item.id && item.id.startsWith('b')) {
       return `/quiz?block=${item.id}`;
     }
 
-    return `/quiz?block=${item.id}`;
+    if (item.id && item.id.startsWith('q')) {
+      const digits = item.id.replace(/\D/g, '');
+      if (digits) {
+        return `/quiz?block=b${parseInt(digits, 10)}`;
+      }
+    }
+
+    return '/quiz';
   };
 
   if (!isMounted) return null;

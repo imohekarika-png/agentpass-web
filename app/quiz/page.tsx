@@ -59,7 +59,7 @@ function QuizCore() {
     setIsSubmitted(false);
   }, [blockParam, selectedTrack]);
 
-  // Robust, crash-proof questions resolver
+  // Robust questions resolver with fallback
   const activeQuestions = useMemo(() => {
     const rawList = Array.isArray(RAW_QUESTION_BANK) ? RAW_QUESTION_BANK : [];
     if (rawList.length === 0) return [];
@@ -74,10 +74,8 @@ function QuizCore() {
         const qId = (q.id || '').toLowerCase().trim();
         const qBlockNum = (q.blockNum || '').toLowerCase().trim();
 
-        // Exact match against question ID, block ID, or block name
         if (qBlockId === bp || qId === bp || qBlockNum === bp) return true;
 
-        // Number extraction: 'q-1', 'b1', 'block-1' all map to digit '1'
         const bpDigits = bp.replace(/\D/g, '');
         const qBlockDigits = (q.blockId || q.blockNum || '').replace(/\D/g, '');
         const qIdDigits = (q.id || '').replace(/\D/g, '');
@@ -96,9 +94,12 @@ function QuizCore() {
       return true;
     });
 
-    // Fallback: If zero items matched the query, load full track questions instead of leaving an empty array
+    // Fallback: If zero items matched the query, load full track questions instead of an empty array
     if (filtered.length === 0) {
       filtered = rawList.filter((q: any) => !(selectedTrack === 'SQE' && q?.trackApplicability === 'EAQE_ONLY'));
+    }
+    if (filtered.length === 0) {
+      filtered = rawList;
     }
 
     return filtered.map((q: any, idx: number) => {
@@ -215,7 +216,6 @@ function QuizCore() {
     );
   }
 
-  // Safe fallback resolution for all fields
   const options = isZh
     ? (currentQ.optionsZh || currentQ.options?.map((o: any) => (typeof o === 'string' ? o : o.text_zh || o.text)) || [])
     : (currentQ.optionsEn || currentQ.options?.map((o: any) => (typeof o === 'string' ? o : o.text || o.text_zh)) || []);
