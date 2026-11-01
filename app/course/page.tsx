@@ -1,7 +1,7 @@
 // app/course/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
 import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
@@ -24,7 +24,11 @@ import {
   Zap,
   FileText,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  Search,
+  ChevronUp,
+  ChevronDown,
+  BookmarkCheck
 } from 'lucide-react';
 
 interface DoNotConfusePair {
@@ -65,9 +69,8 @@ interface TopicBlock {
   };
 }
 
-// Complete 20-Block Official EAA Syllabus
+// Complete 20-Block Official EAA Syllabus integrated with your course schema
 const TOPIC_BLOCKS: TopicBlock[] = [
-  // Block 01
   { 
     id: 'b1', num: 'Block 01', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
     categoryZh: '發牌與資格', categoryEn: 'Licensing & Qualifications',
@@ -113,8 +116,6 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Salesperson with 3 years experience can manage branch" — FALSE. Requires Agent License.']
     }
   },
-
-  // Block 02
   { 
     id: 'b2', num: 'Block 02', part: 'I', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
     categoryZh: '營業地點規管', categoryEn: 'Business Premises',
@@ -148,8 +149,6 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Branch opening only needs address notice, no licensed manager" — FALSE.']
     }
   },
-
-  // Block 03
   {
     id: 'b3', num: 'Block 03', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
     categoryZh: '執業常規與廣告', categoryEn: 'Practice & Advertising',
@@ -183,8 +182,6 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Agent can list false low price to attract buyers" — ILLEGAL.']
     }
   },
-
-  // Block 04
   { 
     id: 'b4', num: 'Block 04', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
     categoryZh: '客戶帳戶管理', categoryEn: 'Client Account Trust',
@@ -218,8 +215,6 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Deposit can be placed in personal account temporarily" — ILLEGAL.']
     }
   },
-
-  // Block 05
   {
     id: 'b5', num: 'Block 05', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
     categoryZh: '雙重代理與衝突', categoryEn: 'Dual Agency & Conflict',
@@ -253,115 +248,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Only need vendor consent, not buyer consent" — FALSE.']
     }
   },
-
-  // Block 06
   {
     id: 'b6', num: 'Block 06', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
-    categoryZh: '防止賄賂條例', categoryEn: 'Prevention of Bribery',
-    titleZh: '《防止賄賂條例》(Cap. 201 s.9) 與秘密回佣', titleEn: 'Prevention of Bribery (Cap. 201 s.9) & Secret Commissions',
-    summaryZh: '未得主事人同意私下收取對家利益或回佣，觸犯 Cap. 201 s.9 嚴重刑事罪行。',
-    summaryEn: 'Accepting undisclosed secret commissions breaches Cap. 201 s.9 criminal offence.',
-    keyStatutes: ['Cap. 201 s.9'], suggestedDay30: 8,
-    lesson: {
-      overviewZh: '解析 Cap. 201 s.9 代理人貪污交易罪，掌握防賄合法授權防線。',
-      overviewEn: 'Analyzes Cap. 201 s.9 corrupt transactions by agents and valid consent defenses.',
-      verifiedNotesZh: [
-        '✓ 代理人未經主事人事前書面同意，私下收受對家回佣屬刑事罪行。',
-        '✓ 違者最高可判監禁 7 年及罰款 $500,000。',
-        '✓ 即使主事人事後表示不追究，亦不能免除刑事責任，除非事前獲授權。'
-      ],
-      verifiedNotesEn: [
-        '✓ Accepting secret commission without principal prior consent is a crime.',
-        '✓ Maximum penalty: 7 years imprisonment and HK$500,000 fine.',
-        '✓ Principal subsequent forgiveness does not exculpate criminal liability.'
-      ],
-      memoryHookZh: '【回佣必申報 ⚖️】無授權收回佣，觸犯防賄第九條！',
-      memoryHookEn: 'Mnemonic: Disclose Commission ⚖️. Secret money breaches s.9.',
-      retrievalQuestionsZh: ['1. 私下收受對家回佣觸犯哪條例？最高刑罰為何？'],
-      retrievalQuestionsEn: ['1. Which Ordinance governs secret commissions? What is max penalty?'],
-      doNotConfusePairs: [{
-        topicZh: '回佣同意性質', topicEn: 'Commission Consent Nature',
-        correctZh: '事前主事人書面授權', correctEn: 'Principal prior written authorization',
-        wrongTurnZh: '私下默許或事後原諒', wrongTurnEn: 'Tacit consent or post-event forgiveness'
-      }],
-      examTrapsZh: [' Trap: 宣稱「若買家口頭答應給予利是，無須告訴賣家」——違規！'],
-      examTrapsEn: [' Trap: "Oral red packet from buyer needs no vendor consent" — FALSE.']
-    }
-  },
-
-  // Block 07
-  {
-    id: 'b7', num: 'Block 07', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
-    categoryZh: '一手樓銷售條例', categoryEn: 'First-hand Sales',
-    titleZh: '一手住宅物業銷售條例 (Cap. 621) 售樓書與價單', titleEn: 'First-hand Sales Brochure & Price List (Cap. 621)',
-    summaryZh: '售樓書開售前 7 天、價單開售前 3 天公佈，實用面積為唯一計價標準。',
-    summaryEn: 'Brochure 7 days and price list 3 days prior to sale; saleable area sole pricing unit.',
-    keyStatutes: ['Cap. 621 s.25', 'Cap. 621 s.32'], suggestedDay30: 10,
-    lesson: {
-      overviewZh: '掌握 Cap. 621 一手新盤合規宣傳與「書 7 價 3」時間表。',
-      overviewEn: 'Master Cap. 621 first-hand property rules and the "7-day brochure, 3-day price list" rule.',
-      verifiedNotesZh: [
-        '✓ 售樓說明書 (Sales Brochure) 必須於開售前至少 7 天公佈。',
-        '✓ 價單 (Price List) 必須於開售前至少 3 天公佈。',
-        '✓ 實用面積 (Saleable Area) 為一手新盤唯一合法之計價面積。'
-      ],
-      verifiedNotesEn: [
-        '✓ Sales Brochure must be public at least 7 days before sales begin.',
-        '✓ Price List must be public at least 3 days before sales begin.',
-        '✓ Saleable Area is the sole legal area representation for first-hand pricing.'
-      ],
-      memoryHookZh: '【書 7 價 3 📖】口訣：售樓書提前 7 天，價單提前 3 天！',
-      memoryHookEn: 'Mnemonic: Brochure 7, Price 3 📖.',
-      retrievalQuestionsZh: ['1. 一手樓開售前，售樓書及價單分別須提前幾天公佈？'],
-      retrievalQuestionsEn: ['1. How many days in advance must brochures and price lists be made available?'],
-      doNotConfusePairs: [{
-        topicZh: '一手樓面積標準', topicEn: 'First-hand Area Standard',
-        correctZh: '實用面積 (Saleable Area)', correctEn: 'Saleable Area only',
-        wrongTurnZh: '建築面積 (Gross Floor Area)', wrongTurnEn: 'Gross Floor Area'
-      }],
-      examTrapsZh: [' Trap: 宣稱「一手新盤廣告可用建築面積呎價宣傳」——違規！'],
-      examTrapsEn: [' Trap: "First-hand ads can use gross floor area price" — ILLEGAL.']
-    }
-  },
-
-  // Block 08
-  {
-    id: 'b8', num: 'Block 08', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
-    categoryZh: '一手樓冷靜期', categoryEn: 'Cooling-off Period',
-    titleZh: '一手樓臨時合約 (PASP) 5 天冷靜期與訂金沒收', titleEn: 'First-hand PASP 5-Day Cooling-off & Deposit Forfeiture',
-    summaryZh: '簽 PASP 後 5 個工作天內撤回交易，賣方沒收 5% 臨時訂金，不得追討殘餘損失。',
-    summaryEn: '5-working-day cooling-off; vendor forfeits 5% deposit with no further claims.',
-    keyStatutes: ['Cap. 621 s.52', 'Cap. 621 s.53'], suggestedDay30: 11,
-    lesson: {
-      overviewZh: '解析一手住宅 PASP 簽署、冷靜期退訂與 5% 沒收條款。',
-      overviewEn: 'Analyzes first-hand PASP execution, cooling-off withdrawal, and 5% forfeiture limit.',
-      verifiedNotesZh: [
-        '✓ 買家簽署 PASP 後享有 5 個工作天冷靜期。',
-        '✓ 若買家於 5 工作天內放棄交易，賣方沒收樓價 5% 之臨時訂金。',
-        '✓ 賣方沒收 5% 訂金後，無權向買家追討任何額外損失。'
-      ],
-      verifiedNotesEn: [
-        '✓ Buyer enjoys a 5-working-day cooling-off period after signing PASP.',
-        '✓ Withdrawal within 5 days results in forfeiture of the 5% preliminary deposit.',
-        '✓ Vendor has no right to claim further damages beyond the forfeited 5% deposit.'
-      ],
-      memoryHookZh: '【沒收 5% 鎖定 🔒】冷靜期撤回，只賠 5% 臨訂，追討無門！',
-      memoryHookEn: 'Mnemonic: Locked at 5% 🔒. Deposit forfeit capped at 5%.',
-      retrievalQuestionsZh: ['1. 簽署一手 PASP 後撤回，賣方最多可追討多少賠償？'],
-      retrievalQuestionsEn: ['1. Upon PASP withdrawal, what is vendor max recovery?'],
-      doNotConfusePairs: [{
-        topicZh: '冷靜期長度', topicEn: 'Cooling-off Length',
-        correctZh: '5 個工作天 (5 Working Days)', correctEn: '5 Working Days',
-        wrongTurnZh: '5 個日曆天 (5 Calendar Days)', wrongTurnEn: '5 Calendar Days'
-      }],
-      examTrapsZh: [' Trap: 宣稱「賣方沒收 5% 訂金後可追討樓價下跌差額」——錯誤！'],
-      examTrapsEn: [' Trap: "Vendor can claim further market drop loss after 5% forfeit" — FALSE.']
-    }
-  },
-
-  // Block 09
-  {
-    id: 'b9', num: 'Block 09', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
     categoryZh: '物業轉易法規', categoryEn: 'Conveyancing Law',
     titleZh: '物業轉易及物業條例 (Cap. 219) 業權契據 15 年根源', titleEn: 'Conveyancing (Cap. 219) & 15-Year Good Title Root',
     summaryZh: '賣方必須提供至少 15 年業權契據方可證明良好業權 (Good Title)。',
@@ -393,10 +281,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Land search alone replaces 15-year title deeds requirement" — FALSE.']
     }
   },
-
-  // Block 10
   {
-    id: 'b10', num: 'Block 10', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
+    id: 'b7', num: 'Block 07', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
     categoryZh: '聯權與分權共有', categoryEn: 'Co-Ownership',
     titleZh: '聯權共有 (Joint Tenancy) 與中斷 (Severance)', titleEn: 'Joint Tenancy & Severance (Cap. 219)',
     summaryZh: '聯權共有具長存權 (Survivorship)；轉讓份額破壞四同，導致中斷為分權共有。',
@@ -428,10 +314,41 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Tenants in common need 100% co-owner consent to sell" — FALSE.']
     }
   },
-
-  // Block 11
+  {
+    id: 'b8', num: 'Block 08', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
+    categoryZh: '印花稅與印花稅條例', categoryEn: 'Stamp Duty Ordinance',
+    titleZh: '印花稅條例 (Cap. 117) 逾期罰款與從價印花稅 (AVD)', titleEn: 'Stamp Duty (Cap. 117) Late Stamping Penalties & AVD',
+    summaryZh: '逾期超過 2 個月未繳印花稅最高可被處以 10 倍罰款；臨約/正式合約印花稅安排。',
+    summaryEn: 'Overdue >2 months subject to max 10x penalty; AVD stamping rules.',
+    keyStatutes: ['Cap. 117 s.9', 'Cap. 117 s.15'], suggestedDay30: 26,
+    lesson: {
+      overviewZh: '解析香港印花稅 Cap. 117 繳付時限與逾期 10 倍罰款機制。',
+      overviewEn: 'Analyzes Cap. 117 stamp duty execution deadlines and 10x penalty mechanism.',
+      verifiedNotesZh: [
+        '✓ 住宅買賣合約須於簽署後 30 天內加蓋印花 (Stamp Duty)。',
+        '✓ 逾期超過 2 個月未繳付印花稅，最高可被處以應繳稅款 10 倍之罰款。',
+        '✓ 未加蓋印花之合約，依法不可於土地註冊處註冊，亦不可作為法庭呈堂證供。'
+      ],
+      verifiedNotesEn: [
+        '✓ Residential agreements must be stamped within 30 days of execution.',
+        '✓ Stamping overdue for >2 months attracts a maximum penalty of 10 times the duty.',
+        '✓ Unstamped agreements are inadmissible in court and unregisterable at Land Registry.'
+      ],
+      memoryHookZh: '【30 天加蓋、逾期 10 倍 💸】30 天內交稅，逾 2 個月罰 10 倍！',
+      memoryHookEn: 'Mnemonic: 30-Day Stamping, 10x Penalty 💸.',
+      retrievalQuestionsZh: ['1. 印花稅逾期超過 2 個月，最高罰款為多少倍？'],
+      retrievalQuestionsEn: ['1. What is the max penalty if stamp duty is overdue for >2 months?'],
+      doNotConfusePairs: [{
+        topicZh: '印花稅逾期最高罰款', topicEn: 'Max Late Stamping Penalty',
+        correctZh: '10 倍應繳稅款 (10 Times)', correctEn: '10 Times duty',
+        wrongTurnZh: '2 倍或 4 倍', wrongTurnEn: '2 Times or 4 Times'
+      }],
+      examTrapsZh: [' Trap: 宣稱「未蓋印花之合約仍可直接於土地註冊處註冊」——錯誤！'],
+      examTrapsEn: [' Trap: "Unstamped agreements can be registered directly at Land Registry" — FALSE.']
+    }
+  },
   { 
-    id: 'b11', num: 'Block 11', part: 'II', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
+    id: 'b9', num: 'Block 09', part: 'II', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
     categoryZh: '地產代理協議', categoryEn: 'Agency Agreements',
     titleZh: '法定地產代理協議表格 Form 3 至 Form 6 詳解', titleEn: 'Statutory Agency Agreements (Forms 3 to 6) Mastery',
     summaryZh: 'Form 3 (賣方)、Form 4 (買方)、Form 5 (出租人) 及 Form 6 (承租人) 之法定條款與最長 3 個月有效期。',
@@ -465,80 +382,8 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Office leasing requires Form 5" — FALSE. Prescribed forms for residential only.']
     }
   },
-
-  // Block 12
-  {
-    id: 'b12', num: 'Block 12', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
-    categoryZh: '土地註冊處規管', categoryEn: 'Land Registry Priority',
-    titleZh: '土地註冊條例 (Cap. 128) 1 個月優先權與未註冊效果', titleEn: 'Land Registration (Cap. 128) 1-Month Priority Rule',
-    summaryZh: '簽立後 1 個月內交付註冊，優先權回溯至簽立日；未註冊對善意買家無效。',
-    summaryEn: 'Registration within 1 month relates back to execution; unregistered void vs BFP.',
-    keyStatutes: ['Cap. 128 s.3', 'Cap. 128 s.5'], suggestedDay30: 17,
-    lesson: {
-      overviewZh: '掌握 Cap. 128 土地註冊優先權回溯機制與 Lis Pendens 未決訴訟。',
-      overviewEn: 'Master Cap. 128 registration priority back-dating and Lis Pendens risks.',
-      verifiedNotesZh: [
-        '✓ 契據簽立後 1 個月內交付土地註冊處，優先權追溯至簽立日。',
-        '✓ 超過 1 個月交付，優先權僅由註冊當日起生效。',
-        '✓ 未註冊之可註冊契據，對後續善意付價買家 (BFP) 依法無效。'
-      ],
-      verifiedNotesEn: [
-        '✓ Deeds registered within 1 month take priority from execution date.',
-        '✓ Registration after 1 month takes priority only from actual registration date.',
-        '✓ Unregistered registerable deeds are null and void against subsequent BFPs.'
-      ],
-      memoryHookZh: '【1 個月回溯 ⏰】1 個月內入冊，優先權追回簽約日！',
-      memoryHookEn: 'Mnemonic: 1-Month Back-date ⏰.',
-      retrievalQuestionsZh: ['1. 契據簽立後多久內交付註冊可追溯優先權？'],
-      retrievalQuestionsEn: ['1. Within what time frame does registration relate back?'],
-      doNotConfusePairs: [{
-        topicZh: '優先權追溯期', topicEn: 'Priority Relation Back',
-        correctZh: '簽立後 1 個月內 (1 Month)', correctEn: 'Within 1 Month',
-        wrongTurnZh: '3 個月或 6 個月', wrongTurnEn: '3 Months or 6 Months'
-      }],
-      examTrapsZh: [' Trap: 宣稱「超過 1 個月註冊之契據完全廢除」——錯誤！僅失回溯優先權。'],
-      examTrapsEn: [' Trap: "Deeds registered after 1 month are invalid" — FALSE. Loses priority back-date.']
-    }
-  },
-
-  // Block 13
-  {
-    id: 'b13', num: 'Block 13', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
-    categoryZh: '大廈管理與公契', categoryEn: 'Building Management',
-    titleZh: '大廈管理條例 (Cap. 344) 與公契 (DMC) 違規加建', titleEn: 'Building Management (Cap. 344) & DMC Covenants',
-    summaryZh: '成立業主立案法團 (IO) 需 30% 份數；公契具法定約束力，違規可申禁制令。',
-    summaryEn: 'IO formation requires 30% shares; DMC covenants run with land.',
-    keyStatutes: ['Cap. 344 s.3', 'Cap. 344 s.16'], suggestedDay30: 19,
-    lesson: {
-      overviewZh: 'EAQE 專屬 Level 4 考點！涵蓋大廈公契 (DMC) 約束力與 IO 成立門檻。',
-      overviewEn: 'EAQE-only Level 4 core! Covers DMC covenant enforcement and IO 30% threshold.',
-      verifiedNotesZh: [
-        '✓ 成立業主立案法團 (IO) 需獲得不少於 30% 不可分割份數業主支持。',
-        '✓ 公契 (DMC) 為具法律約束力之契約，效力隨土地轉移 (Runs with the land)。',
-        '✓ 業主違規改建公用部分，管委會可申請法庭禁制令 (Injunction)。'
-      ],
-      verifiedNotesEn: [
-        '✓ Forming Incorporated Owners (IO) requires at least 30% undivided shares.',
-        '✓ DMC covenants run with the land and bind all present/future owners.',
-        '✓ Management Committee can apply for Court Injunction against DMC breaches.'
-      ],
-      memoryHookZh: '【30% 門檻 🏢】成立法團需 30% 份數，公契跟屋不跟人！',
-      memoryHookEn: 'Mnemonic: 30% IO Threshold 🏢. DMC runs with land.',
-      retrievalQuestionsZh: ['1. 成立業主立案法團需要多少比例不可分割份數支持？'],
-      retrievalQuestionsEn: ['1. What undivided share percentage is needed to form an IO?'],
-      doNotConfusePairs: [{
-        topicZh: '法團成立門檻', topicEn: 'IO Formation Threshold',
-        correctZh: '30% 不可分割份數', correctEn: '30% undivided shares',
-        wrongTurnZh: '50% 或 100% 業主人數', wrongTurnEn: '50% or 100% owners headcount'
-      }],
-      examTrapsZh: [' Trap: 宣稱「公契僅對一手買家有效，二手買家不受約束」——錯誤！'],
-      examTrapsEn: [' Trap: "DMC binds first buyer only, not subsequent owners" — FALSE.']
-    }
-  },
-
-  // Block 14
   { 
-    id: 'b14', num: 'Block 14', part: 'II', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
+    id: 'b10', num: 'Block 10', part: 'II', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
     categoryZh: '土地查冊 P-O-I-M', categoryEn: 'Land Search P-O-I-M',
     titleZh: '土地查冊 P-O-I-M 四大核心章節深度解析', titleEn: 'Land Search P-O-I-M (Property, Owner, Incumbrances, Memorials)',
     summaryZh: 'Property, Owner, Incumbrances 及 Memorials 四大抽屜解析，個案題勝負關鍵。',
@@ -570,10 +415,41 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "BR certificate reveals property charges on company" — FALSE. Needs CR search.']
     }
   },
-
-  // Block 15
   {
-    id: 'b15', num: 'Block 15', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
+    id: 'b11', num: 'Block 11', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
+    categoryZh: '大廈管理與公契', categoryEn: 'Building Management',
+    titleZh: '大廈管理條例 (Cap. 344) 與公契 (DMC) 違規加建', titleEn: 'Building Management (Cap. 344) & DMC Covenants',
+    summaryZh: '成立業主立案法團 (IO) 需 30% 份數；公契具法定約束力，違規可申禁制令。',
+    summaryEn: 'IO formation requires 30% shares; DMC covenants run with land.',
+    keyStatutes: ['Cap. 344 s.3', 'Cap. 344 s.16'], suggestedDay30: 19,
+    lesson: {
+      overviewZh: 'EAQE 專屬 Level 4 考點！涵蓋大廈公契 (DMC) 約束力與 IO 成立門檻。',
+      overviewEn: 'EAQE-only Level 4 core! Covers DMC covenant enforcement and IO 30% threshold.',
+      verifiedNotesZh: [
+        '✓ 成立業主立案法團 (IO) 需獲得不少於 30% 不可分割份數業主支持。',
+        '✓ 公契 (DMC) 為具法律約束力之契約，效力隨土地轉移 (Runs with the land)。',
+        '✓ 業主違規改建公用部分，管委會可申請法庭禁制令 (Injunction)。'
+      ],
+      verifiedNotesEn: [
+        '✓ Forming Incorporated Owners (IO) requires at least 30% undivided shares.',
+        '✓ DMC covenants run with the land and bind all present/future owners.',
+        '✓ Management Committee can apply for Court Injunction against DMC breaches.'
+      ],
+      memoryHookZh: '【30% 門檻 🏢】成立法團需 30% 份數，公契跟屋不跟人！',
+      memoryHookEn: 'Mnemonic: 30% IO Threshold 🏢. DMC runs with land.',
+      retrievalQuestionsZh: ['1. 成立業主立案法團需要多少比例不可分割份數支持？'],
+      retrievalQuestionsEn: ['1. What undivided share percentage is needed to form an IO?'],
+      doNotConfusePairs: [{
+        topicZh: '法團成立門檻', topicEn: 'IO Formation Threshold',
+        correctZh: '30% 不可分割份數', correctEn: '30% undivided shares',
+        wrongTurnZh: '50% 或 100% 業主人數', wrongTurnEn: '50% or 100% owners headcount'
+      }],
+      examTrapsZh: [' Trap: 宣稱「公契僅對一手買家有效，二手買家不受約束」——錯誤！'],
+      examTrapsEn: [' Trap: "DMC binds first buyer only, not subsequent owners" — FALSE.']
+    }
+  },
+  {
+    id: 'b12', num: 'Block 12', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
     categoryZh: '公司賣方與浮動押記', categoryEn: 'Corporate Vendors',
     titleZh: '公司賣方 (Corporate Vendor) 與浮動押記 (Floating Charge)', titleEn: 'Corporate Vendors & Floating Charges (Cap. 622)',
     summaryZh: '公司處置資產須防範浮動押記及 Negative Pledge；查核 Board Resolution 授權。',
@@ -605,82 +481,10 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Shareholder personal signature validly binds company" — FALSE.']
     }
   },
-
-  // Block 16
-  { 
-    id: 'b16', num: 'Block 16', part: 'II', scope: 'SQE_EAQE', level: 'Level 4 - Understand + Apply',
-    categoryZh: '業主與租客條例', categoryEn: 'Tenancy Ordinance Cap. 7',
-    titleZh: '業主與租客 (綜合) 條例 Cap. 7 與租務管制', titleEn: 'Landlord & Tenant (Consolidation) Ordinance Cap. 7',
-    summaryZh: '15 天欠租沒收權、新租/續租 1 個月內提交 CR109 及 Part IVA 劏房租管。',
-    summaryEn: '15-day forfeiture, CR109 filing within 1 month, and Part IVA sub-divided units.',
-    keyStatutes: ['Cap. 7 Part IV', 'Cap. 7 Part IVA', 'Form CR109'], suggestedDay30: 24,
-    lesson: {
-      overviewZh: '佔 EAQE 卷一高達 22% 題量！熟記 2-2-2 鏡像規則、15 天欠租沒收權及 CR109。',
-      overviewEn: 'Accounts for ~22% of EAQE Part I! Master 2-2-2 Mirror, 15-day forfeiture, CR109.',
-      verifiedNotesZh: [
-        '✓ 沒收租賃權：無明確條款下，租客欠租達 15 天，業主即可行使沒收權。',
-        '✓ CR109 申報表：住宅物業在「新出租」或「續租」時，必須於 1 個月內提交 RVD。',
-        '✓ 業主負責結構與外牆維修；租客負責內部保養。'
-      ],
-      verifiedNotesEn: [
-        '✓ Forfeiture: Absent express clause, landlord may forfeit after 15 DAYS unpaid rent.',
-        '✓ Form CR109: Mandatory filing with RVD within 1 month for NEW RESIDENTIAL lettings/renewals.',
-        '✓ Landlord repairs structure/exterior; Tenant maintains interior.'
-      ],
-      memoryHookZh: '【2-2-2 鏡像 🪞 與 15 天】欠租 15 天可收樓；住宅新租續租交 CR109！',
-      memoryHookEn: 'Mnemonic: 2-2-2 Mirror 🪞 & 15 Days. 15 days unpaid rent forfeits.',
-      retrievalQuestionsZh: ['1. 無沒收條款下，租客欠租多少天業主可沒收租賃權？'],
-      retrievalQuestionsEn: ['1. Absent a forfeiture clause, after how many days unpaid rent can landlord forfeit?'],
-      doNotConfusePairs: [{
-        topicZh: '欠租沒收門檻', topicEn: 'Unpaid Rent Forfeiture',
-        correctZh: '欠租達 15 天 (15 Days)', correctEn: '15 Days unpaid rent',
-        wrongTurnZh: '14 天為干擾選項', wrongTurnEn: '14 days is FALSE'
-      }],
-      examTrapsZh: [' Trap: 宣稱「住宅租客欠租 14 天業主即可沒收租賃權」——錯誤！法定為 15 天。'],
-      examTrapsEn: [' Trap: "Landlord can forfeit for unpaid rent after 14 days" — FALSE. Threshold is 15 Days.']
-    }
-  },
-
-  // Block 17
   {
-    id: 'b17', num: 'Block 17', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
-    categoryZh: '印花稅與印花稅條例', categoryEn: 'Stamp Duty Ordinance',
-    titleZh: '印花稅條例 (Cap. 117) 逾期罰款與從價印花稅 (AVD)', titleEn: 'Stamp Duty (Cap. 117) Late Stamping Penalties & AVD',
-    summaryZh: '逾期超過 2 個月未繳印花稅最高可被處以 10 倍罰款；臨約/正式合約印花稅安排。',
-    summaryEn: 'Overdue >2 months subject to max 10x penalty; AVD stamping rules.',
-    keyStatutes: ['Cap. 117 s.9', 'Cap. 117 s.15'], suggestedDay30: 26,
-    lesson: {
-      overviewZh: '解析香港印花稅 Cap. 117 繳付時限與逾期 10 倍罰款機制。',
-      overviewEn: 'Analyzes Cap. 117 stamp duty execution deadlines and 10x penalty mechanism.',
-      verifiedNotesZh: [
-        '✓ 住宅買賣合約須於簽署後 30 天內加蓋印花 (Stamp Duty)。',
-        '✓ 逾期超過 2 個月未繳付印花稅，最高可被處以應繳稅款 10 倍之罰款。',
-        '✓ 未加蓋印花之合約，依法不可於土地註冊處註冊，亦不可作為法庭呈堂證供。'
-      ],
-      verifiedNotesEn: [
-        '✓ Residential agreements must be stamped within 30 days of execution.',
-        '✓ Stamping overdue for >2 months attracts a maximum penalty of 10 times the duty.',
-        '✓ Unstamped agreements are inadmissible in court and unregisterable at Land Registry.'
-      ],
-      memoryHookZh: '【30 天加蓋、逾期 10 倍 💸】30 天內交稅，逾 2 個月罰 10 倍！',
-      memoryHookEn: 'Mnemonic: 30-Day Stamping, 10x Penalty 💸.',
-      retrievalQuestionsZh: ['1. 印花稅逾期超過 2 個月，最高罰款為多少倍？'],
-      retrievalQuestionsEn: ['1. What is the max penalty if stamp duty is overdue for >2 months?'],
-      doNotConfusePairs: [{
-        topicZh: '印花稅逾期最高罰款', topicEn: 'Max Late Stamping Penalty',
-        correctZh: '10 倍應繳稅款 (10 Times)', correctEn: '10 Times duty',
-        wrongTurnZh: '2 倍或 4 倍', wrongTurnEn: '2 Times or 4 Times'
-      }],
-      examTrapsZh: [' Trap: 宣稱「未蓋印花之合約仍可直接於土地註冊處註冊」——錯誤！'],
-      examTrapsEn: [' Trap: "Unstamped agreements can be registered directly at Land Registry" — FALSE.']
-    }
-  },
-
-  // Block 18
-  {
-    id: 'b18', num: 'Block 18', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
+    id: 'b13', num: 'Block 13', part: 'I', scope: 'EAQE_ONLY', level: 'Level 4 - Understand + Apply',
     categoryZh: '城市規劃與建築物條例', categoryEn: 'Town Planning & BO',
-    titleZh: '城市規劃條例 (Cap. 131) 違例發展與建築物條例 s.24 清拆令', titleEn: 'Town Planning (Cap. 131) & Buildings Ordinance s.24 Orders',
+    titleZh: '城市規劃條例 (Cap. 131) 違例發展與 s.24 清拆令', titleEn: 'Town Planning (Cap. 131) & BO s.24 Orders',
     summaryZh: '城規會 Enforcement Notice 執行通知書；屋宇署 s.24 清拆令與 UBW 潛在業權瑕疵。',
     summaryEn: 'Town Planning Enforcement Notices; BO s.24 Removal Orders & UBW defects.',
     keyStatutes: ['Cap. 131 s.23', 'Cap. 123 s.24'], suggestedDay30: 27,
@@ -710,8 +514,175 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "As Is clause exculpates vendor from concealing title defects" — FALSE.']
     }
   },
-
-  // Block 19
+  {
+    id: 'b14', num: 'Block 14', part: 'I', scope: 'EAQE_ONLY', level: 'Level 3 - Basic + Apply',
+    categoryZh: '非住宅物業法規', categoryEn: 'Non-residential Covenants',
+    titleZh: '工商舖物業代理實務與政府地契用途限制', titleEn: 'Commercial/Industrial Practice & Government Lease Covenants',
+    summaryZh: '非住宅物業買賣與租賃、政府地契用途限制 (User Restrictions) 及工廈活化。',
+    summaryEn: 'Non-residential agency, government lease user covenants, and industrial revitalization.',
+    keyStatutes: ['Land Grant Covenants'], suggestedDay30: 28,
+    lesson: {
+      overviewZh: 'EAQE 專屬 Level 3 考點！政府地契用途限制 (User Clause) 與工廈違契風險。',
+      overviewEn: 'EAQE-only Level 3 core! Government lease user clauses and industrial breach risks.',
+      verifiedNotesZh: [
+        '✓ 工廈地契通常限制用途為「工業及/或貨倉」，未取得豁免前禁止作零售、教學或一般辦公用途。',
+        '✓ 違反地契用途條款，地政總署有權釘契，甚至收回土地 (Re-entry)。',
+        '✓ 代理推介工廈單位作非工業用途前，必須核實物業是否已取得短期豁免書 (Waiver)。'
+      ],
+      verifiedNotesEn: [
+        '✓ Industrial leases restrict use to "industrial and/or godown"; retail/office uses require a waiver.',
+        '✓ Breaching user covenants allows Lands Department to register a warning letter or re-enter the land.',
+        '✓ Agents must verify if a valid waiver exists before marketing industrial units for non-industrial use.'
+      ],
+      memoryHookZh: '【用途限制要查契 🏭】工廈不可隨便做寫字樓，除非有 Waiver！',
+      memoryHookEn: 'Mnemonic: Check the User Clause 🏭. No offices in industrial without a Waiver.',
+      retrievalQuestionsZh: ['1. 若工廈單位未經批准改作零售用途，地政總署最嚴厲的處分是什麼？'],
+      retrievalQuestionsEn: ['1. What is the most severe penalty by Lands Dept for unauthorized retail use in industrial buildings?'],
+      doNotConfusePairs: [{
+        topicZh: '地契用途限制執行機關', topicEn: 'Lease Covenant Enforcement Authority',
+        correctZh: '地政總署 (Lands Department)', correctEn: 'Lands Department',
+        wrongTurnZh: '屋宇署 (Buildings Department)', wrongTurnEn: 'Buildings Department'
+      }],
+      examTrapsZh: [' Trap: 宣稱「只要取得消防處許可，工廈即可隨意開設補習社」——錯誤！必須符合地契用途或取得豁免。'],
+      examTrapsEn: [' Trap: "Fire Services approval alone allows tutoring centers in industrial buildings" — FALSE. Must comply with lease.']
+    }
+  },
+  {
+    id: 'b15', num: 'Block 15', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
+    categoryZh: '打擊洗錢與反恐', categoryEn: 'AML & CTF',
+    titleZh: '打擊洗錢 (Cap. 615) 客戶審查與大額現金交易', titleEn: 'AML (Cap. 615) Customer Due Diligence & Cash Transactions',
+    summaryZh: '處理達 HK$120,000 現金交易須作客戶盡職審查 (CDD)；舉報可疑交易 (STR)。',
+    summaryEn: 'CDD required for cash transactions ≥ HK$120,000; Suspicious Transaction Reporting (STR).',
+    keyStatutes: ['Cap. 615'], suggestedDay30: 29,
+    lesson: {
+      overviewZh: '防洗黑錢法規重點，涵蓋大額現金審查門檻與通風報信罪。',
+      overviewEn: 'AML regulations covering large cash transaction thresholds and tipping-off offences.',
+      verifiedNotesZh: [
+        '✓ 當單一或關聯交易涉及現金達 HK$120,000 或以上，代理必須進行客戶盡職審查 (CDD)。',
+        '✓ 代理如懷疑任何交易涉及犯罪得益，必須盡快向聯合財富情報組 (JFIU) 提交可疑交易報告 (STR)。',
+        '✓ 向受疑人透露已作出舉報，即觸犯「通風報信罪」(Tipping-off)。',
+        '✓ 客戶審查紀錄及交易文件必須於交易完成後保存最少 5 年。'
+      ],
+      verifiedNotesEn: [
+        '✓ Agents must perform Customer Due Diligence (CDD) for cash transactions of HK$120,000 or more.',
+        '✓ Suspicious transactions must be reported to the Joint Financial Intelligence Unit (JFIU) via STR.',
+        '✓ Revealing to a suspect that a report was made constitutes the offence of "Tipping-off".',
+        '✓ CDD and transaction records must be kept for at least 5 years after transaction completion.'
+      ],
+      memoryHookZh: '【12 萬現金查底細 💰】見疑即報 JFIU，切勿通風報信！',
+      memoryHookEn: 'Mnemonic: 120k Cash Check 💰. Report to JFIU, No Tipping-off!',
+      retrievalQuestionsZh: ['1. 進行大額現金盡職審查的法定門檻金額為多少？', '2. 向客戶透露已舉報其可疑交易會觸犯什麼罪行？'],
+      retrievalQuestionsEn: ['1. What is the statutory cash threshold amount requiring CDD?', '2. Revealing a suspicious transaction report to the client constitutes what offence?'],
+      doNotConfusePairs: [{
+        topicZh: '大額現金門檻', topicEn: 'Large Cash Threshold',
+        correctZh: 'HK$120,000 或以上', correctEn: 'HK$120,000 or more',
+        wrongTurnZh: 'HK$100,000 或 HK$50,000', wrongTurnEn: 'HK$100,000 or HK$50,000'
+      }],
+      examTrapsZh: [' Trap: 宣稱「提交 STR 後應提醒客戶暫緩交易以免被捕」——嚴重違法！構成通風報信罪。'],
+      examTrapsEn: [' Trap: "Agent should warn client to delay transaction after filing STR" — ILLEGAL! Constitutes Tipping-off.']
+    }
+  },
+  {
+    id: 'b16', num: 'Block 16', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
+    categoryZh: '個人資料私隱', categoryEn: 'Data Privacy',
+    titleZh: '個人資料 (私隱) 條例 (Cap. 486) 與直接促銷', titleEn: 'Personal Data (Privacy) Ordinance (Cap. 486) & Direct Marketing',
+    summaryZh: '收集身分證副本限制、保障資料六大原則 (DPPs) 及直接促銷 (Direct Marketing) 必須取得同意 (Opt-in)。',
+    summaryEn: 'HKID collection limits, 6 DPPs, and mandatory Opt-in for direct marketing.',
+    keyStatutes: ['Cap. 486 Part VIA'], suggestedDay30: 30,
+    lesson: {
+      overviewZh: '掌握六項保障資料原則 (DPPs) 及直接促銷的法定同意程序。',
+      overviewEn: 'Master the 6 Data Protection Principles and statutory consent for direct marketing.',
+      verifiedNotesZh: [
+        '✓ 代理不應在純粹安排睇樓時收集客戶香港身份證副本，除非為了準備具約束力的合約。',
+        '✓ 進行直接促銷 (如電話推銷新盤) 前，必須明確告知客戶並取得其明確同意 (Opt-in)。',
+        '✓ 客戶有權隨時要求停止接收直接促銷訊息 (Opt-out)，代理必須免費及無條件遵從。',
+        '✓ 未經同意將客戶資料交予第三方 (如按揭轉介公司) 屬違法行為。'
+      ],
+      verifiedNotesEn: [
+        '✓ Agents should not collect HKID copies just for viewing arrangements, unless preparing a binding contract.',
+        '✓ Must obtain explicit consent (Opt-in) before using personal data for direct marketing (e.g., cold calling).',
+        '✓ Clients can request to cease direct marketing (Opt-out) anytime; agents must comply free of charge.',
+        '✓ Transferring client data to third parties (e.g., mortgage brokers) without consent is illegal.'
+      ],
+      memoryHookZh: '【先同意，後推銷 📞】睇樓抄名即可，簽約才收證件副本！',
+      memoryHookEn: 'Mnemonic: Opt-in before Call 📞. Only collect ID copy when signing contract.',
+      retrievalQuestionsZh: ['1. 代理在哪個階段才可以合法收集客戶的香港身份證副本？', '2. 將客戶資料用於直接促銷前必須獲得什麼？'],
+      retrievalQuestionsEn: ['1. At what stage can an agent legally collect a copy of a client\'s HKID?', '2. What must be obtained before using client data for direct marketing?'],
+      doNotConfusePairs: [{
+        topicZh: '直接促銷同意機制', topicEn: 'Direct Marketing Consent',
+        correctZh: '必須取得明確同意 (Opt-in)', correctEn: 'Explicit consent required (Opt-in)',
+        wrongTurnZh: '只要客戶無反對即可 (Opt-out default)', wrongTurnEn: 'Assuming consent if no objection (Opt-out default)'
+      }],
+      examTrapsZh: [' Trap: 宣稱「客戶簽妥睇樓紙後，代理即可自動將其資料加入公司營銷名單」——違法！必須另行獲取直接促銷同意。'],
+      examTrapsEn: [' Trap: "Signing a viewing form automatically allows adding client to marketing list" — ILLEGAL! Requires separate direct marketing consent.']
+    }
+  },
+  {
+    id: 'b17', num: 'Block 17', part: 'I', scope: 'SQE_EAQE', level: 'Level 2 - Basic Knowledge',
+    categoryZh: '一手樓銷售條例', categoryEn: 'First-hand Sales',
+    titleZh: '一手住宅物業銷售條例 (Cap. 621) 售樓書與價單', titleEn: 'First-hand Sales Brochure & Price List (Cap. 621)',
+    summaryZh: '售樓書開售前 7 天、價單開售前 3 天公佈，實用面積為唯一計價標準。',
+    summaryEn: 'Brochure 7 days and price list 3 days prior to sale; saleable area sole pricing unit.',
+    keyStatutes: ['Cap. 621 s.25', 'Cap. 621 s.32'], suggestedDay30: 10,
+    lesson: {
+      overviewZh: '掌握 Cap. 621 一手新盤合規宣傳與「書 7 價 3」時間表。',
+      overviewEn: 'Master Cap. 621 first-hand property rules and the "7-day brochure, 3-day price list" rule.',
+      verifiedNotesZh: [
+        '✓ 售樓說明書 (Sales Brochure) 必須於開售前至少 7 天公佈。',
+        '✓ 價單 (Price List) 必須於開售前至少 3 天公佈。',
+        '✓ 實用面積 (Saleable Area) 為一手新盤唯一合法之計價面積。'
+      ],
+      verifiedNotesEn: [
+        '✓ Sales Brochure must be public at least 7 days before sales begin.',
+        '✓ Price List must be public at least 3 days before sales begin.',
+        '✓ Saleable Area is the sole legal area representation for first-hand pricing.'
+      ],
+      memoryHookZh: '【書 7 價 3 📖】口訣：售樓書提前 7 天，價單提前 3 天！',
+      memoryHookEn: 'Mnemonic: Brochure 7, Price 3 📖.',
+      retrievalQuestionsZh: ['1. 一手樓開售前，售樓書及價單分別須提前幾天公佈？'],
+      retrievalQuestionsEn: ['1. How many days in advance must brochures and price lists be made available?'],
+      doNotConfusePairs: [{
+        topicZh: '一手樓面積標準', topicEn: 'First-hand Area Standard',
+        correctZh: '實用面積 (Saleable Area)', correctEn: 'Saleable Area only',
+        wrongTurnZh: '建築面積 (Gross Floor Area)', wrongTurnEn: 'Gross Floor Area'
+      }],
+      examTrapsZh: [' Trap: 宣稱「一手新盤廣告可用建築面積呎價宣傳」——違規！'],
+      examTrapsEn: [' Trap: "First-hand ads can use gross floor area price" — ILLEGAL.']
+    }
+  },
+  {
+    id: 'b18', num: 'Block 18', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
+    categoryZh: '一手樓冷靜期', categoryEn: 'Cooling-off Period',
+    titleZh: '一手樓臨時合約 (PASP) 5 天冷靜期與訂金沒收', titleEn: 'First-hand PASP 5-Day Cooling-off & Deposit Forfeiture',
+    summaryZh: '簽 PASP 後 5 個工作天內撤回交易，賣方沒收 5% 臨時訂金，不得追討殘餘損失。',
+    summaryEn: '5-working-day cooling-off; vendor forfeits 5% deposit with no further claims.',
+    keyStatutes: ['Cap. 621 s.52', 'Cap. 621 s.53'], suggestedDay30: 11,
+    lesson: {
+      overviewZh: '解析一手住宅 PASP 簽署、冷靜期退訂與 5% 沒收條款。',
+      overviewEn: 'Analyzes first-hand PASP execution, cooling-off withdrawal, and 5% forfeiture limit.',
+      verifiedNotesZh: [
+        '✓ 買家簽署 PASP 後享有 5 個工作天冷靜期。',
+        '✓ 若買家於 5 工作天內放棄交易，賣方沒收樓價 5% 之臨時訂金。',
+        '✓ 賣方沒收 5% 訂金後，無權向買家追討任何額外損失。'
+      ],
+      verifiedNotesEn: [
+        '✓ Buyer enjoys a 5-working-day cooling-off period after signing PASP.',
+        '✓ Withdrawal within 5 days results in forfeiture of the 5% preliminary deposit.',
+        '✓ Vendor has no right to claim further damages beyond the forfeited 5% deposit.'
+      ],
+      memoryHookZh: '【沒收 5% 鎖定 🔒】冷靜期撤回，只賠 5% 臨訂，追討無門！',
+      memoryHookEn: 'Mnemonic: Locked at 5% 🔒. Deposit forfeit capped at 5%.',
+      retrievalQuestionsZh: ['1. 簽署一手 PASP 後撤回，賣方最多可追討多少賠償？'],
+      retrievalQuestionsEn: ['1. Upon PASP withdrawal, what is vendor max recovery?'],
+      doNotConfusePairs: [{
+        topicZh: '冷靜期長度', topicEn: 'Cooling-off Length',
+        correctZh: '5 個工作天 (5 Working Days)', correctEn: '5 Working Days',
+        wrongTurnZh: '5 個日曆天 (5 Calendar Days)', wrongTurnEn: '5 Calendar Days'
+      }],
+      examTrapsZh: [' Trap: 宣稱「賣方沒收 5% 訂金後可追討樓價下跌差額」——錯誤！'],
+      examTrapsEn: [' Trap: "Vendor can claim further market drop loss after 5% forfeit" — FALSE.']
+    }
+  },
   {
     id: 'b19', num: 'Block 19', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
     categoryZh: '授權書與遺囑認證', categoryEn: 'Power of Attorney & Probate',
@@ -745,8 +716,6 @@ const TOPIC_BLOCKS: TopicBlock[] = [
       examTrapsEn: [' Trap: "Beneficiary with death certificate alone can sign to sell estate property" — FALSE.']
     }
   },
-
-  // Block 20
   {
     id: 'b20', num: 'Block 20', part: 'I', scope: 'SQE_EAQE', level: 'Level 3 - Basic + Apply',
     categoryZh: '競爭條例與普通法侵權', categoryEn: 'Competition & Tort',
@@ -791,6 +760,8 @@ export default function CoursePage() {
 
   const [selectedTrack, setSelectedTrack] = useState<'sqe' | 'eaqe'>('sqe');
   const [examDate, setExamDate] = useState<string>('2026-11-18');
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const [activeLessonBlock, setActiveLessonBlock] = useState<TopicBlock | null>(null);
   const [modalTab, setModalTab] = useState<'notes' | 'mnemonic' | 'confuse' | 'traps'>('notes');
 
@@ -820,10 +791,27 @@ export default function CoursePage() {
     }
   };
 
-  const activeBlocks = TOPIC_BLOCKS.filter((b) => {
-    if (selectedTrack === 'sqe') return b.scope === 'SQE_EAQE';
-    return true;
-  });
+  const filteredBlocks = useMemo(() => {
+    return TOPIC_BLOCKS.filter((block) => {
+      // 1. Track filter
+      if (selectedTrack === 'sqe' && block.scope !== 'SQE_EAQE') {
+        return false;
+      }
+      
+      // 2. Search filter
+      if (searchQuery.trim().length > 0) {
+        const q = searchQuery.toLowerCase().trim();
+        const matchTitle = block.titleZh.toLowerCase().includes(q) || block.titleEn.toLowerCase().includes(q);
+        const matchCap = block.keyStatutes.some(st => st.toLowerCase().includes(q));
+        const matchSummary = block.summaryZh.toLowerCase().includes(q);
+        
+        if (!matchTitle && !matchCap && !matchSummary) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [selectedTrack, searchQuery]);
 
   return (
     <div className="min-h-screen py-8 sm:py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
@@ -849,7 +837,7 @@ export default function CoursePage() {
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
-              {isZh ? '20 大主題單元與精讀課程' : '20 Topic Block Lessons'}
+              {isZh ? '20 大主題單元與精讀課程' : '20 Statutory Topic Blocks'}
             </h1>
             <p className="text-xs sm:text-sm text-slate-600 max-w-2xl leading-relaxed">
               {isZh 
@@ -869,19 +857,11 @@ export default function CoursePage() {
             </Link>
 
             <Link
-              href="/case-study"
-              className="px-4 py-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-xs text-slate-700 transition flex items-center gap-2"
-            >
-              <FileText className="h-4 w-4 text-blue-600" />
-              <span>{isZh ? 'Part II 個案實務' : 'Part II Case Study'}</span>
-            </Link>
-
-            <Link
-              href="/quiz"
+              href="/mock-exam"
               className="px-4 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center gap-2"
             >
               <CheckCircle2 className="h-4 w-4 !text-white" />
-              <span>{isZh ? '全真試題庫' : 'Quiz Bank'}</span>
+              <span>{isZh ? '全真試題庫' : 'Mock Exam'}</span>
             </Link>
           </div>
         </div>
@@ -899,65 +879,63 @@ export default function CoursePage() {
           trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
         />
 
-        {/* Track Switcher & Pace Card */}
+        {/* Track Switcher & Search Controller */}
         <div className="p-6 sm:p-8 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 rounded-xl bg-blue-50 text-blue-700">
-                <Filter className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900">
-                  {isZh ? '選擇您的專屬備考軌道 (Dedicated Study Track)' : 'Select Dedicated Study Track'}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {isZh ? '自動隱除不合考科之單元，提升 30% 溫習效率' : 'Streamline your syllabus with 100% exam-relevant content'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+            
+            <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={() => handleTrackSwitch('sqe')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                   selectedTrack === 'sqe'
                     ? 'bg-blue-600 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Award className="h-3.5 w-3.5" />
-                <span>{isZh ? 'SQE 營業員軌道 (16 Blocks)' : 'SQE Salesperson (16 Blocks)'}</span>
+                <span>{isZh ? 'SQE 營業員軌道 (16 Blocks)' : 'SQE Salesperson'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleTrackSwitch('eaqe')}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 ${
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center justify-center gap-2 ${
                   selectedTrack === 'eaqe'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Sparkles className="h-3.5 w-3.5 text-amber-300" />
-                <span>{isZh ? 'EAQE 地產代理軌道 (20 Blocks)' : 'EAQE Master Pass (20 Blocks)'}</span>
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>{isZh ? 'EAQE 大牌軌道 (20 Blocks)' : 'EAQE Master Pass'}</span>
               </button>
             </div>
+
+            {/* Search Input */}
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isZh ? '搜尋條例或關鍵字...' : 'Search by Cap. or keyword...'}
+                className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50"
+              />
+            </div>
+
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center text-xs">
             <div>
               <label className="block text-xs font-bold uppercase mb-1 text-slate-500">
-                {isZh ? '選擇目標考試日期' : 'Target Exam Date'}
+                {isZh ? '目標考試日期 (自動推算進度)' : 'Target Exam Date'}
               </label>
               <input
                 type="date"
                 value={examDate}
                 onChange={(e) => {
                   setExamDate(e.target.value);
-                  if (typeof window !== 'undefined') {
-                    localStorage.setItem('agentpass_exam_date', e.target.value);
-                  }
+                  if (typeof window !== 'undefined') localStorage.setItem('agentpass_exam_date', e.target.value);
                 }}
                 className="w-full px-4 py-2.5 rounded-2xl border border-slate-200 bg-white text-slate-900 font-bold focus:outline-none focus:border-blue-500 transition"
               />
@@ -977,21 +955,37 @@ export default function CoursePage() {
                 {isZh ? '目前軌道涵蓋單元' : 'Active Track Coverage'}
               </span>
               <span className="text-lg font-black text-emerald-900">
-                {activeBlocks.length} / 20 Topic Blocks
+                {filteredBlocks.length} / 20 Topic Blocks
               </span>
             </div>
           </div>
         </div>
 
+        {/* Empty Search State */}
+        {filteredBlocks.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 space-y-3 shadow-sm">
+            <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
+            <h3 className="text-base font-bold text-slate-900">
+              {isZh ? '沒有找到相符的條例模組' : 'No matching study blocks found'}
+            </h3>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs mt-2"
+            >
+              {isZh ? '清除搜尋' : 'Clear Search'}
+            </button>
+          </div>
+        )}
+
         {/* Topic Block Lesson Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {activeBlocks.map((block, idx) => {
+          {filteredBlocks.map((block, idx) => {
             const isFreeBlock = idx < 3;
             const isBlockLocked = !isPaidUser && !isFreeBlock;
 
             return (
               <div
-                key={block.num}
+                key={block.id}
                 className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-4 flex flex-col justify-between hover:border-blue-300 hover:shadow-md transition group relative"
               >
                 <div className="space-y-3">
@@ -1004,10 +998,10 @@ export default function CoursePage() {
                       {isBlockLocked && (
                         <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-900 flex items-center gap-1">
                           <Lock className="h-3 w-3" />
-                          <span>PRO LESSON</span>
+                          <span>PRO</span>
                         </span>
                       )}
-                      <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md border border-amber-200 bg-amber-50 text-amber-800">
+                      <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-md border border-slate-200 bg-slate-100 text-slate-700">
                         {block.level}
                       </span>
                     </div>
@@ -1015,14 +1009,16 @@ export default function CoursePage() {
 
                   <div 
                     onClick={() => {
-                      setActiveLessonBlock(block);
-                      setModalTab('notes');
+                      if (!isBlockLocked) {
+                        setActiveLessonBlock(block);
+                        setModalTab('notes');
+                      }
                     }}
-                    className="cursor-pointer space-y-2 group-hover:text-blue-600 transition"
+                    className={`space-y-2 transition ${isBlockLocked ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer group-hover:text-blue-600'}`}
                   >
                     <h3 className="text-lg font-bold flex items-center justify-between text-slate-900">
                       <span>{isZh ? block.titleZh : block.titleEn}</span>
-                      <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition" />
+                      {!isBlockLocked && <ChevronRight className="h-5 w-5 text-slate-400 group-hover:text-blue-600 transition" />}
                     </h3>
                     <p className="text-xs text-slate-600 leading-relaxed">
                       {isZh ? block.summaryZh : block.summaryEn}
@@ -1042,46 +1038,43 @@ export default function CoursePage() {
 
                     <button
                       type="button"
+                      disabled={isBlockLocked}
                       onClick={() => {
                         setActiveLessonBlock(block);
                         setModalTab('notes');
                       }}
-                      className="text-xs font-bold text-amber-600 hover:text-amber-700 transition flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-bold text-amber-600 hover:text-amber-700 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
                     >
                       <BookOpen className="h-3.5 w-3.5" />
-                      <span>{isZh ? '精讀課文' : 'Lesson'}</span>
+                      <span>{isBlockLocked ? (isZh ? '解鎖查閱' : 'Unlock') : (isZh ? '精讀課文' : 'Lesson')}</span>
                     </button>
                   </div>
 
-                  {/* Dual Practice Action Bar */}
+                  {/* Practice Action Bar */}
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
-                    {block.id === 'b14' ? (
-                      <Link
-                        href="/case-study"
-                        className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition col-span-2 shadow-sm"
-                      >
-                        <FileText className="h-3.5 w-3.5 text-slate-950" />
-                        <span>{isZh ? '個案實務 & POIM 查冊' : 'Case Study & POIM Viewer'}</span>
-                      </Link>
-                    ) : (
-                      <>
-                        <Link
-                          href={`/quiz?block=${block.id}`}
-                          className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
-                        >
-                          <Target className="h-3.5 w-3.5 !text-white" />
-                          <span>{isZh ? '專屬刷題' : 'Quiz'}</span>
-                        </Link>
+                    <Link
+                      href={isBlockLocked ? '/pricing' : `/course/${block.id}`}
+                      className={`px-3 py-2 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition ${
+                        isBlockLocked 
+                          ? 'bg-slate-200 text-slate-500' 
+                          : 'bg-blue-600 hover:bg-blue-700 !text-white'
+                      }`}
+                    >
+                      <Target className={`h-3.5 w-3.5 ${!isBlockLocked && '!text-white'}`} />
+                      <span>{isZh ? '單元測驗' : 'Quiz'}</span>
+                    </Link>
 
-                        <Link
-                          href={`/flashcards?block=${block.id}`}
-                          className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition"
-                        >
-                          <Zap className="h-3.5 w-3.5 !text-white" />
-                          <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
-                        </Link>
-                      </>
-                    )}
+                    <Link
+                      href={isBlockLocked ? '/pricing' : `/flashcards?block=${block.id}`}
+                      className={`px-3 py-2 rounded-xl font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-sm transition ${
+                        isBlockLocked 
+                          ? 'bg-slate-200 text-slate-500' 
+                          : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+                      }`}
+                    >
+                      <Zap className="h-3.5 w-3.5" />
+                      <span>{isZh ? '速記閃卡' : 'Flashcards'}</span>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -1146,7 +1139,7 @@ export default function CoursePage() {
                 }`}
               >
                 <Lightbulb className="h-3.5 w-3.5" />
-                <span>{isZh ? '🧠 記憶圖像 (Mnemonic & Loci)' : '🧠 Mnemonic & Loci'}</span>
+                <span>{isZh ? '🧠 記憶圖像 (Mnemonic)' : '🧠 Mnemonic & Loci'}</span>
               </button>
 
               <button
@@ -1309,19 +1302,11 @@ export default function CoursePage() {
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
                 <Link
-                  href={`/flashcards?block=${activeLessonBlock.id}`}
-                  className="flex-1 sm:flex-initial px-5 py-3 rounded-2xl border border-blue-200 bg-blue-50 text-blue-800 font-bold text-xs hover:bg-blue-100 transition flex items-center justify-center gap-2"
-                >
-                  <Zap className="h-4 w-4 text-blue-600" />
-                  <span>{isZh ? '翻閱專屬閃卡' : 'Flip Flashcards'}</span>
-                </Link>
-
-                <Link
-                  href={`/quiz?block=${activeLessonBlock.id}`}
+                  href={`/course/${activeLessonBlock.id}`}
                   className="flex-1 sm:flex-initial px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 !text-white font-extrabold text-xs shadow-md transition flex items-center justify-center gap-2"
                 >
                   <Target className="h-4 w-4 !text-white" />
-                  <span>{isZh ? '進入專屬題庫' : 'Practice Quiz'}</span>
+                  <span>{isZh ? '進入專屬單元測驗' : 'Practice Lesson Quiz'}</span>
                 </Link>
               </div>
             </div>
