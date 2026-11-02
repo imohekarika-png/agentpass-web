@@ -3,6 +3,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAuth } from '@/app/context/AuthContext';
 import {
@@ -14,17 +15,21 @@ import {
   Calendar,
   Zap,
   HelpCircle,
+  LogIn,
 } from 'lucide-react';
 
 type BillingInterval = 'monthly' | '3_monthly' | 'one_time';
 type PaidTier = 'SQE_PRO' | 'EAQE_PRO' | 'ALL_ACCESS_PRO';
 
 export default function PricingPage() {
+  const router = useRouter();
   const { language, locale } = useLanguage();
-  const { userEmail, userTier } = useAuth();
+  const { userEmail, userTier } = useAuth() as any;
 
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
+
+  const isLoggedIn = Boolean(userEmail && userEmail !== 'guest@agentpass.hk');
 
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('3_monthly');
   const [loadingTier, setLoadingTier] = useState<PaidTier | null>(null);
@@ -116,6 +121,12 @@ export default function PricingPage() {
   ];
 
   const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
+    // 1. Client-Side Gate: Require authentication prior to checkout
+    if (!isLoggedIn) {
+      router.push(`/login?redirect=${encodeURIComponent(`/pricing?tier=${tier}`)}`);
+      return;
+    }
+
     setLoadingTier(tier);
     try {
       const selectedTier = TIERS.find((t) => t.id === tier);
@@ -129,7 +140,7 @@ export default function PricingPage() {
         body: JSON.stringify({
           tier,
           billingInterval,
-          email: userEmail && userEmail !== 'guest@agentpass.hk' ? userEmail : undefined,
+          email: userEmail,
           track,
           amount: currentPrice,
         }),
@@ -169,8 +180,26 @@ export default function PricingPage() {
               : 'Statutory-grounded exam prep platform designed for Hong Kong EAQE & SQE licensing candidates.'}
           </p>
 
+          {/* User Auth Status Notification */}
+          <div className="pt-2 flex justify-center">
+            {isLoggedIn ? (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span>{isZh ? `已登入帳號：${userEmail}` : `Logged in as: ${userEmail}`}</span>
+              </span>
+            ) : (
+              <Link
+                href="/login?redirect=/pricing"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-50 border border-blue-200 text-xs font-bold text-blue-700 hover:bg-blue-100 transition shadow-xs"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>{isZh ? '提示：請先登入帳號以綁定升級方案 (點此登入)' : 'Notice: Please log in first to bind your upgrade'}</span>
+              </Link>
+            )}
+          </div>
+
           {/* 3-Option Segmented Control */}
-          <div className="pt-4 flex items-center justify-center">
+          <div className="pt-2 flex items-center justify-center">
             <div className="p-1.5 rounded-2xl bg-slate-200/90 border border-slate-300 grid grid-cols-3 gap-1 shadow-inner max-w-xl w-full">
               
               <button
@@ -306,6 +335,11 @@ export default function PricingPage() {
                       <span>{isZh ? '連線 Stripe 中...' : 'Connecting...'}</span>
                     ) : isCurrent ? (
                       <span>{isZh ? '目前使用中計劃' : 'Current Active Plan'}</span>
+                    ) : !isLoggedIn ? (
+                      <>
+                        <LogIn className="h-4 w-4" />
+                        <span>{isZh ? '登入後開通 PRO' : 'Log in to Upgrade'}</span>
+                      </>
                     ) : (
                       <>
                         <span>{isZh ? '立即開通' : 'Get Started'}</span>

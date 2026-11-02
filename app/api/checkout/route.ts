@@ -8,14 +8,14 @@ export const dynamic = 'force-dynamic';
 export type BillingInterval = 'monthly' | '3_monthly' | 'one_time';
 export type TargetTier = 'SQE_PRO' | 'EAQE_PRO' | 'ALL_ACCESS_PRO';
 
-// Verified Stripe Product IDs (Optional fallback)
+// Verified Stripe Product IDs
 const PRODUCT_MAP: Record<TargetTier, string> = {
   SQE_PRO: process.env.STRIPE_PRODUCT_SQE_PRO || 'prod_VVNsgSLRPamlFO',
   EAQE_PRO: process.env.STRIPE_PRODUCT_EAQE_PRO || 'prod_VVOo8UIEHHd9tD',
   ALL_ACCESS_PRO: process.env.STRIPE_PRODUCT_ALL_ACCESS_PRO || 'prod_VVP0KSnzem9XSx',
 };
 
-// Static Price ID Map (From Environment Variables)
+// Static Price ID Map
 const PRICE_MAP: Record<BillingInterval, Record<TargetTier, string | undefined>> = {
   monthly: {
     SQE_PRO: process.env.STRIPE_PRICE_SQE_PRO_MONTHLY,
@@ -98,7 +98,6 @@ async function resolvePriceId(tier: TargetTier, interval: BillingInterval): Prom
 
     return prices.data[0]?.id || null;
   } catch (err) {
-    // If product ID belongs to a different Stripe environment (Test vs Live), fallback gracefully
     console.warn(`[resolvePriceId] Could not query prices for product ${productId}:`, err);
     return null;
   }
@@ -138,12 +137,25 @@ export async function POST(req: NextRequest) {
 
     const { email, track } = body as { email?: string; track?: 'EAQE' | 'SQE' };
 
-    // 2. Determine price and subscription mode
+    // 2. Strict Authentication Guard (Rejects unauthenticated or guest checkouts)
+    const effectiveEmail =
+      email && email.includes('@') && email !== 'guest@agentpass.hk'
+        ? email.trim().toLowerCase()
+        : null;
+
+    if (!effectiveEmail) {
+      return NextResponse.json(
+        { error: '請先登入帳號以綁定升級方案 (Please log in to upgrade your account).' },
+        { status: 401 }
+      );
+    }
+
+    // 3. Determine price and subscription mode
     const isSubscription = billingInterval !== 'one_time';
     const catalogAmount = body.amount || TIER_PRICING_CATALOG[tier][billingInterval];
     const amountInCents = Math.round(catalogAmount * 100);
 
-    // 3. Resolve existing Price ID or construct dynamic price_data
+    // 4. Resolve existing Price ID or construct dynamic price_data
     const existingPriceId = await resolvePriceId(tier, billingInterval);
 
     let lineItems: Stripe.Checkout.SessionCreateParams.LineItem[];
@@ -156,7 +168,6 @@ export async function POST(req: NextRequest) {
         },
       ];
     } else {
-      // Dynamic fallback ensures checkout never fails even without pre-made Price IDs
       lineItems = [
         {
           price_data: {
@@ -180,29 +191,31 @@ export async function POST(req: NextRequest) {
       ];
     }
 
-    // 4. Origin & Customer details
+    // 5. Origin & Customer details
     const origin = req.headers.get('origin') || process.env.NEXT_PUBLIC_APP_URL || 'https://www.agentpass.hk';
-    const effectiveEmail =
-      email && email.includes('@') && email !== 'guest@agentpass.hk'
-        ? email.trim().toLowerCase()
-        : undefined;
 
     const metadataPayload = {
       userTier: tier,
       billingInterval,
       targetTrack: track || (tier === 'SQE_PRO' ? 'SQE' : 'EAQE'),
-      userEmail: effectiveEmail || 'guest@agentpass.hk',
+      userEmail: effectiveEmail,
       priceId: existingPriceId || 'dynamic_price_data',
       catalogAmountHKD: catalogAmount.toString(),
     };
 
-    // 5. Build Stripe Checkout Session
+    // 6. Build Stripe Checkout Session with user binding and confirmation message
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer_email: effectiveEmail,
+      client_reference_id: effectiveEmail, // Binds session to the authenticated user email
       line_items: lineItems,
       mode: isSubscription ? 'subscription' : 'payment',
       allow_promotion_codes: true,
       metadata: metadataPayload,
+      custom_text: {
+        submit: {
+          message: `確認付款後將立即為帳號 ${effectiveEmail} 開通 AgentPass™ PRO 權限。`,
+        },
+      },
       success_url: `${origin}/dashboard?payment=success&tier=${tier}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?payment=cancelled`,
     };

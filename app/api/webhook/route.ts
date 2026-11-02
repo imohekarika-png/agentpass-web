@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
   if (!webhookSecret) {
-    console.error('STRIPE_WEBHOOK_SECRET is not configured.');
+    console.error('STRIPE_WEBHOOK_SECRET is not configured on server.');
     return NextResponse.json(
       { error: 'Webhook secret unconfigured on server' },
       { status: 500 }
@@ -40,9 +40,31 @@ export async function POST(req: NextRequest) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+      
+      // Prioritize client_reference_id bound during authenticated checkout
+      const userEmail = 
+        session.client_reference_id || 
+        session.metadata?.userEmail || 
+        session.customer_details?.email;
+
       const userTier = session.metadata?.userTier || 'EAQE_PRO';
-      const userEmail = session.customer_details?.email || session.metadata?.userEmail;
-      console.log(`[PROVISION] Payment Succeeded for ${userEmail}. Tier: ${userTier}`);
+      const billingInterval = session.metadata?.billingInterval || '3_monthly';
+      const targetTrack = session.metadata?.targetTrack || (userTier === 'SQE_PRO' ? 'SQE' : 'EAQE');
+
+      if (!userEmail || userEmail === 'guest@agentpass.hk') {
+        console.warn(`[WEBHOOK WARNING] Checkout completed without an authenticated user email. Session: ${session.id}`);
+        break;
+      }
+
+      console.log(`[PROVISION SUCCESS] Unlocked ${userTier} for ${userEmail} (${billingInterval}, ${targetTrack})`);
+      break;
+    }
+
+    case 'charge.refunded': {
+      const charge = event.data.object as Stripe.Charge;
+      const amountRefunded = (charge.amount_refunded / 100).toFixed(2);
+      const customerEmail = charge.billing_details?.email || charge.receipt_email;
+      console.log(`[REFUND PROCESSED] Charge ID: ${charge.id} | Amount: HK$${amountRefunded} | Customer: ${customerEmail}`);
       break;
     }
 
@@ -54,7 +76,7 @@ export async function POST(req: NextRequest) {
 
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription;
-      console.log(`[SUBSCRIPTION DELETED] ${subscription.id}`);
+      console.log(`[SUBSCRIPTION CANCELLED] ${subscription.id}`);
       break;
     }
 
