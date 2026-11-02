@@ -59,7 +59,7 @@ function QuizCore() {
     setIsSubmitted(false);
   }, [blockParam, selectedTrack]);
 
-  // Robust questions resolver with fallback
+  // Robust, crash-proof questions resolver
   const activeQuestions = useMemo(() => {
     const rawList = Array.isArray(RAW_QUESTION_BANK) ? RAW_QUESTION_BANK : [];
     if (rawList.length === 0) return [];
@@ -69,16 +69,18 @@ function QuizCore() {
 
       // 1. Resolve block query parameter
       if (blockParam) {
-        const bp = blockParam.toLowerCase().trim();
-        const qBlockId = (q.blockId || '').toLowerCase().trim();
-        const qId = (q.id || '').toLowerCase().trim();
-        const qBlockNum = (q.blockNum || '').toLowerCase().trim();
+        const bp = String(blockParam).toLowerCase().trim();
+        const qBlockId = String(q.blockId ?? '').toLowerCase().trim();
+        const qId = String(q.id ?? '').toLowerCase().trim();
+        const qBlockNum = String(q.blockNum ?? '').toLowerCase().trim();
 
+        // Exact string match
         if (qBlockId === bp || qId === bp || qBlockNum === bp) return true;
 
+        // Number extraction: 'q-1', 'b1', 'block-1' all map to digit '1'
         const bpDigits = bp.replace(/\D/g, '');
-        const qBlockDigits = (q.blockId || q.blockNum || '').replace(/\D/g, '');
-        const qIdDigits = (q.id || '').replace(/\D/g, '');
+        const qBlockDigits = String(q.blockId ?? q.blockNum ?? '').replace(/\D/g, '');
+        const qIdDigits = String(q.id ?? '').replace(/\D/g, '');
 
         if (bp.startsWith('q') && qIdDigits && bpDigits === qIdDigits) return true;
         if (bpDigits && qBlockDigits && parseInt(bpDigits, 10) === parseInt(qBlockDigits, 10)) return true;
@@ -94,7 +96,7 @@ function QuizCore() {
       return true;
     });
 
-    // Fallback: If zero items matched the query, load full track questions instead of an empty array
+    // Fallback: If query parameter matched zero items, fallback to full track questions instead of crashing
     if (filtered.length === 0) {
       filtered = rawList.filter((q: any) => !(selectedTrack === 'SQE' && q?.trackApplicability === 'EAQE_ONLY'));
     }
