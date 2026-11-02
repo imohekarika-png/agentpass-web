@@ -59,7 +59,7 @@ function QuizCore() {
     setIsSubmitted(false);
   }, [blockParam, selectedTrack]);
 
-  // Robust, crash-proof questions resolver
+  // Robust, crash-proof questions resolver with user access enforcement
   const activeQuestions = useMemo(() => {
     const rawList = Array.isArray(RAW_QUESTION_BANK) ? RAW_QUESTION_BANK : [];
     if (rawList.length === 0) return [];
@@ -104,8 +104,12 @@ function QuizCore() {
       filtered = rawList;
     }
 
+    // Question-mapping block with user access enforcement
     return filtered.map((q: any, idx: number) => {
-      const isLocked = !isPaidUser && idx >= 10;
+      // Access Rule: In block drill mode, allow first 2 questions for free evaluation; lock questions 3-7.
+      // In full bank mode without block filter, allow first 10 questions for free evaluation.
+      const isLocked = !isPaidUser && (blockParam ? idx >= 2 : idx >= 10);
+
       if (isLocked) {
         return {
           ...q,
@@ -269,8 +273,8 @@ function QuizCore() {
             
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
               {isZh 
-                ? '免費版僅供前 10 題試題體驗。升級至 PRO 專業版立即解鎖 130 題官方考試題庫、詳盡條例考點剖析及艾賓浩斯間隔記憶階梯。' 
-                : 'Free preview covers the first 10 questions. Upgrade to PRO to unlock all 130 statutory questions and explanations.'}
+                ? (blockParam ? '免費體驗模式每單元提供前 2 題試題練習。升級至 PRO 專業版立即解鎖本單元全部 7 題核心考題及完整 130 題法例考點剖析。' : '免費版僅供前 10 題試題體驗。升級至 PRO 專業版立即解鎖 130 題官方考試題庫、詳盡條例考點剖析及艾賓浩斯間隔記憶階梯。')
+                : (blockParam ? 'Free preview covers the first 2 questions of this block. Upgrade to PRO to unlock all 7 statutory questions and explanations.' : 'Free preview covers the first 10 questions. Upgrade to PRO to unlock all 130 statutory questions and explanations.')}
             </p>
             
             <div className="flex gap-3 pt-2 justify-end">
@@ -312,7 +316,11 @@ function QuizCore() {
                   }`}
                 >
                   <ShieldCheck className="h-3.5 w-3.5" />
-                  <span>{isPaidUser ? 'PRO ACCOUNT (UNLOCKED)' : 'FREE PREVIEW (10 QUESTIONS)'}</span>
+                  <span>
+                    {isPaidUser 
+                      ? 'PRO ACCOUNT (UNLOCKED)' 
+                      : (blockParam ? 'FREE PREVIEW (2 QUESTIONS)' : 'FREE PREVIEW (10 QUESTIONS)')}
+                  </span>
                 </button>
 
                 {!isPaidUser && (
