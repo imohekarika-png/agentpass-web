@@ -35,7 +35,7 @@ function LoginContent() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      // 1. Authenticate strictly with Supabase Auth
+      // 1. Authenticate with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
         email: cleanEmail, 
         password 
@@ -47,14 +47,15 @@ function LoginContent() {
 
       const user = authData.user;
 
-      // 2. Generate a distinct, cryptographically unique session token for this device
+      // 2. Generate a distinct, cryptographically unique session token
       const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
         : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      let resolvedTier: UserTier = 'FREE_PREVIEW';
+      // 3. Register locally FIRST so incoming Realtime broadcasts recognize this session
+      setSession(cleanEmail, 'FREE_PREVIEW', newSessionId);
 
-      // 3. Write active_session_id to the database (Update first, fallback to insert)
+      // 4. Update the database active_session_id
       const { data: updatedProfile, error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -66,9 +67,11 @@ function LoginContent() {
         .select('tier')
         .single();
 
+      let resolvedTier: UserTier = 'FREE_PREVIEW';
+
       if (updateError || !updatedProfile) {
-        // If row doesn't exist yet, insert it
-        const { data: insertedProfile, error: insertError } = await supabase
+        // Fallback insert if profile row is missing
+        const { data: insertedProfile } = await supabase
           .from('profiles')
           .insert({
             id: user.id,
@@ -81,20 +84,17 @@ function LoginContent() {
           .select('tier')
           .single();
 
-        if (insertError) {
-          console.error('[DATABASE WRITE FAILED]', insertError);
-          throw new Error('Failed to register active device session with database.');
+        if (insertedProfile?.tier) {
+          resolvedTier = insertedProfile.tier as UserTier;
         }
-
-        resolvedTier = (insertedProfile?.tier as UserTier) || 'FREE_PREVIEW';
       } else {
-        resolvedTier = (updatedProfile?.tier as UserTier) || 'FREE_PREVIEW';
+        resolvedTier = (updatedProfile.tier as UserTier) || 'FREE_PREVIEW';
       }
 
-      // 4. Synchronize memory state and local storage with the new token
+      // 5. Update tier in state
       setSession(cleanEmail, resolvedTier, newSessionId);
 
-      // 5. Navigate to destination
+      // 6. Navigate to destination
       setTimeout(() => {
         setIsSubmitting(false);
         router.push(targetUrl);
@@ -113,7 +113,6 @@ function LoginContent() {
     <div className="min-h-screen bg-slate-950 text-slate-100 flex items-center justify-center py-12 px-4 sm:px-6">
       <div className="max-w-md w-full space-y-8 bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
         
-        {/* Header */}
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1 text-xs font-semibold text-indigo-300">
             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
@@ -133,14 +132,12 @@ function LoginContent() {
           )}
         </div>
 
-        {/* Error Alert */}
         {errorMessage && (
           <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-500/40 text-xs text-rose-200 text-center">
             {errorMessage}
           </div>
         )}
 
-        {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
