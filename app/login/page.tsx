@@ -5,7 +5,7 @@ import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAuth, UserTier } from '@/app/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { LogIn, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -16,12 +16,12 @@ function LoginContent() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectParam = searchParams.get('redirect');
+  const redirectParam = searchParams ? searchParams.get('redirect') : null;
 
   // Safely decode redirect URL; fallback to /dashboard if absent
   const targetUrl = redirectParam ? decodeURIComponent(redirectParam) : '/dashboard';
 
-  const { setSession, login } = useAuth() as any;
+  const { setSession } = useAuth();
   const supabase = createClient();
 
   const [email, setEmail] = useState('');
@@ -37,42 +37,54 @@ function LoginContent() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      // 1. Attempt Supabase Auth Login if client credentials exist
+      // 1. Generate unique session ID for this specific device
+      const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
+        ? crypto.randomUUID() 
+        : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      let resolvedTier: UserTier = 'FREE_PREVIEW';
+
+      // 2. Authenticate with Supabase Auth
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ 
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
           email: cleanEmail, 
           password 
         });
-        if (error) {
-          console.warn('Supabase Auth Notice (Proceeding with local session):', error.message);
+
+        if (authError) {
+          console.warn('Supabase Auth error (falling back to local demo if applicable):', authError.message);
+        } else if (authData?.user) {
+          // 3. Atomically register the active session in the profiles table
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .upsert({
+                id: authData.user.id,
+                email: cleanEmail,
+                active_session_id: newSessionId,
+                last_active_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'id' })
+              .select('tier')
+              .single();
+
+            if (!profileError && profileData?.tier) {
+              resolvedTier = profileData.tier as UserTier;
+            }
+          } catch (dbErr) {
+            console.warn('Profile sync warning:', dbErr);
+          }
         }
-      } catch (err) {
-        console.warn('Supabase offline or unconfigured, proceeding with local session');
+      } catch (authErr) {
+        console.warn('Supabase connection warning, using local session:', authErr);
       }
 
-      // 2. Synchronize Global AuthContext State Immediately
+      // 4. Synchronize Global AuthContext with session ID
       if (typeof setSession === 'function') {
-        setSession(cleanEmail, 'FREE_PREVIEW');
-      } else if (typeof login === 'function') {
-        await login(cleanEmail, password);
+        setSession(cleanEmail, resolvedTier, newSessionId);
       }
 
-      // 3. Persist local storage keys for broad cross-component compatibility
-      if (typeof window !== 'undefined') {
-        const userData = {
-          email: cleanEmail,
-          name: cleanEmail.split('@')[0],
-          id: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
-        };
-        localStorage.setItem('agentpass_user', JSON.stringify(userData));
-        localStorage.setItem('agentpass_user_email', cleanEmail);
-        
-        // Notify all active React contexts
-        window.dispatchEvent(new Event('agentpass_auth_change'));
-        window.dispatchEvent(new Event('storage'));
-      }
-
-      // 4. Redirect to the target URL (e.g. /pricing?tier=EAQE_PRO)
+      // 5. Navigate to the preserved target URL (e.g., /pricing?tier=EAQE_PRO)
       setTimeout(() => {
         setIsSubmitting(false);
         router.push(targetUrl);
@@ -101,12 +113,12 @@ function LoginContent() {
             {isZh ? '學員登入' : 'Member Sign In'}
           </h1>
           <p className="text-xs text-slate-400">
-            {isZh ? '登入以解鎖並綁定您的個人學習進度與 PRO 權限' : 'Sign in to access your review schedules and PRO features'}
+            {isZh ? '登入以存取您的 1-3-7-16-35 溫習排程與 PRO 權限' : 'Sign in to access your review schedules and PRO features'}
           </p>
 
           {redirectParam && (
             <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 font-medium">
-              {isZh ? '登入後將自動返回您剛才選擇的升級方案' : 'You will be redirected back to complete your upgrade after sign in'}
+              {isZh ? '登入後將自動返回您剛才選擇的方案' : 'You will be redirected back to complete your upgrade after sign in'}
             </div>
           )}
         </div>
