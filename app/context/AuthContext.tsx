@@ -1,7 +1,7 @@
 // app/context/AuthContext.tsx
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { AlertTriangle, LogIn } from 'lucide-react';
 
@@ -42,6 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState<boolean>(false);
   const [showConcurrentKickModal, setShowConcurrentKickModal] = useState<boolean>(false);
+
+  // Keep ref to avoid stale state in async callbacks
+  const sessionRef = useRef<{ email: string; sid: string | null }>({ email: '', sid: null });
+  sessionRef.current = { email: userEmail, sid: sessionId };
 
   const syncAuthFromStorage = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -93,9 +97,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supabase]);
 
-  const resetToFree = () => {
-    logout();
-  };
+  // Direct Database Verification Check
+  const verifyActiveSessionWithDatabase = useCallback(async () => {
+    const { email, sid } = sessionRef.current;
+    if (!sid || !email || email === 'guest@agentpass.hk') return;
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('active_session_id, tier')
+        .eq('email', email)
+        .single();
+
+      if (!error && data) {
+        if (data.tier && data.tier !== userTier) {
+          setUserTier(data.tier as UserTier);
+          localStorage.setItem('agentpass_user_tier', data.tier);
+        }
+
+        // Database has a newer session ID -> Kick out
+        if (data.active_session_id && data.active_session_id !== sid) {
+          console.warn('[SECURITY] Database session mismatch. Disconnecting duplicate session.');
+          logout();
+          setShowConcurrentKickModal(true);
+        }
+      }
+    } catch (err) {
+      console.warn('Session verification error:', err);
+    }
+  }, [supabase, logout, userTier]);
 
   useEffect(() => {
     syncAuthFromStorage();
@@ -105,18 +135,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.addEventListener('agentpass_auth_change', handleAuthEvent);
     window.addEventListener('storage', handleAuthEvent);
 
+    // Heartbeat check on window focus / tab switch
+    window.addEventListener('focus', verifyActiveSessionWithDatabase);
+
+    // Periodic heartbeat check every 15 seconds
+    const interval = setInterval(verifyActiveSessionWithDatabase, 15000);
+
     return () => {
       window.removeEventListener('agentpass_auth_change', handleAuthEvent);
       window.removeEventListener('storage', handleAuthEvent);
+      window.removeEventListener('focus', verifyActiveSessionWithDatabase);
+      clearInterval(interval);
     };
-  }, [syncAuthFromStorage]);
+  }, [syncAuthFromStorage, verifyActiveSessionWithDatabase]);
 
-  // Anti-Account Sharing Realtime Watcher
+  // Realtime WebSocket Push Listener
   useEffect(() => {
     if (!sessionId || !userEmail || userEmail === 'guest@agentpass.hk') return;
 
-    // Use a sanitized channel name and verify email inside the event handler
-    const channelName = `guard_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const channelName = `session_guard_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -131,16 +168,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const remoteSessionId = payload?.new?.active_session_id;
           const remoteTier = payload?.new?.tier;
 
-          // Only process updates belonging to this active user
           if (updatedEmail === userEmail.toLowerCase()) {
             if (remoteTier && remoteTier !== userTier) {
               setUserTier(remoteTier as UserTier);
               localStorage.setItem('agentpass_user_tier', remoteTier);
             }
 
-            // If the active session ID changed in the database, another device logged in
             if (remoteSessionId && remoteSessionId !== sessionId) {
-              console.warn('[SECURITY] Account logged in on another device. Terminating session.');
+              console.warn('[SECURITY] Remote login detected via WebSocket. Terminating session.');
               logout();
               setShowConcurrentKickModal(true);
             }
@@ -149,9 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       )
       .subscribe((status: string) => {
         if (status === 'SUBSCRIBED') {
-          console.log(`[REALTIME ACTIVE] Listening for concurrent logins on: ${userEmail}`);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('[REALTIME ERROR] Subscription failed. Verify Supabase RLS and replica identity.');
+          console.log(`[REALTIME ACTIVE] Channel connected for: ${userEmail}`);
         }
       });
 
@@ -204,7 +237,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoggedIn,
         isMounted,
         setSession,
-        resetToFree,
+        resetToFree: logout,
         logout,
         signOut: logout,
       }}

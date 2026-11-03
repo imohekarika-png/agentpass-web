@@ -17,8 +17,6 @@ function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectParam = searchParams ? searchParams.get('redirect') : null;
-
-  // Safely decode redirect URL; fallback to /dashboard if absent
   const targetUrl = redirectParam ? decodeURIComponent(redirectParam) : '/dashboard';
 
   const { setSession } = useAuth();
@@ -37,59 +35,71 @@ function LoginContent() {
     const cleanEmail = email.trim().toLowerCase();
 
     try {
-      // 1. Generate unique session ID for this specific device
+      // 1. Authenticate strictly with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
+        email: cleanEmail, 
+        password 
+      });
+
+      if (authError || !authData?.user) {
+        throw new Error(authError?.message || 'Invalid email or password.');
+      }
+
+      const user = authData.user;
+
+      // 2. Generate a distinct, cryptographically unique session token for this device
       const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID 
         ? crypto.randomUUID() 
         : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
       let resolvedTier: UserTier = 'FREE_PREVIEW';
 
-      // 2. Authenticate with Supabase Auth
-      try {
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ 
-          email: cleanEmail, 
-          password 
-        });
+      // 3. Write active_session_id to the database (Update first, fallback to insert)
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          active_session_id: newSessionId,
+          last_active_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id)
+        .select('tier')
+        .single();
 
-        if (authError) {
-          console.warn('Supabase Auth error (falling back to local demo if applicable):', authError.message);
-        } else if (authData?.user) {
-          // 3. Atomically register the active session in the profiles table
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .upsert({
-                id: authData.user.id,
-                email: cleanEmail,
-                active_session_id: newSessionId,
-                last_active_at: new Date().toISOString(),
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'id' })
-              .select('tier')
-              .single();
+      if (updateError || !updatedProfile) {
+        // If row doesn't exist yet, insert it
+        const { data: insertedProfile, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: user.id,
+            email: cleanEmail,
+            tier: 'FREE_PREVIEW',
+            active_session_id: newSessionId,
+            last_active_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select('tier')
+          .single();
 
-            if (!profileError && profileData?.tier) {
-              resolvedTier = profileData.tier as UserTier;
-            }
-          } catch (dbErr) {
-            console.warn('Profile sync warning:', dbErr);
-          }
+        if (insertError) {
+          console.error('[DATABASE WRITE FAILED]', insertError);
+          throw new Error('Failed to register active device session with database.');
         }
-      } catch (authErr) {
-        console.warn('Supabase connection warning, using local session:', authErr);
+
+        resolvedTier = (insertedProfile?.tier as UserTier) || 'FREE_PREVIEW';
+      } else {
+        resolvedTier = (updatedProfile?.tier as UserTier) || 'FREE_PREVIEW';
       }
 
-      // 4. Synchronize Global AuthContext with session ID
-      if (typeof setSession === 'function') {
-        setSession(cleanEmail, resolvedTier, newSessionId);
-      }
+      // 4. Synchronize memory state and local storage with the new token
+      setSession(cleanEmail, resolvedTier, newSessionId);
 
-      // 5. Navigate to the preserved target URL (e.g., /pricing?tier=EAQE_PRO)
+      // 5. Navigate to destination
       setTimeout(() => {
         setIsSubmitting(false);
         router.push(targetUrl);
         router.refresh();
-      }, 300);
+      }, 200);
 
     } catch (err: any) {
       setIsSubmitting(false);
@@ -179,7 +189,6 @@ function LoginContent() {
           </button>
         </form>
 
-        {/* Footer Link to Sign Up */}
         <div className="text-center pt-2 border-t border-slate-800">
           <p className="text-xs text-slate-400">
             {isZh ? '還沒有 AgentPass 帳號？' : "Don't have an account yet?"}{' '}
