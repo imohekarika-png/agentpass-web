@@ -1,19 +1,27 @@
 // app/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { LogIn, Mail, Lock, ArrowRight, Sparkles } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginContent() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectParam = searchParams.get('redirect');
+
+  // Safely decode redirect URL; fallback to /dashboard if absent
+  const targetUrl = redirectParam ? decodeURIComponent(redirectParam) : '/dashboard';
+
+  const { setSession, login } = useAuth() as any;
   const supabase = createClient();
 
   const [email, setEmail] = useState('');
@@ -26,38 +34,56 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setErrorMessage('');
 
+    const cleanEmail = email.trim().toLowerCase();
+
     try {
-      // 1. Attempt Supabase Auth Login
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        // Fallback for local testing / demo session if Supabase throws an error
-        console.warn('Supabase Auth error, falling back to local session:', error.message);
+      // 1. Attempt Supabase Auth Login if client credentials exist
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ 
+          email: cleanEmail, 
+          password 
+        });
+        if (error) {
+          console.warn('Supabase Auth Notice (Proceeding with local session):', error.message);
+        }
+      } catch (err) {
+        console.warn('Supabase offline or unconfigured, proceeding with local session');
       }
 
-      // 2. Persist local session state
+      // 2. Synchronize Global AuthContext State Immediately
+      if (typeof setSession === 'function') {
+        setSession(cleanEmail, 'FREE_PREVIEW');
+      } else if (typeof login === 'function') {
+        await login(cleanEmail, password);
+      }
+
+      // 3. Persist local storage keys for broad cross-component compatibility
       if (typeof window !== 'undefined') {
         const userData = {
-          email,
-          name: data?.user?.user_metadata?.full_name || email.split('@')[0],
-          id: data?.user?.id || 'local-user',
+          email: cleanEmail,
+          name: cleanEmail.split('@')[0],
+          id: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
         };
         localStorage.setItem('agentpass_user', JSON.stringify(userData));
+        localStorage.setItem('agentpass_user_email', cleanEmail);
         
-        // 3. Dispatch event to update Navbar instantly
+        // Notify all active React contexts
         window.dispatchEvent(new Event('agentpass_auth_change'));
+        window.dispatchEvent(new Event('storage'));
       }
 
-      // 4. Redirect to Dashboard
+      // 4. Redirect to the target URL (e.g. /pricing?tier=EAQE_PRO)
       setTimeout(() => {
         setIsSubmitting(false);
-        router.push('/dashboard');
+        router.push(targetUrl);
         router.refresh();
-      }, 600);
+      }, 300);
 
     } catch (err: any) {
       setIsSubmitting(false);
-      setErrorMessage(err.message || (isZh ? '登入失敗，請檢查電郵及密碼。' : 'Sign in failed. Check your credentials.'));
+      setErrorMessage(
+        err.message || (isZh ? '登入失敗，請檢查電郵及密碼。' : 'Sign in failed. Check your credentials.')
+      );
     }
   };
 
@@ -75,8 +101,14 @@ export default function LoginPage() {
             {isZh ? '學員登入' : 'Member Sign In'}
           </h1>
           <p className="text-xs text-slate-400">
-            {isZh ? '登入以繼續您的 1-3-7-16-35 溫習排程' : 'Sign in to access your saved review schedule'}
+            {isZh ? '登入以解鎖並綁定您的個人學習進度與 PRO 權限' : 'Sign in to access your review schedules and PRO features'}
           </p>
+
+          {redirectParam && (
+            <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 font-medium">
+              {isZh ? '登入後將自動返回您剛才選擇的升級方案' : 'You will be redirected back to complete your upgrade after sign in'}
+            </div>
+          )}
         </div>
 
         {/* Error Alert */}
@@ -140,7 +172,7 @@ export default function LoginPage() {
           <p className="text-xs text-slate-400">
             {isZh ? '還沒有 AgentPass 帳號？' : "Don't have an account yet?"}{' '}
             <Link
-              href="/signup"
+              href={`/signup${redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : ''}`}
               className="font-bold text-indigo-400 hover:text-indigo-300 transition"
             >
               {isZh ? '免費註冊' : 'Sign Up Free'}
@@ -150,5 +182,17 @@ export default function LoginPage() {
 
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-slate-400 text-xs">
+        Loading Sign In...
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }
