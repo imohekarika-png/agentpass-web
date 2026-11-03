@@ -51,14 +51,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const tier = (localStorage.getItem('agentpass_user_tier') as UserTier) || 'FREE_PREVIEW';
       const localSession = localStorage.getItem('agentpass_session_id');
 
-      // Fallback: Check composite user JSON object if email key is missing
       if (!email || email === 'guest@agentpass.hk') {
         const rawUser = localStorage.getItem('agentpass_user');
         if (rawUser) {
           const parsed = JSON.parse(rawUser);
-          if (parsed?.email) {
-            email = parsed.email;
-          }
+          if (parsed?.email) email = parsed.email;
         }
       }
 
@@ -72,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSessionId(null);
       }
     } catch (err) {
-      console.warn('Failed to parse authentication state from storage:', err);
+      console.warn('Failed to parse auth state:', err);
     }
   }, []);
 
@@ -105,8 +102,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsMounted(true);
 
     const handleAuthEvent = () => syncAuthFromStorage();
-
-    // Listen for custom dispatch events and cross-tab storage changes
     window.addEventListener('agentpass_auth_change', handleAuthEvent);
     window.addEventListener('storage', handleAuthEvent);
 
@@ -120,43 +115,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!sessionId || !userEmail || userEmail === 'guest@agentpass.hk') return;
 
-    try {
-      const channel = supabase
-        .channel(`session-guard-${userEmail}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `email=eq.${userEmail}`,
-          },
-          (payload: any) => {
-            const remoteSessionId = payload?.new?.active_session_id;
-            const remoteTier = payload?.new?.tier;
+    // Use a sanitized channel name and verify email inside the event handler
+    const channelName = `guard_${userEmail.replace(/[^a-zA-Z0-9]/g, '_')}`;
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+        },
+        (payload: any) => {
+          const updatedEmail = payload?.new?.email?.toLowerCase();
+          const remoteSessionId = payload?.new?.active_session_id;
+          const remoteTier = payload?.new?.tier;
 
-            // Update tier dynamically if modified by Stripe webhook or admin
+          // Only process updates belonging to this active user
+          if (updatedEmail === userEmail.toLowerCase()) {
             if (remoteTier && remoteTier !== userTier) {
               setUserTier(remoteTier as UserTier);
               localStorage.setItem('agentpass_user_tier', remoteTier);
             }
 
-            // If active session ID changed in the database, another device logged in
+            // If the active session ID changed in the database, another device logged in
             if (remoteSessionId && remoteSessionId !== sessionId) {
               console.warn('[SECURITY] Account logged in on another device. Terminating session.');
               logout();
               setShowConcurrentKickModal(true);
             }
           }
-        )
-        .subscribe();
+        }
+      )
+      .subscribe((status: string) => {
+        if (status === 'SUBSCRIBED') {
+          console.log(`[REALTIME ACTIVE] Listening for concurrent logins on: ${userEmail}`);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[REALTIME ERROR] Subscription failed. Verify Supabase RLS and replica identity.');
+        }
+      });
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    } catch (err) {
-      console.warn('Realtime channel subscription error:', err);
-    }
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [sessionId, userEmail, userTier, logout, supabase]);
 
   const setSession = (email: string, tier?: UserTier, newSessId?: string) => {
@@ -218,10 +219,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             <div className="space-y-2">
               <h3 className="text-lg font-black text-white">
-                帳號已在其他裝置登入
+                Account Active on Another Device
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed">
-                系統偵測到此帳號剛在另一台電腦或手機登入。為保障您的個人考試數據與授權權益，本裝置的連線已自動中斷。
+                Your AgentPass account was just accessed from another browser or device. To protect your exam data and prevent unauthorized sharing, this session has been automatically disconnected.
               </p>
             </div>
 
@@ -235,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-500/20"
               >
                 <LogIn className="h-4 w-4" />
-                <span>重新登入此裝置</span>
+                <span>Sign In Again on This Device</span>
               </button>
             </div>
           </div>
