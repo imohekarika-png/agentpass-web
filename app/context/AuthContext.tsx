@@ -86,6 +86,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('agentpass_user_tier');
       localStorage.removeItem('agentpass_user');
       localStorage.removeItem('agentpass_session_id');
+
+      // Clear edge middleware authentication cookie
+      document.cookie = `agentpass_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
+
       window.dispatchEvent(new Event('agentpass_auth_change'));
     }
 
@@ -222,6 +226,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: 'user_' + cleanEmail.replace(/[^a-zA-Z0-9]/g, '_'),
         })
       );
+
+      // Write edge middleware authentication cookie (30-day persistence)
+      document.cookie = `agentpass_user_email=${encodeURIComponent(cleanEmail)}; path=/; max-age=2592000; SameSite=Lax`;
+
       window.dispatchEvent(new Event('agentpass_auth_change'));
     }
   };
