@@ -5,7 +5,7 @@ import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { useAuth, UserTier } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 import { UserPlus, Mail, Lock, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 
@@ -48,7 +48,7 @@ function SignupContent() {
     }
 
     try {
-      // 1. Register with Supabase Auth
+      // 1. Register candidate with Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
@@ -65,15 +65,15 @@ function SignupContent() {
 
       const user = authData.user;
 
-      // 2. Generate initial Session ID
+      // 2. Generate initial unique Session ID
       const newSessionId = typeof crypto !== 'undefined' && crypto.randomUUID
         ? crypto.randomUUID()
         : `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
-      // 3. Register active session locally
+      // 3. Register active session locally and set cookie
       setSession(cleanEmail, 'FREE_PREVIEW', newSessionId);
 
-      // 4. Ensure profile row exists in database with this active_session_id
+      // 4. Upsert initial profile in database with active_session_id
       await supabase
         .from('profiles')
         .upsert({
@@ -85,7 +85,7 @@ function SignupContent() {
           updated_at: new Date().toISOString(),
         }, { onConflict: 'id' });
 
-      // 5. Navigate to preserved funnel destination
+      // 5. Navigate to funnel target (e.g., /pricing?tier=EAQE_PRO)
       setTimeout(() => {
         setIsSubmitting(false);
         router.push(targetUrl);
@@ -113,7 +113,7 @@ function SignupContent() {
             {isZh ? '開通備考帳戶' : 'Get Started with AgentPass'}
           </h1>
           <p className="text-xs text-slate-400">
-            {isZh ? '建立帳號以保存您的作答進度與解鎖全套考卷' : 'Create your account to track questions and progress'}
+            {isZh ? '建立帳號以保存您的作答進度與解鎖考卷' : 'Create your account to track questions and progress'}
           </p>
 
           {redirectParam && (

@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // 1. Define routes that require authentication
+  // 1. Identify protected routes
   const protectedPrefixes = ['/dashboard', '/mock-exam'];
   const isProtectedRoute = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -12,19 +12,19 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Inspect session cookies written by Supabase Auth and AgentPass
+  // 2. Read authentication cookies
+  const sessionEmail = req.cookies.get('agentpass_user_email')?.value;
   const allCookies = req.cookies.getAll();
-  const hasSupabaseAuthCookie = allCookies.some(
+  const hasSupabaseCookie = allCookies.some(
     (c) => (c.name.startsWith('sb-') && c.name.endsWith('-auth-token')) || c.name === 'supabase-auth-token'
   );
-  const hasSessionEmailCookie = req.cookies.get('agentpass_user_email')?.value;
 
   const isAuthenticated = Boolean(
-    hasSupabaseAuthCookie || 
-    (hasSessionEmailCookie && hasSessionEmailCookie !== 'guest@agentpass.hk')
+    hasSupabaseCookie || 
+    (sessionEmail && decodeURIComponent(sessionEmail) !== 'guest@agentpass.hk')
   );
 
-  // 3. Unauthenticated -> Intercept and Redirect
+  // 3. Block unauthenticated access and attach redirect target
   if (!isAuthenticated) {
     const loginUrl = new URL('/login', req.url);
     loginUrl.searchParams.set('redirect', pathname);
@@ -35,5 +35,8 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/mock-exam/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/mock-exam/:path*',
+  ],
 };
