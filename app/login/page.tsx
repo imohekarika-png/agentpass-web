@@ -214,6 +214,33 @@ function LoginContent() {
   );
 }
 
+function HashCatcher() {
+  const router = useRouter();
+  const { setSession } = useAuth();
+  const supabase = createClient();
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash.includes('access_token=')) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user?.email) {
+          const cleanEmail = session.user.email.trim().toLowerCase();
+          const newSessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+          
+          setSession(cleanEmail, 'FREE_PREVIEW', newSessionId);
+          
+          setTimeout(() => {
+            const redirectParam = new URLSearchParams(window.location.search).get('redirect');
+            const targetUrl = redirectParam ? decodeURIComponent(redirectParam) : '/pricing?registered=true';
+            router.push(targetUrl);
+          }, 400);
+        }
+      });
+    }
+  }, [router, supabase.auth, setSession]);
+
+  return null;
+}
+
 export default function LoginPage() {
   return (
     <Suspense fallback={
@@ -221,6 +248,7 @@ export default function LoginPage() {
         Loading Sign In...
       </div>
     }>
+      <HashCatcher />
       <LoginContent />
     </Suspense>
   );
