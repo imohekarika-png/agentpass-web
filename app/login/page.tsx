@@ -127,7 +127,9 @@ function LoginContent() {
 
           {redirectParam && (
             <div className="mt-2 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-[11px] text-amber-300 font-medium">
-              {isZh ? '登入後將自動返回您剛才選擇的方案' : 'You will be redirected back to complete your upgrade after sign in'}
+              {redirectParam.includes('pricing')
+                ? (isZh ? '登入後將自動返回您剛才選擇的升級方案' : 'You will be redirected back to complete your upgrade after sign in')
+                : (isZh ? '請先登入以存取您的個人儀表板與學習進度' : 'Please sign in to access your dashboard and exam progress')}
             </div>
           )}
         </div>
@@ -167,6 +169,15 @@ function LoginContent() {
               className="w-full rounded-xl bg-slate-950 border border-slate-800 p-3 text-xs text-white focus:border-indigo-500 focus:outline-none transition"
               required
             />
+          </div>
+
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-[11px] text-slate-400 hover:text-indigo-400 transition"
+            >
+              {isZh ? '忘記密碼？' : 'Forgot password?'}
+            </Link>
           </div>
 
           <button
