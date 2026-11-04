@@ -23,11 +23,11 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     setErrorMessage('');
 
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.agentpass.hk';
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.agentpass.hk';
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${origin}/reset-password`,
+        redirectTo: `${siteUrl}/reset-password`,
       });
 
       if (error) throw error;
