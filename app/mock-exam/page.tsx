@@ -83,7 +83,6 @@ export default function MockExamPage() {
     try {
       setIsLoading(true);
 
-      // Attempt primary mock exam API endpoint first
       let res = await fetch(`/api/quiz/questions?track=${selectedTrack}`, {
         cache: 'no-store',
       });
@@ -150,6 +149,7 @@ export default function MockExamPage() {
     loadQuestions(track);
   }, [track, loadQuestions]);
 
+  // Spaced Repetition Queue Synchronization (Scoped to User Email)
   const syncIncorrectAnswersToSRS = useCallback(() => {
     try {
       const incorrectItems: Array<{
@@ -191,16 +191,20 @@ export default function MockExamPage() {
       });
 
       if (incorrectItems.length > 0) {
-        const existingQueue = JSON.parse(localStorage.getItem('agentpass_srs_queue_v1') || '[]');
+        const storageKey = userEmail && userEmail !== 'guest@agentpass.hk'
+          ? `agentpass_srs_${encodeURIComponent(userEmail.toLowerCase().trim())}`
+          : 'agentpass_srs_guest';
+
+        const existingQueue = JSON.parse(localStorage.getItem(storageKey) || '[]');
         const existingIds = new Set(existingQueue.map((item: any) => item.questionId || item.id));
         const filteredNew = incorrectItems.filter((item) => !existingIds.has(item.questionId));
         const updatedQueue = [...filteredNew, ...existingQueue];
-        localStorage.setItem('agentpass_srs_queue_v1', JSON.stringify(updatedQueue));
+        localStorage.setItem(storageKey, JSON.stringify(updatedQueue));
       }
     } catch (err) {
       console.warn('SRS Sync Warning:', err);
     }
-  }, [questionsList, userAnswers]);
+  }, [questionsList, userAnswers, userEmail]);
 
   const handleSubmitExam = () => {
     if (timerRef.current) clearInterval(timerRef.current);

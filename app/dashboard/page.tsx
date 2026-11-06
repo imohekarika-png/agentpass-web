@@ -1,11 +1,12 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
 import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { useAuth } from '@/app/context/AuthContext';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -25,73 +26,54 @@ interface ReviewItem {
   accuracy: number;
 }
 
-const DEFAULT_REVIEWS: ReviewItem[] = [
-  {
-    id: 'b1',
-    blockNum: 'Block 01',
-    blockId: 'b1',
-    titleZh: 'EAA 架構與持牌資格',
-    titleEn: 'EAA Structure & Licensing Qualifications',
-    lastReviewed: '2026-10-12',
-    nextReviewDate: '2026-10-15',
-    ladderStage: 'Day 3',
-    accuracy: 85
-  },
-  {
-    id: 'b4',
-    blockNum: 'Block 04',
-    blockId: 'b4',
-    titleZh: '客戶存款託管與獨立信託帳戶',
-    titleEn: 'Client Money Custody & Trust Accounts',
-    lastReviewed: '2026-10-13',
-    nextReviewDate: '2026-10-14',
-    ladderStage: 'Day 1',
-    accuracy: 60
-  },
-  {
-    id: 'b16',
-    blockNum: 'Block 16',
-    blockId: 'b16',
-    titleZh: '業主與租客條例 Cap. 7',
-    titleEn: 'Landlord & Tenant Ordinance Cap. 7',
-    lastReviewed: '2026-10-07',
-    nextReviewDate: '2026-10-14',
-    ladderStage: 'Day 7',
-    accuracy: 50
-  }
-];
-
 export default function DashboardPage() {
   const { language, locale } = useLanguage();
   const currentLang = (language || locale || 'ZH').toString().toUpperCase();
   const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
 
+  const { userEmail } = useAuth();
+
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [selectedTrack, setSelectedTrack] = useState<string>('sqe');
   const [isMounted, setIsMounted] = useState(false);
 
+  // Load reviews scoped specifically to the current user email
+  const loadUserProgress = useCallback(() => {
+    if (typeof window === 'undefined') return;
+
+    const savedTrack = localStorage.getItem('agentpass_selected_track');
+    if (savedTrack) setSelectedTrack(savedTrack);
+
+    const storageKey = userEmail && userEmail !== 'guest@agentpass.hk'
+      ? `agentpass_srs_${encodeURIComponent(userEmail.toLowerCase().trim())}`
+      : 'agentpass_srs_guest';
+
+    try {
+      const rawData = localStorage.getItem(storageKey);
+      if (rawData) {
+        const syncedSRSQueue = JSON.parse(rawData);
+        if (Array.isArray(syncedSRSQueue)) {
+          setReviews(syncedSRSQueue);
+          return;
+        }
+      }
+      // For any clean account or new user with no attempts, start at 0
+      setReviews([]);
+    } catch (e) {
+      console.warn('Failed to load user SRS Queue:', e);
+      setReviews([]);
+    }
+  }, [userEmail]);
+
   useEffect(() => {
     setIsMounted(true);
-    
-    if (typeof window !== 'undefined') {
-      const savedTrack = localStorage.getItem('agentpass_selected_track');
-      if (savedTrack) setSelectedTrack(savedTrack);
+    loadUserProgress();
 
-      try {
-        const syncedSRSQueue = JSON.parse(
-          localStorage.getItem('agentpass_srs_queue_v1') || '[]'
-        );
-        if (Array.isArray(syncedSRSQueue) && syncedSRSQueue.length > 0) {
-          setReviews(syncedSRSQueue);
-        } else {
-          setReviews(DEFAULT_REVIEWS);
-        }
-      } catch (e) {
-        console.warn('Failed to load dynamic SRS Queue:', e);
-        setReviews(DEFAULT_REVIEWS);
-      }
-    }
-  }, []);
+    // Listen to real-time auth changes across tabs or logout
+    const handleAuthEvent = () => loadUserProgress();
+    window.addEventListener('agentpass_auth_change', handleAuthEvent);
+    return () => window.removeEventListener('agentpass_auth_change', handleAuthEvent);
+  }, [loadUserProgress]);
 
   const handleSelectOfficialDate = (fetchedDate: string) => {
     if (typeof window !== 'undefined') {
@@ -125,6 +107,11 @@ export default function DashboardPage() {
 
     return '/quiz';
   };
+
+  // Calculate dynamic accuracy and confidence based on actual attempts
+  const averageAccuracy = reviews.length > 0
+    ? Math.round(reviews.reduce((sum, item) => sum + (item.accuracy || 0), 0) / reviews.length)
+    : 0;
 
   if (!isMounted) return null;
 
@@ -171,7 +158,7 @@ export default function DashboardPage() {
           trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
         />
 
-        {/* Performance Overview Grid */}
+        {/* Performance Overview Grid with Dynamic Resetting Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Active Track</span>
@@ -187,7 +174,18 @@ export default function DashboardPage() {
 
           <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Overall Mastery Level</span>
-            <span className="text-xl font-black text-emerald-600">68% Pass Confidence</span>
+            <div className="flex items-baseline justify-between">
+              <span className={`text-xl font-black ${reviews.length > 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                {reviews.length > 0 ? `${averageAccuracy}% Pass Confidence` : (isZh ? '0% 尚未應考' : '0% Not Started')}
+              </span>
+            </div>
+            {/* Visual Dynamic Progress Bar */}
+            <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mt-1">
+              <div 
+                className="h-full bg-emerald-500 transition-all duration-500 rounded-full" 
+                style={{ width: `${reviews.length > 0 ? averageAccuracy : 0}%` }} 
+              />
+            </div>
           </div>
         </div>
 
@@ -241,7 +239,7 @@ export default function DashboardPage() {
             {reviews.length === 0 && (
               <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
                 <p className="text-sm font-bold text-slate-700">{isZh ? '今日無需溫習！' : 'You are all caught up for today!'}</p>
-                <p className="text-xs text-slate-500 mt-1">{isZh ? '前往題庫挑戰新單元來建立記憶階梯。' : 'Practice new blocks in the quiz bank to build your ladder.'}</p>
+                <p className="text-xs text-slate-500 mt-1">{isZh ? '前往模擬試場挑戰新試題，即可建立個人專屬的 1-3-7-16-35 記憶階梯。' : 'Take a mock exam to record your personal mistake queue and build your ladder.'}</p>
               </div>
             )}
           </div>

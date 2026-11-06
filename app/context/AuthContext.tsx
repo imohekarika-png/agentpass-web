@@ -87,6 +87,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('agentpass_user');
       localStorage.removeItem('agentpass_session_id');
 
+      // Purge temporary guest queue and legacy keys
+      localStorage.removeItem('agentpass_srs_guest');
+      localStorage.removeItem('agentpass_srs_queue_v1');
+
       // Clear edge middleware authentication cookie
       document.cookie = `agentpass_user_email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax`;
 
