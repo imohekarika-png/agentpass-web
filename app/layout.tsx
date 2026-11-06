@@ -6,6 +6,7 @@ import { AuthProvider } from '@/app/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/app/components/Footer';
 import AiTutorWidget from '@/app/components/AiTutorWidget';
+import WhatsAppFloatingButton from '@/components/WhatsAppFloatingButton';
 
 export const metadata: Metadata = {
   title: 'AgentPass™ - EAQE / SQE 智能備考平台',
@@ -26,6 +27,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
             <AiTutorWidget />
+            <WhatsAppFloatingButton />
           </LanguageProvider>
         </AuthProvider>
       </body>
