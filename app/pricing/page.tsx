@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAuth } from '@/app/context/AuthContext';
+import PricingWelcomeBanner from '@/components/PricingWelcomeBanner';
 import {
   Check,
   Sparkles,
@@ -164,6 +165,9 @@ export default function PricingPage() {
     <div className="min-h-screen py-10 sm:py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
       <div className="max-w-6xl mx-auto space-y-12">
         
+        {/* Newly Confirmed User Conversion Banner */}
+        <PricingWelcomeBanner />
+
         {/* Header Section */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 border border-amber-300 text-amber-900">
@@ -246,7 +250,7 @@ export default function PricingPage() {
         </div>
 
         {/* Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+        <div id="pricing-cards" className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
           {TIERS.map((tier) => {
             const isCurrent = userTier === tier.id;
             
@@ -269,6 +273,7 @@ export default function PricingPage() {
             return (
               <div
                 key={tier.id}
+                id={`plan-${tier.id.toLowerCase()}`}
                 className={`rounded-3xl border bg-white p-7 sm:p-8 flex flex-col justify-between transition-all duration-200 relative ${
                   tier.isPopular
                     ? 'border-amber-500 shadow-xl ring-2 ring-amber-400/40 md:-translate-y-2'
