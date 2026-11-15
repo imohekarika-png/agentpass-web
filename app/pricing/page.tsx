@@ -1,7 +1,7 @@
 // app/pricing/page.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -38,6 +38,9 @@ export default function PricingPage() {
   const [acceptedPassPromise, setAcceptedPassPromise] = useState<boolean>(false);
   const [showTermsWarning, setShowTermsWarning] = useState<boolean>(false);
 
+  const termsBoxRef = useRef<HTMLDivElement | null>(null);
+  const termsCheckboxRef = useRef<HTMLInputElement | null>(null);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -59,7 +62,7 @@ export default function PricingPage() {
       badge: null,
       priceMonthly: 198,
       price3Monthly: 480,
-      priceOneTime: 780, // +56% from 500
+      priceOneTime: 780,
       featuresZh: [
         '全真 60 題標準考場 (Part I 50 題 + Part II 10 題查冊個案)',
         '完整 130 題核心條例練習庫與常規陷阱剖析',
@@ -86,7 +89,7 @@ export default function PricingPage() {
       isPopular: true,
       priceMonthly: 288,
       price3Monthly: 688,
-      priceOneTime: 1108, // +56% from 710 (710 * 1.56 = 1107.6 -> 1108)
+      priceOneTime: 1108,
       featuresZh: [
         '全真 100 題完整標準考卷 (Part I 80 題 + Part II 20 題查冊個案)',
         'IRIS 土地查冊雙個案庫 (Smart Mansion 遺產 / Central Tower 公司查冊)',
@@ -114,7 +117,7 @@ export default function PricingPage() {
       badge: isZh ? '最高性價比' : 'BEST VALUE',
       priceMonthly: 388,
       price3Monthly: 880,
-      priceOneTime: 1451, // +56% from 930 (930 * 1.56 = 1450.8 -> 1451)
+      priceOneTime: 1451,
       featuresZh: [
         '同時解鎖 EAQE (100題) 與 SQE (60題) 兩套全真考卷',
         '智能題庫合成器 (Cognitive Synthesizer) 無限動態生成試題',
@@ -199,6 +202,12 @@ export default function PricingPage() {
   const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
     if (billingInterval === 'one_time' && !acceptedPassPromise) {
       setShowTermsWarning(true);
+      if (termsBoxRef.current) {
+        termsBoxRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      setTimeout(() => {
+        termsCheckboxRef.current?.focus({ preventScroll: true });
+      }, 300);
       return;
     }
 
@@ -326,17 +335,19 @@ export default function PricingPage() {
           </div>
         </div>
 
-        {/* One-Time Pass Checkout Confirmation Checkbox Bar */}
+        {/* One-Time Pass Checkout Confirmation Checkbox Bar (Auto-scroll target) */}
         {billingInterval === 'one_time' && (
           <div
-            className={`max-w-3xl mx-auto p-4 sm:p-5 rounded-2xl border transition-all ${
+            ref={termsBoxRef}
+            className={`max-w-3xl mx-auto p-4 sm:p-5 rounded-2xl border transition-all scroll-mt-28 ${
               showTermsWarning && !acceptedPassPromise
-                ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-200'
+                ? 'bg-rose-50 border-rose-500 ring-4 ring-rose-200 shadow-md'
                 : 'bg-amber-50/90 border-amber-300'
             }`}
           >
             <label className="flex items-start gap-3 cursor-pointer select-none">
               <input
+                ref={termsCheckboxRef}
                 type="checkbox"
                 checked={acceptedPassPromise}
                 onChange={(e) => {
@@ -450,7 +461,6 @@ export default function PricingPage() {
                     ))}
                   </div>
 
-                  {/* Pass Promise Callout - Display logic based on interval */}
                   {billingInterval === 'one_time' ? (
                     <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
                       <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
