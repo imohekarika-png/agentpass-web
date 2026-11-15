@@ -1,11 +1,85 @@
+// app/page.tsx
 'use client';
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useLanguage } from '@/app/context/LanguageContext';
 
 export default function HomePage() {
+  const { language, locale } = useLanguage();
+  const [langOverride, setLangOverride] = useState<'EN' | 'ZH' | null>(null);
+
+  const detectedLang = (language || locale || 'EN').toString().toUpperCase();
+  const isZh = langOverride
+    ? langOverride === 'ZH'
+    : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
+
   const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
   const [sampleAnswer, setSampleAnswer] = useState<string | null>(null);
+
+  const PASS_PROMISE_FAQS = isZh
+    ? [
+        {
+          q: '如果我考試不合格，怎麼辦？',
+          a: '如你符合合格承諾資格，我們會免費延長你的完整使用權 90 天，讓你準備重考。合格承諾是免費延期，不設現金退款。',
+        },
+        {
+          q: '怎樣才符合合格承諾資格？',
+          a: '你必須在考試前完成以下全部要求：',
+          bullets: [
+            '完成 AgentPass 內全部 20 個法定教學單元',
+            '完成至少 3 次完整雙階段模擬考試，最後一次取得至少 60%',
+            '將 SRS 錯題重溫完成至 90%',
+          ],
+        },
+        {
+          q: '怎樣申請合格承諾？',
+          a: '在購買後 90 天內應考 EAQE 或 SQE，並在官方成績公布後 14 天內提出申請。請提供官方 PEAK / EAA 成績單，成績單上的姓名必須與你的 AgentPass 帳戶相同。',
+        },
+        {
+          q: '延期有多長？',
+          a: '90 天，完整使用權，同一帳戶。每個購買只可享用一次延期。',
+        },
+        {
+          q: '合格承諾會退款嗎？',
+          a: '不會。合格承諾只提供免費延期，不設現金退款、積分或轉讓。',
+        },
+        {
+          q: '有什麼情況不包括？',
+          a: '缺席、遲到、被取消資格、未完成課程、共用帳戶，或未能提供官方成績單，均不包括。合格承諾只適用於一次性通行證，不適用於月費或 3 個月通行證。',
+        },
+      ]
+    : [
+        {
+          q: 'What if I fail my exam?',
+          a: 'If you qualify for Pass Promise, we extend your full access free for 90 days so you can prepare for your retake. Pass Promise is a free extension, not a cash refund.',
+        },
+        {
+          q: 'How do I qualify for Pass Promise?',
+          a: 'You must complete all of these before your exam:',
+          bullets: [
+            'Complete all 20 statutory blocks in AgentPass',
+            'Complete at least 3 full dual-stage mocks, with at least 60% in your last mock',
+            'Clear your SRS error queue to 90%',
+          ],
+        },
+        {
+          q: 'How do I claim Pass Promise?',
+          a: 'Sit your EAQE or SQE within 90 days of purchase, then submit a claim within 14 days of your official result. Send us your official PEAK / EAA result slip. The name on the slip must match your AgentPass account.',
+        },
+        {
+          q: 'How long is the extension?',
+          a: '90 days, full access, same account. One extension per purchase.',
+        },
+        {
+          q: 'Does Pass Promise give me a refund?',
+          a: 'No. Pass Promise is free extension only. There is no cash refund, credit, or transfer.',
+        },
+        {
+          q: 'What is not covered?',
+          a: 'No-show, late arrival, disqualification, incomplete programme, shared account, or a claim without an official result slip. Pass Promise applies to One-Time Pass only, not Monthly or 3-Month Pass.',
+        },
+      ];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
@@ -322,12 +396,21 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-amber-600">TRANSPARENT PASS PLANS</p>
+            <div className="flex items-center justify-center gap-3">
+              <p className="text-xs font-black uppercase tracking-widest text-amber-600">TRANSPARENT PASS PLANS</p>
+              <button
+                type="button"
+                onClick={() => setLangOverride(isZh ? 'EN' : 'ZH')}
+                className="px-2.5 py-0.5 rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-700 hover:border-amber-500 transition cursor-pointer"
+              >
+                {isZh ? 'EN' : '繁體中文'}
+              </button>
+            </div>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">Invest in Your Hong Kong Real Estate Career</h2>
             <p className="text-sm text-slate-600">Complete access to question banks, mock exams, and flashcards with instant Stripe checkout.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             
             {/* Monthly */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
@@ -341,7 +424,7 @@ export default function HomePage() {
                   <li className="flex items-center gap-2">✓ Cross-device desktop & mobile access</li>
                 </ul>
               </div>
-              <Link href="/pricing" className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs text-center transition">
+              <Link href="/pricing?interval=monthly" className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs text-center transition">
                 View Monthly Options →
               </Link>
             </div>
@@ -361,26 +444,106 @@ export default function HomePage() {
                   <li className="flex items-center gap-2 font-medium text-slate-900">✓ Diagnostic Passing Score Radar</li>
                 </ul>
               </div>
-              <Link href="/pricing" className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs text-center transition shadow-md shadow-amber-500/20">
+              <Link href="/pricing?interval=3_monthly" className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs text-center transition shadow-md shadow-amber-500/20">
                 Get 3-Month Pass →
               </Link>
             </div>
 
-            {/* One-Time Pass */}
+            {/* One-Time Pass (Updated Bilingual Block) */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-500 uppercase">ONE-TIME PASS</span>
-                <h3 className="text-2xl font-black text-slate-950">From HK$ 500<span className="text-xs text-slate-500 font-normal"> one-time</span></h3>
-                <p className="text-xs text-slate-600">Full access until you pass your exam. Zero recurring billing or expiration worries.</p>
-                <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                  <li className="flex items-center gap-2">✓ Full Exam Pass Guarantee</li>
-                  <li className="flex items-center gap-2">✓ Uncapped Mock Exams</li>
-                  <li className="flex items-center gap-2">✓ High-Yield Statutory Summary Kit</li>
+                <span className="text-xs font-bold text-slate-500 uppercase">
+                  {isZh ? '一次性通行證' : 'ONE-TIME PASS'}
+                </span>
+                <div className="space-y-1">
+                  <p className="text-sm font-extrabold text-amber-700">
+                    {isZh ? '一次付款，專注備考至考試日' : 'Pay Once. Study Until Your Exam.'}
+                  </p>
+                  <h3 className="text-2xl font-black text-slate-950">
+                    {isZh ? (
+                      <>HK$500 起<span className="text-xs text-slate-500 font-normal">，一次性</span></>
+                    ) : (
+                      <>From HK$500<span className="text-xs text-slate-500 font-normal"> one-time</span></>
+                    )}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {isZh
+                    ? '一次付款，沒有月費，完整使用至你的考試週期。'
+                    : 'One payment. No monthly billing. Full access for your exam cycle.'}
+                </p>
+                <ul className="text-xs text-slate-700 space-y-2 pt-2">
+                  {(isZh
+                    ? [
+                        '無限次模擬考試，第一部分 + 第二部分 IRIS 土地查冊個案',
+                        '完整法定題庫，涵蓋 20 個教學單元',
+                        '間隔重複 (SRS) 閃卡 + 錯題重溫',
+                        '高效法定重點筆記',
+                        '合格分數診斷雷達',
+                        '電腦及手機跨裝置使用',
+                      ]
+                    : [
+                        'Uncapped Mock Exams, Part I + Part II IRIS dossiers',
+                        'Full Statutory Question Bank, all 20 syllabus blocks',
+                        'Spaced Repetition (SRS) Flashcards + Error Queue',
+                        'High-Yield Statutory Summary Kit',
+                        'Diagnostic Passing Score Radar',
+                        'Cross-device desktop and mobile access',
+                      ]
+                  ).map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-emerald-600 font-bold">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
+
+                {/* Pass Promise Callout */}
+                <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
+                  <p className="text-xs font-extrabold text-emerald-900">
+                    {isZh ? '已包括合格承諾 Pass Promise' : 'Pass Promise included'}
+                  </p>
+                  <p className="text-[11px] text-emerald-800 leading-relaxed">
+                    {isZh ? (
+                      <>
+                        如你完成整個課程，應考後仍未合格，我們免費延長你的完整使用權 90 天，讓你重考。不設現金退款。詳見
+                        <a
+                          href="#pass-promise-conditions"
+                          className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5"
+                        >
+                          合格承諾條款
+                        </a>
+                        。
+                      </>
+                    ) : (
+                      <>
+                        If you complete the programme, sit your exam, and do not pass, we extend your full access free for 90 days so you can retake. No cash refund. See{' '}
+                        <a
+                          href="#pass-promise-conditions"
+                          className="underline font-bold text-emerald-950 hover:text-amber-700"
+                        >
+                          Pass Promise conditions
+                        </a>
+                        .
+                      </>
+                    )}
+                  </p>
+                </div>
               </div>
-              <Link href="/pricing" className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs text-center transition">
-                View One-Time Pass →
-              </Link>
+
+              <div className="space-y-2.5">
+                <Link
+                  href="/pricing?interval=one_time"
+                  className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs text-center block transition"
+                >
+                  {isZh ? '購買一次性通行證 →' : 'Get One-Time Pass →'}
+                </Link>
+                <p className="text-[11px] text-slate-500 leading-relaxed text-center">
+                  {isZh
+                    ? '經 Stripe 一次付款。合格承諾只提供 90 天免費延期，不設現金退款。每個購買只可享用一次延期。'
+                    : 'One payment via Stripe. Pass Promise is a free 90-day extension only, not a refund. One extension per purchase.'}
+                </p>
+              </div>
             </div>
 
           </div>
@@ -388,7 +551,55 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 7: URGENCY CTA BANNER (Home page ends here; global layout footer displays below)
+          STAGE 6.5: PASS PROMISE CONDITIONS & FAQ (SAME-PAGE ANCHOR)
+         ========================================================= */}
+      <section
+        id="pass-promise-conditions"
+        className="py-16 sm:py-20 bg-white border-b border-slate-200 scroll-mt-20"
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-10">
+          <div className="text-center space-y-2">
+            <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold uppercase">
+              {isZh ? 'PASS PROMISE 合格承諾條款及常見問題' : 'PASS PROMISE CONDITIONS & FAQ'}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
+              {isZh ? '合格承諾詳細條件與常見問題' : 'Pass Promise Conditions & Frequently Asked Questions'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 max-w-2xl mx-auto">
+              {isZh
+                ? '適用於所有一次性通行證（One-Time Pass）購買。以下列出完整 6 項資格及申請條款：'
+                : 'Applies to One-Time Pass purchases. All 6 eligibility and claim conditions are listed below:'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {PASS_PROMISE_FAQS.map((faq, index) => (
+              <div
+                key={index}
+                className="p-6 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2.5"
+              >
+                <h3 className="text-sm font-black text-slate-950">
+                  {index + 1}. {faq.q}
+                </h3>
+                <p className="text-xs text-slate-700 leading-relaxed">{faq.a}</p>
+                {faq.bullets && (
+                  <ul className="space-y-1.5 pt-1 text-xs text-slate-800 font-semibold">
+                    {faq.bullets.map((bullet, bIdx) => (
+                      <li key={bIdx} className="flex items-start gap-2">
+                        <span className="text-emerald-600 font-bold">•</span>
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          STAGE 7: URGENCY CTA BANNER
          ========================================================= */}
       <section className="bg-slate-950 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">

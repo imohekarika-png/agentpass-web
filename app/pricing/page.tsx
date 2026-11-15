@@ -1,7 +1,7 @@
 // app/pricing/page.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/app/context/LanguageContext';
@@ -12,9 +12,6 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
-  Building2,
-  Calendar,
-  Zap,
   HelpCircle,
   LogIn,
 } from 'lucide-react';
@@ -34,6 +31,19 @@ export default function PricingPage() {
 
   const [billingInterval, setBillingInterval] = useState<BillingInterval>('3_monthly');
   const [loadingTier, setLoadingTier] = useState<PaidTier | null>(null);
+  const [acceptedPassPromise, setAcceptedPassPromise] = useState<boolean>(false);
+  const [showTermsWarning, setShowTermsWarning] = useState<boolean>(false);
+
+  // Sync interval from query parameter (e.g., /pricing?interval=one_time)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const intervalParam = params.get('interval');
+      if (intervalParam === 'monthly' || intervalParam === '3_monthly' || intervalParam === 'one_time') {
+        setBillingInterval(intervalParam);
+      }
+    }
+  }, []);
 
   const TIERS = [
     {
@@ -108,7 +118,7 @@ export default function PricingPage() {
         '完整 130 題題庫與全套 20 大主題法規速記閃卡',
         '優先排程 AI 弱點診斷導師解析',
         '考前衝刺核心必背條例數字總整理',
-        '考季保證：未及格免費展期至及格為止',
+        '已包括合格承諾 Pass Promise（一次性通行證適用）',
       ],
       featuresEn: [
         'Simultaneous access to both EAQE (100 Qs) and SQE (60 Qs) suites',
@@ -116,15 +126,85 @@ export default function PricingPage() {
         'Full 130-question bank & complete active recall deck',
         'Priority AI Diagnostic Weakness Tutoring',
         'High-yield statutory numbers & formula cheat sheet',
-        'Exam season pass: Free extension until qualified',
+        'Pass Promise included (applies to One-Time Pass)',
       ],
     },
   ];
 
+  const PASS_PROMISE_FAQS = isZh
+    ? [
+        {
+          q: '如果我考試不合格，怎麼辦？',
+          a: '如你符合合格承諾資格，我們會免費延長你的完整使用權 90 天，讓你準備重考。合格承諾是免費延期，不設現金退款。',
+        },
+        {
+          q: '怎樣才符合合格承諾資格？',
+          a: '你必須在考試前完成以下全部要求：',
+          bullets: [
+            '完成 AgentPass 內全部 20 個法定教學單元',
+            '完成至少 3 次完整雙階段模擬考試，最後一次取得至少 60%',
+            '將 SRS 錯題重溫完成至 90%',
+          ],
+        },
+        {
+          q: '怎樣申請合格承諾？',
+          a: '在購買後 90 天內應考 EAQE 或 SQE，並在官方成績公布後 14 天內提出申請。請提供官方 PEAK / EAA 成績單，成績單上的姓名必須與你的 AgentPass 帳戶相同。',
+        },
+        {
+          q: '延期有多長？',
+          a: '90 天，完整使用權，同一帳戶。每個購買只可享用一次延期。',
+        },
+        {
+          q: '合格承諾會退款嗎？',
+          a: '不會。合格承諾只提供免費延期，不設現金退款、積分或轉讓。',
+        },
+        {
+          q: '有什麼情況不包括？',
+          a: '缺席、遲到、被取消資格、未完成課程、共用帳戶，或未能提供官方成績單，均不包括。合格承諾只適用於一次性通行證，不適用於月費或 3 個月通行證。',
+        },
+      ]
+    : [
+        {
+          q: 'What if I fail my exam?',
+          a: 'If you qualify for Pass Promise, we extend your full access free for 90 days so you can prepare for your retake. Pass Promise is a free extension, not a cash refund.',
+        },
+        {
+          q: 'How do I qualify for Pass Promise?',
+          a: 'You must complete all of these before your exam:',
+          bullets: [
+            'Complete all 20 statutory blocks in AgentPass',
+            'Complete at least 3 full dual-stage mocks, with at least 60% in your last mock',
+            'Clear your SRS error queue to 90%',
+          ],
+        },
+        {
+          q: 'How do I claim Pass Promise?',
+          a: 'Sit your EAQE or SQE within 90 days of purchase, then submit a claim within 14 days of your official result. Send us your official PEAK / EAA result slip. The name on the slip must match your AgentPass account.',
+        },
+        {
+          q: 'How long is the extension?',
+          a: '90 days, full access, same account. One extension per purchase.',
+        },
+        {
+          q: 'Does Pass Promise give me a refund?',
+          a: 'No. Pass Promise is free extension only. There is no cash refund, credit, or transfer.',
+        },
+        {
+          q: 'What is not covered?',
+          a: 'No-show, late arrival, disqualification, incomplete programme, shared account, or a claim without an official result slip. Pass Promise applies to One-Time Pass only, not Monthly or 3-Month Pass.',
+        },
+      ];
+
   const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
-    // 1. Client-Side Gate: Require authentication prior to checkout
+    // 1. Require Pass Promise condition acknowledgment for One-Time Pass
+    if (billingInterval === 'one_time' && !acceptedPassPromise) {
+      setShowTermsWarning(true);
+      return;
+    }
+
+    // 2. Client-Side Gate: Require authentication prior to checkout
     if (!isLoggedIn) {
-      router.push(`/login?redirect=${encodeURIComponent(`/pricing?tier=${tier}`)}`);
+      router.push(`/login?redirect=${encodeURIComponent(`/pricing?tier=${tier}&interval=${billingInterval}`)}`);
       return;
     }
 
@@ -144,6 +224,7 @@ export default function PricingPage() {
           email: userEmail,
           track,
           amount: currentPrice,
+          acceptedPassPromise: billingInterval === 'one_time' ? acceptedPassPromise : undefined,
         }),
       });
 
@@ -242,12 +323,65 @@ export default function PricingPage() {
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {isZh ? '一次性全通' : 'One-Time Pass'}
+                {isZh ? '一次性通行證' : 'One-Time Pass'}
               </button>
 
             </div>
           </div>
         </div>
+
+        {/* One-Time Pass Checkout Confirmation Checkbox Bar */}
+        {billingInterval === 'one_time' && (
+          <div
+            className={`max-w-3xl mx-auto p-4 sm:p-5 rounded-2xl border transition-all ${
+              showTermsWarning && !acceptedPassPromise
+                ? 'bg-rose-50 border-rose-400 ring-2 ring-rose-200'
+                : 'bg-amber-50/90 border-amber-300'
+            }`}
+          >
+            <label className="flex items-start gap-3 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={acceptedPassPromise}
+                onChange={(e) => {
+                  setAcceptedPassPromise(e.target.checked);
+                  if (e.target.checked) setShowTermsWarning(false);
+                }}
+                className="mt-1 h-4 w-4 rounded border-slate-400 text-amber-600 focus:ring-amber-500 cursor-pointer shrink-0"
+              />
+              <span className="text-xs sm:text-sm font-semibold text-slate-800 leading-relaxed">
+                {isZh ? (
+                  <>
+                    我已閱讀合格承諾條款。我明白合格承諾是 90 天免費延期，不設退款。{' '}
+                    <a
+                      href="#pass-promise-conditions"
+                      className="underline font-extrabold text-amber-800 hover:text-amber-950"
+                    >
+                      [查看條款]
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    I have read the Pass Promise conditions. I understand Pass Promise is a free 90-day extension, not a refund.{' '}
+                    <a
+                      href="#pass-promise-conditions"
+                      className="underline font-extrabold text-amber-800 hover:text-amber-950"
+                    >
+                      [View conditions]
+                    </a>
+                  </>
+                )}
+              </span>
+            </label>
+            {showTermsWarning && !acceptedPassPromise && (
+              <p className="text-xs font-bold text-rose-700 mt-2 pl-7">
+                {isZh
+                  ? '請先勾選確認你已閱讀合格承諾條款，然後繼續付款。'
+                  : 'Please tick the checkbox above to confirm you have read the Pass Promise conditions before checkout.'}
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Pricing Cards Grid */}
         <div id="pricing-cards" className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
@@ -264,8 +398,10 @@ export default function PricingPage() {
               sublabel = isZh ? `平均每月約 HK$${Math.round(tier.price3Monthly / 3)}` : `~HK$${Math.round(tier.price3Monthly / 3)}/mo`;
             } else if (billingInterval === 'one_time') {
               displayPrice = tier.priceOneTime;
-              intervalLabel = isZh ? ' 一次性付款' : ' one-time';
-              sublabel = isZh ? '考季全通，直至及格' : 'Full access until qualified';
+              intervalLabel = isZh ? '，一次性' : ' one-time';
+              sublabel = isZh
+                ? '一次付款，沒有月費，完整使用至你的考試週期。'
+                : 'One payment. No monthly billing. Full access for your exam cycle.';
             }
 
             const isLoading = loadingTier === tier.id;
@@ -323,9 +459,44 @@ export default function PricingPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Pass Promise Callout on One-Time Pass */}
+                  {billingInterval === 'one_time' && (
+                    <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
+                      <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                        <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                        <span>{isZh ? '已包括合格承諾 Pass Promise' : 'Pass Promise included'}</span>
+                      </p>
+                      <p className="text-[11px] text-emerald-800 leading-relaxed">
+                        {isZh ? (
+                          <>
+                            如你完成整個課程，應考後仍未合格，我們免費延長你的完整使用權 90 天，讓你重考。不設現金退款。詳見
+                            <a
+                              href="#pass-promise-conditions"
+                              className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5"
+                            >
+                              合格承諾條款
+                            </a>
+                            。
+                          </>
+                        ) : (
+                          <>
+                            If you complete the programme, sit your exam, and do not pass, we extend your full access free for 90 days so you can retake. No cash refund. See{' '}
+                            <a
+                              href="#pass-promise-conditions"
+                              className="underline font-bold text-emerald-950 hover:text-amber-700"
+                            >
+                              Pass Promise conditions
+                            </a>
+                            .
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
-                <div className="pt-8">
+                <div className="pt-8 space-y-2.5">
                   <button
                     type="button"
                     disabled={isLoading || isCurrent}
@@ -345,6 +516,11 @@ export default function PricingPage() {
                         <LogIn className="h-4 w-4" />
                         <span>{isZh ? '登入後開通 PRO' : 'Log in to Upgrade'}</span>
                       </>
+                    ) : billingInterval === 'one_time' ? (
+                      <>
+                        <span>{isZh ? '購買一次性通行證' : 'Get One-Time Pass'}</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </>
                     ) : (
                       <>
                         <span>{isZh ? '立即開通' : 'Get Started'}</span>
@@ -352,6 +528,14 @@ export default function PricingPage() {
                       </>
                     )}
                   </button>
+
+                  {billingInterval === 'one_time' && (
+                    <p className="text-[11px] text-slate-500 leading-relaxed text-center">
+                      {isZh
+                        ? '經 Stripe 一次付款。合格承諾只提供 90 天免費延期，不設現金退款。每個購買只可享用一次延期。'
+                        : 'One payment via Stripe. Pass Promise is a free 90-day extension only, not a refund. One extension per purchase.'}
+                    </p>
+                  )}
                 </div>
               </div>
             );
@@ -372,6 +556,51 @@ export default function PricingPage() {
             <Link href="/mock-exam" className="px-5 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition">
               {isZh ? '體驗模擬考' : 'Try Mock Exam'}
             </Link>
+          </div>
+        </div>
+
+        {/* Pass Promise Conditions & FAQ Anchor Section */}
+        <div
+          id="pass-promise-conditions"
+          className="p-7 sm:p-10 rounded-3xl border border-slate-200 bg-white shadow-sm space-y-8 scroll-mt-20"
+        >
+          <div className="space-y-2 border-b border-slate-100 pb-5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] font-mono font-bold uppercase">
+              <HelpCircle className="h-3.5 w-3.5 text-emerald-600" />
+              <span>{isZh ? 'PASS PROMISE 合格承諾條款及常見問題' : 'PASS PROMISE CONDITIONS & FAQ'}</span>
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">
+              {isZh ? '合格承諾詳細條件與常見問題' : 'Pass Promise Conditions & Frequently Asked Questions'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600">
+              {isZh
+                ? '適用於所有一次性通行證（One-Time Pass）購買。以下列出完整 6 項資格及申請條款：'
+                : 'Applies to One-Time Pass purchases. All 6 eligibility and claim conditions are listed below:'}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {PASS_PROMISE_FAQS.map((faq, index) => (
+              <div
+                key={index}
+                className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2"
+              >
+                <h3 className="text-sm font-black text-slate-900">
+                  {index + 1}. {faq.q}
+                </h3>
+                <p className="text-xs text-slate-700 leading-relaxed">{faq.a}</p>
+                {faq.bullets && (
+                  <ul className="space-y-1.5 pt-1 text-xs text-slate-800 font-semibold">
+                    {faq.bullets.map((bullet, bIdx) => (
+                      <li key={bIdx} className="flex items-start gap-2">
+                        <span className="text-emerald-600 font-bold">•</span>
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            ))}
           </div>
         </div>
 
