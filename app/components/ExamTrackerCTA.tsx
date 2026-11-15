@@ -1,9 +1,11 @@
+
 // app/components/ExamTrackerCTA.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
 import { Calendar, Bell, Mail, CheckCircle2, ArrowRight, Download, ExternalLink, Sparkles } from 'lucide-react';
 import { generateGoogleCalendarUrl, downloadIcsCalendarFile } from '@/app/utils/calendar';
+import { useExamCountdown, formatExamDate, daysUntil } from '@/app/lib/examSchedule';
 
 interface ExamTrackerCTAProps {
   isZh: boolean;
@@ -11,15 +13,23 @@ interface ExamTrackerCTAProps {
 }
 
 export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps) {
-  const [examDate, setExamDate] = useState<string>('2026-11-18');
+  // Shared engine - same EAA_EXAMS list as homepage banner + OfficialScheduleFetcher
+  // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027. No hardcoded fallback date anymore.
+  const { exam, daysToExam, daysToReg } = useExamCountdown(trackName);
+  const [customDate, setCustomDate] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   const [isEmailSubscribed, setIsEmailSubscribed] = useState<boolean>(false);
   const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
 
+  // examDate = manual override (from date picker / dashboard pick) else next official exam
+  const examDate = customDate ?? exam?.examDate ?? '';
+  // daysRemaining from shared engine (HK timezone) - honours localStorage override via useExamCountdown
+  const daysRemaining = customDate ? daysUntil(customDate) : daysToExam;
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedDate = localStorage.getItem('agentpass_exam_date');
-      if (savedDate) setExamDate(savedDate);
+      if (savedDate) setCustomDate(savedDate);
 
       const savedEmail = localStorage.getItem('agentpass_user_email');
       if (savedEmail) setUserEmail(savedEmail);
@@ -27,9 +37,11 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
   }, []);
 
   const handleDateChange = (newDate: string) => {
-    setExamDate(newDate);
+    setCustomDate(newDate);
     if (typeof window !== 'undefined') {
       localStorage.setItem('agentpass_exam_date', newDate);
+      // Notify useExamCountdown in same tab (storage event only fires cross-tab)
+      window.dispatchEvent(new Event('agentpass_exam_date_change'));
     }
   };
 
@@ -46,10 +58,7 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
     }, 1500);
   };
 
-  const daysRemaining = Math.max(
-    0,
-    Math.ceil((new Date(examDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-  );
+  // daysRemaining now comes from useExamCountdown above (HK timezone, auto-roll)
 
   return (
     <div className="p-6 sm:p-8 rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm space-y-6">
@@ -64,6 +73,10 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
           <h3 className="text-xl font-black text-slate-900 pt-1">
             {isZh ? `距離 ${trackName} 資格考試僅剩 ${daysRemaining} 天` : `${daysRemaining} Days Until Your ${trackName} Licensing Exam`}
           </h3>
+          <p className="text-xs font-medium text-slate-600">
+            {exam ? (isZh ? `考期 ${formatExamDate(exam.examDate, true)} • ${formatExamDate(exam.regOnline, true)}截止報名` : `Exam ${formatExamDate(exam.examDate, false)} • Reg closes ${formatExamDate(exam.regOnline, false)}`) : ''}
+            {exam && daysToReg <= 0 ? (isZh ? ' • 報名已截止' : ' • Registration closed') : ''}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
