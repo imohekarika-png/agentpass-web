@@ -1,7 +1,9 @@
+
 // app/page.tsx
 'use client';
 
 import React, { useState } from 'react';
+import { useExamCountdown, formatExamDate } from '@/app/lib/examSchedule';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
@@ -14,6 +16,13 @@ export default function HomePage() {
   const isZh = langOverride
     ? langOverride === 'ZH'
     : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
+  // Shared EAA engine - same source as dashboard OfficialScheduleFetcher / ExamTrackerCTA
+  // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027, no manual edit.
+  const { exam, daysToExam, daysToReg } = useExamCountdown('EAQE');
+  const examLabelZh = exam ? formatExamDate(exam.examDate, true) : '12月15日';
+  const examLabelEn = exam ? formatExamDate(exam.examDate, false) : '15 DEC';
+  const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : '12月1日';
+  const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : '1 DEC';
 
   const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
   const [sampleAnswer, setSampleAnswer] = useState<string | null>(null);
@@ -84,7 +93,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
-      <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">{isZh ? "EAQE 12月15日 • 12月1日截止報名 • 尚餘 30 日" : "EAQE 15 DEC • REGISTRATION CLOSES 1 DEC • 30 DAYS LEFT"}</div>
+      <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">{daysToReg > 0 ? (isZh ? `EAQE ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日` : `EAQE ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`) : (isZh ? `EAQE ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考` : `EAQE ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`)}</div>
       
       {/* =========================================================
           STAGE 1: HERO SECTION + DUAL TRACK SELECTOR
@@ -387,15 +396,6 @@ export default function HomePage() {
                 </tr>
               </tbody>
             </table>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-4 mt-10">
-            <Link href="/eaqe-dec-15" className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition">
-              EAQE Dec 15 Plan →
-            </Link>
-            <Link href="/sqe-next" className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition">
-              Sitting SQE next? See SQE Next Sitting Plan →
-            </Link>
           </div>
         </div>
       </section>

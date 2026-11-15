@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useExamCountdown, formatExamDate } from '@/app/lib/examSchedule';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { ShieldCheck, ShieldAlert } from 'lucide-react';
@@ -11,6 +12,13 @@ export default function EAQEDec15Page() {
   const [langOverride, setLangOverride] = useState<'EN' | 'ZH' | null>(null);
   const detectedLang = (language || locale || 'EN').toString().toUpperCase();
   const isZh = langOverride ? langOverride === 'ZH' : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
+  // Shared EAA engine - same source as dashboard OfficialScheduleFetcher / ExamTrackerCTA
+  // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027, no manual edit.
+  const { exam, daysToExam, daysToReg } = useExamCountdown('EAQE');
+  const examLabelZh = exam ? formatExamDate(exam.examDate, true) : '12月15日';
+  const examLabelEn = exam ? formatExamDate(exam.examDate, false) : '15 DEC';
+  const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : '12月1日';
+  const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : '1 DEC';
 
   const PASS_PROMISE_FAQS = isZh ? [
     { q: '如果我考試不合格，怎麼辦？', a: '如你符合合格承諾資格，我們會免費延長你的完整使用權 90 天，讓你準備重考。合格承諾是免費延期，不設現金退款。' },
@@ -27,7 +35,7 @@ export default function EAQEDec15Page() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
       <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">
-        {isZh ? 'EAQE 12月15日 • 12月1日截止報名 • 尚餘 30 日' : 'EAQE 15 DEC • REGISTRATION CLOSES 1 DEC • 30 DAYS LEFT'}
+        {daysToReg > 0 ? (isZh ? `EAQE ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日` : `EAQE ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`) : (isZh ? `EAQE ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考` : `EAQE ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`)}
       </div>
 
       {/* HERO - same system as homepage Stage 1 */}
