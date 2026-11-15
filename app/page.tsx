@@ -84,6 +84,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
+      <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">{isZh ? "EAQE 12月15日 • 12月1日截止報名 • 尚餘 30 日" : "EAQE 15 DEC • REGISTRATION CLOSES 1 DEC • 30 DAYS LEFT"}</div>
       
       {/* =========================================================
           STAGE 1: HERO SECTION + DUAL TRACK SELECTOR
@@ -96,29 +97,29 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold tracking-wide shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                AI-Powered Prep for HK EAA Licensing Exams
+                AI-Powered Prep for HK EAA Licensing Exams • EAQE 15 Dec Sprint
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.12]">
-                Master <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE & SQE</span> Licensing Exams with AI Precision
+                Pass <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE on 15 Dec</span> First Time
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                Combining 20 statutory syllabus blocks, Spaced Repetition (SRS), Memory Palace visual mnemonics, and IRIS Land Search dossiers to maximize your first-attempt passing rate.
+                Registration closes 1 Dec. 20 statutory blocks, SRS, Memory Palace mnemonics, and IRIS dossiers - built to fix the traps that fail most first-timers in 30 days. Aligned to EAA syllabus and practice circulars. Not EAA approved.
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
-                  href="/mock-exam"
+                  href="/diagnostic"
                   className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5"
                 >
-                  Start Free Mock Exam (10 Qs) →
+                  Take Free 5-Question Diagnostic →
                 </Link>
                 <Link
-                  href="#pricing-section"
+                  href="/eaqe-dec-15"
                   className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition"
                 >
-                  View Preparation Plans
+                  See EAQE Dec 15 Plan
                 </Link>
               </div>
             </div>
@@ -176,7 +177,7 @@ export default function HomePage() {
 
                 <div className="pt-2">
                   <Link
-                    href={`/mock-exam?track=${selectedTrack}`}
+                    href={`/diagnostic?track=${selectedTrack}`}
                     className="w-full py-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition"
                   >
                     Launch {selectedTrack} Diagnostic Environment →
@@ -211,6 +212,24 @@ export default function HomePage() {
               <p className="text-xs text-slate-500">Automated Error Queue Review</p>
             </div>
           </div>
+        </div>
+      </section>
+
+
+      {/* STAGE 2.5: EAQE DEC 15 - 30 DAY PLAN (SPRINT ADD) */}
+      <section className="py-16 sm:py-20 bg-white border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+          <div className="text-center max-w-2xl mx-auto space-y-3">
+            <p className="text-xs font-black uppercase tracking-widest text-amber-600">{isZh ? "EAQE 12月15日 • 30日計劃" : "EAQE 15 DEC • 30-DAY PLAN"}</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">{isZh ? "30 日，唔需要更多筆記" : "30 Days. You Do Not Need More Notes."}</h2>
+            <p className="text-sm text-slate-600">{isZh ? "你需要停低跌入同一個 IRIS 陷阱。先做診斷，再按計劃做。" : "You need to stop falling for the same IRIS traps. Diagnose first, then follow the plan."}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">01</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 1-10 日：打底" : "Days 1-10: Foundations"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "完成 20 個法定單元。診斷到 60%。每日 60-90 分鐘。" : "Finish 20 statutory blocks. Diagnostic to 60%. 60-90 mins per day."}</p></div>
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">02</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 11-20 日：IRIS 陷阱" : "Days 11-20: IRIS Traps"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "Probate、Lis Pendens、Encumbrances、Floating Charges。Mock 1 + Mock 2。" : "Probate, Lis Pendens, Encumbrances, Floating Charges. Mock 1 + Mock 2."}</p></div>
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">03</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 21-30 日：模擬 + 錯題" : "Days 21-30: Mocks + Errors"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "Mock 3 + SRS 錯題到 90%。考試日清單。" : "Mock 3 + SRS error queue to 90%. Exam-day checklist."}</p></div>
+          </div>
+          <div className="text-center"><Link href="/eaqe-dec-15" className="inline-flex px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition">{isZh ? "睇 EAQE 12月15日完整計劃 →" : "See Full EAQE Dec 15 Plan →"}</Link></div>
         </div>
       </section>
 
@@ -637,16 +656,16 @@ export default function HomePage() {
          ========================================================= */}
       <section className="bg-slate-950 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl font-black text-white">Next EAA Exam Season Is Approaching</h2>
+          <h2 className="text-3xl font-black text-white">EAQE 15 Dec. Registration Closes 1 Dec.</h2>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            Over 65% of first-time test takers fail due to IRIS Land Search traps and numerical time limits. Start preparing with real exam conditions today.
+            Registration closes 1 Dec online, 24 Nov by post. Over 65% of first-timers fail on IRIS traps and time bars. If you are sitting Dec 15, start tonight with the free diagnostic, then Block 1.
           </p>
           <div>
             <Link
-              href="/mock-exam"
+              href="/diagnostic"
               className="inline-flex px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-xl shadow-amber-500/20"
             >
-              Start Free 10-Question Diagnostic Exam →
+              Start Free 5-Question Diagnostic →
             </Link>
           </div>
         </div>
