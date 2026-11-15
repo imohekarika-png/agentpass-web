@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
       catalogAmountHKD: catalogAmount.toString(),
     };
 
-    // 6. Build Stripe Checkout Session with user binding and confirmation message
+    // 6. Build Stripe Checkout Session with user binding and Pass Promise consent on One-Time Pass
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer_email: effectiveEmail,
       client_reference_id: effectiveEmail,
@@ -211,10 +211,25 @@ export async function POST(req: NextRequest) {
       mode: isSubscription ? 'subscription' : 'payment',
       allow_promotion_codes: true,
       metadata: metadataPayload,
+      ...(!isSubscription
+        ? {
+            consent_collection: {
+              terms_of_service: 'required',
+            },
+          }
+        : {}),
       custom_text: {
         submit: {
           message: `確認付款後將立即為帳號 ${effectiveEmail} 開通 AgentPass™ PRO 權限。`,
         },
+        ...(!isSubscription
+          ? {
+              terms_of_service_acceptance: {
+                message:
+                  'I have read the Pass Promise conditions. I understand Pass Promise is a free 90-day extension, not a refund.',
+              },
+            }
+          : {}),
       },
       success_url: `${origin}/dashboard?payment=success&tier=${tier}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/pricing?payment=cancelled`,
