@@ -1,3 +1,4 @@
+
 // app/lib/examSchedule.ts
 // SINGLE SOURCE OF TRUTH for all EAA exam countdowns
 // Used by: homepage banner, /eaqe-dec-15, /sqe-next, dashboard OfficialScheduleFetcher + ExamTrackerCTA
@@ -100,6 +101,13 @@ export function getNextExam(track: ExamTrack, now = new Date()): EAAExam | null 
   return upcoming[0] ?? null;
 }
 
+export function isValidEAAExamDate(dateStr: string, track?: ExamTrack): boolean {
+  const found = getExamByDate(dateStr);
+  if (!found) return false;
+  if (track && found.track !== track) return false;
+  return true;
+}
+
 export function getExamByDate(dateStr: string): EAAExam | undefined {
   return EAA_EXAMS.find((e) => e.examDate === dateStr);
 }
@@ -149,40 +157,30 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
       const now = new Date();
       let chosen: EAAExam | null = getNextExam(track, now);
 
-      // Honour dashboard-picked date if it is still in the future and matches this track
+      // STRICT: only honour saved dates that are in EAA_EXAMS for this track.
+      // WHY: dashboard /api/schedule was returning WRONG dates (SQE 25 Nov, 10 Dec) that are
+      // NOT in the EAA timetable. Old code treated those as ad-hoc exams and counted to them.
+      // Now: if savedDate is NOT in EAA_EXAMS, ignore it + clear it, fall back to next official exam.
       // Dashboard keys: 'agentpass_exam_date' + 'agentpass_selected_track' - see dashboard/page.tsx
       try {
         const savedDate = localStorage.getItem('agentpass_exam_date');
         const savedTrack = (localStorage.getItem('agentpass_selected_track') || '').toUpperCase();
-        if (savedDate && (savedTrack === track || !savedTrack)) {
+        if (savedDate) {
           const savedExam = getExamByDate(savedDate);
-          if (savedExam && savedExam.track === track) {
-            // Only use saved date if it hasn't passed - otherwise fall through to next official
-            if (parseHK(savedDate).getTime() >= parseHK(now.toISOString().slice(0, 10)).getTime()) {
-              chosen = savedExam;
-            }
-          } else if (savedDate) {
-            // Custom / future date not in EAA_EXAMS yet - treat as ad-hoc exam, keep official deadlines
-            // by falling back to official next exam for reg dates, but exam countdown uses saved date
-            // For safety, keep official chosen for reg deadlines and override exam date below
-            if (parseHK(savedDate).getTime() >= parseHK(now.toISOString().slice(0, 10)).getTime()) {
-              const adHoc: EAAExam = chosen ?? {
-                track,
-                sessionCode: 'CUSTOM',
-                examDate: savedDate,
-                examTime: '2:30 pm',
-                format: 'Paper-based',
-                regStart: savedDate,
-                regPost: savedDate,
-                regOnline: savedDate,
-                fee: 0,
-              };
-              // If saved date is different from official, use it as exam date
-              if (chosen && chosen.examDate !== savedDate) {
-                chosen = { ...adHoc, regPost: chosen.regPost, regOnline: chosen.regOnline };
-              }
-            }
+          const isValidForTrack = !!savedExam && savedExam.track === track;
+          const isFuture = parseHK(savedDate).getTime() >= parseHK(now.toISOString().slice(0, 10)).getTime();
+          if (isValidForTrack && isFuture && (savedTrack === track || !savedTrack)) {
+            chosen = savedExam;
+          } else if (!savedExam) {
+            // Invalid date (e.g. 2026-11-25 from buggy /api/schedule) - clear it so it never
+            // pollutes the countdown again. Fall back to official next exam (chosen already).
+            localStorage.removeItem('agentpass_exam_date');
+            console.warn(`[examSchedule] Ignored invalid saved exam date ${savedDate} - not in EAA timetable. Using ${chosen?.examDate ?? 'next official'}.`);
+          } else if (!isFuture) {
+            // Past date - let getNextExam handle roll-forward, clear stale value
+            localStorage.removeItem('agentpass_exam_date');
           }
+          // If savedExam exists but for other track, ignore for this track (do not clear, other track may use it)
         }
       } catch {}
 
@@ -222,3 +220,4 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
     hasNextExam: !!exam,
   };
 }
+

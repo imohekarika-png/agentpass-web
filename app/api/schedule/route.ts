@@ -1,86 +1,33 @@
+
 // app/api/schedule/route.ts
+// Makes /api/schedule return the SAME EAA_EXAMS list as the frontend.
+// This fixes the root cause: API was returning SQE 2026-11-25 / 2026-12-10 (HKEAA-style dates),
+// which are NOT EAA SQE dates. Now API + frontend share one source.
 import { NextResponse } from 'next/server';
-
-export interface ExamScheduleItem {
-  id: string;
-  track: 'EAQE' | 'SQE';
-  examCode: string;
-  examDate: string; // ISO Format YYYY-MM-DD
-  registrationStart: string;
-  registrationEnd: string;
-  timeSlot: string;
-  venue: string;
-  isAvailableForBooking: boolean;
-}
-
-// Normalized Official EAA / HKEAA Yearly Exam Schedule Dataset
-const OFFICIAL_EXAM_SCHEDULE: ExamScheduleItem[] = [
-  {
-    id: 'eaqe-2026-q4',
-    track: 'EAQE',
-    examCode: 'EAQE-2026-11',
-    examDate: '2026-11-18',
-    registrationStart: '2026-09-01',
-    registrationEnd: '2026-09-25',
-    timeSlot: '09:30 - 12:30 HKT',
-    venue: 'HKEAA San Po Kong Assessment Centre',
-    isAvailableForBooking: true
-  },
-  {
-    id: 'sqe-2026-q4-a',
-    track: 'SQE',
-    examCode: 'SQE-2026-11A',
-    examDate: '2026-11-25',
-    registrationStart: '2026-09-10',
-    registrationEnd: '2026-10-05',
-    timeSlot: '14:30 - 17:00 HKT',
-    venue: 'HKEAA Lai King Assessment Centre',
-    isAvailableForBooking: true
-  },
-  {
-    id: 'sqe-2026-q4-b',
-    track: 'SQE',
-    examCode: 'SQE-2026-12',
-    examDate: '2026-12-10',
-    registrationStart: '2026-10-01',
-    registrationEnd: '2026-10-25',
-    timeSlot: '09:30 - 12:00 HKT',
-    venue: 'HKEAA Wan Chai Assessment Centre',
-    isAvailableForBooking: true
-  },
-  {
-    id: 'eaqe-2027-q1',
-    track: 'EAQE',
-    examCode: 'EAQE-2027-02',
-    examDate: '2027-02-20',
-    registrationStart: '2026-12-01',
-    registrationEnd: '2026-12-20',
-    timeSlot: '09:30 - 12:30 HKT',
-    venue: 'HKEAA San Po Kong Assessment Centre',
-    isAvailableForBooking: true
-  }
-];
+import { EAA_EXAMS } from '@/app/lib/examSchedule';
 
 export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const trackFilter = searchParams.get('track')?.toUpperCase();
+  const { searchParams } = new URL(req.url);
+  const track = searchParams.get('track') as 'EAQE' | 'SQE' | null;
 
-    let schedule = OFFICIAL_EXAM_SCHEDULE;
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
 
-    if (trackFilter === 'EAQE' || trackFilter === 'SQE') {
-      schedule = schedule.filter((item) => item.track === trackFilter);
-    }
+  const schedule = EAA_EXAMS.filter((e) => !track || e.track === track)
+    .filter((e) => e.examDate >= todayStr)
+    .sort((a, b) => a.examDate.localeCompare(b.examDate))
+    .map((e) => ({
+      id: e.sessionCode,
+      track: e.track,
+      examCode: e.sessionCode,
+      examDate: e.examDate,
+      registrationStart: e.regStart,
+      registrationEnd: e.regOnline,
+      timeSlot: e.examTime,
+      venue: e.format,
+      isAvailableForBooking: e.regOnline >= todayStr,
+    }));
 
-    return NextResponse.json({
-      success: true,
-      updatedAt: new Date().toISOString(),
-      schedule
-    });
-  } catch (err: any) {
-    return NextResponse.json(
-      { success: false, error: err.message || 'Failed to fetch exam schedule' },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ schedule, source: 'EAA / PEAK official timetable', updated: '2026-11-16' });
 }
+
