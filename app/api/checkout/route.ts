@@ -30,7 +30,7 @@ const PRICE_MAP: Record<BillingInterval, Record<TargetTier, string | undefined>>
   one_time: {
     SQE_PRO: process.env.STRIPE_PRICE_SQE_PRO_ONETIME,
     EAQE_PRO: process.env.STRIPE_PRICE_EAQE_PRO_ONETIME,
-    ALL_ACCESS_PRO: process.env.STRIPE_PRICE_ALL_ACCESS_PRO_ONETIME,
+    ALL_ACCESS_PRO: process.env.STRIPE_PRICE_ALL_ACCESS_PRO_ONETIME || 'price_1UbzIrIKTmbO0KEsApo2H2P2',
   },
 };
 
@@ -39,17 +39,17 @@ const TIER_PRICING_CATALOG: Record<TargetTier, Record<BillingInterval, number>> 
   SQE_PRO: {
     monthly: 198,
     '3_monthly': 480,
-    one_time: 500,
+    one_time: 780,
   },
   EAQE_PRO: {
     monthly: 288,
     '3_monthly': 688,
-    one_time: 710,
+    one_time: 1108,
   },
   ALL_ACCESS_PRO: {
     monthly: 388,
     '3_monthly': 880,
-    one_time: 930,
+    one_time: 1451,
   },
 };
 
@@ -150,9 +150,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Determine price and subscription mode
+    // 3. Determine authoritative price and subscription mode
     const isSubscription = billingInterval !== 'one_time';
-    const catalogAmount = body.amount || TIER_PRICING_CATALOG[tier][billingInterval];
+    const catalogAmount = TIER_PRICING_CATALOG[tier][billingInterval];
     const amountInCents = Math.round(catalogAmount * 100);
 
     // 4. Resolve existing Price ID or construct dynamic price_data
@@ -206,7 +206,7 @@ export async function POST(req: NextRequest) {
     // 6. Build Stripe Checkout Session with user binding and confirmation message
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
       customer_email: effectiveEmail,
-      client_reference_id: effectiveEmail, // Binds session to the authenticated user email
+      client_reference_id: effectiveEmail,
       line_items: lineItems,
       mode: isSubscription ? 'subscription' : 'payment',
       allow_promotion_codes: true,
