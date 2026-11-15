@@ -226,7 +226,7 @@ export async function POST(req: NextRequest) {
           ? {
               terms_of_service_acceptance: {
                 message:
-                  'I have read the Pass Promise conditions. I understand Pass Promise is a free 90-day extension, not a refund.',
+                  'I have read the [Pass Promise conditions](https://www.agentpass.hk/pricing#pass-promise-conditions). I understand Pass Promise is a free 90-day extension, not a refund.',
               },
             }
           : {}),

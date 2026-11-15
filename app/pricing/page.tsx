@@ -51,6 +51,26 @@ export default function PricingPage() {
     }
   }, []);
 
+  // Scroll to #pass-promise-conditions when opened from Stripe Checkout or external links
+  useEffect(() => {
+    const scrollToConditions = () => {
+      if (window.location.hash === '#pass-promise-conditions') {
+        const el = document.getElementById('pass-promise-conditions');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    };
+
+    const timer = setTimeout(scrollToConditions, 150);
+    window.addEventListener('hashchange', scrollToConditions);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('hashchange', scrollToConditions);
+    };
+  }, []);
+
   const TIERS = [
     {
       id: 'SQE_PRO' as const,
