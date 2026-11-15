@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
 
 export default function HomePage() {
   const { language, locale } = useLanguage();
@@ -91,7 +92,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             
-            {/* Left Column: Core Value Proposition */}
+            {/* Left Column */}
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold tracking-wide shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -106,7 +107,6 @@ export default function HomePage() {
                 Combining 20 statutory syllabus blocks, Spaced Repetition (SRS), Memory Palace visual mnemonics, and IRIS Land Search dossiers to maximize your first-attempt passing rate.
               </p>
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
                   href="/mock-exam"
@@ -121,10 +121,6 @@ export default function HomePage() {
                   View Preparation Plans
                 </Link>
               </div>
-
-              <p className="text-xs text-slate-400 font-medium">
-                ⚡ Aligned with latest EAA practice circulars • No credit card required to sample.
-              </p>
             </div>
 
             {/* Right Column: Track Selector */}
@@ -137,7 +133,6 @@ export default function HomePage() {
                 </div>
 
                 <div className="space-y-3">
-                  {/* Option 1: EAQE */}
                   <button
                     onClick={() => setSelectedTrack('EAQE')}
                     className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
@@ -158,7 +153,6 @@ export default function HomePage() {
                     </div>
                   </button>
 
-                  {/* Option 2: SQE */}
                   <button
                     onClick={() => setSelectedTrack('SQE')}
                     className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
@@ -190,7 +184,6 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </section>
@@ -229,7 +222,7 @@ export default function HomePage() {
           
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-amber-600">3-STEP CANDIDATE METHODOLOGY</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">How AgentPass™ Guarantees Your Edge</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">How AgentPass™ Gives You The Edge</h2>
             <p className="text-sm text-slate-600">A deliberate learning architecture designed to eliminate memorization fatigue and trap failures.</p>
           </div>
 
@@ -240,9 +233,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-600 leading-relaxed">
                 Review verified statutory notes across all 20 syllabus blocks. Master essential ordinance provisions with side-by-side &quot;Do Not Confuse&quot; trap tables.
               </p>
-              <div className="pt-2">
-                <Link href="/syllabus" className="text-xs font-bold text-amber-600 hover:text-amber-700">Explore Syllabus Notes →</Link>
-              </div>
             </div>
 
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
@@ -251,9 +241,6 @@ export default function HomePage() {
               <p className="text-sm text-slate-600 leading-relaxed">
                 Retain critical statutory numbers, penalties, and time bars using automated Leitner spaced repetition. Tricky legal limits resurface right before you forget them.
               </p>
-              <div className="pt-2">
-                <Link href="/flashcards" className="text-xs font-bold text-amber-600 hover:text-amber-700">Launch Flashcards Deck →</Link>
-              </div>
             </div>
 
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
@@ -262,12 +249,8 @@ export default function HomePage() {
               <p className="text-sm text-slate-600 leading-relaxed">
                 Experience the authentic 3-hour exam pressure. Tackle Part I statutory MCQs and Part II IRIS Land Search document dossiers under official countdown timers.
               </p>
-              <div className="pt-2">
-                <Link href="/mock-exam" className="text-xs font-bold text-amber-600 hover:text-amber-700">Test Mock Simulation →</Link>
-              </div>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -415,41 +398,103 @@ export default function HomePage() {
             {/* Monthly */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div className="space-y-4">
-                <span className="text-xs font-bold text-slate-500 uppercase">MONTHLY ROLLING</span>
-                <h3 className="text-2xl font-black text-slate-950">From HK$ 198<span className="text-xs text-slate-500 font-normal"> / month</span></h3>
-                <p className="text-xs text-slate-600">Flexible monthly access for fast brush-ups. Cancel anytime from your billing portal.</p>
-                <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                  <li className="flex items-center gap-2">✓ Full Statutory Question Bank</li>
-                  <li className="flex items-center gap-2">✓ IRIS Land Search Dossiers</li>
-                  <li className="flex items-center gap-2">✓ Cross-device desktop & mobile access</li>
+                <span className="text-xs font-bold text-slate-500 uppercase">
+                  {isZh ? '按月訂閱' : 'MONTHLY ROLLING'}
+                </span>
+                <div className="space-y-1">
+                  <p className="text-sm font-extrabold text-slate-600">
+                    {isZh ? '靈活按月，隨時取消' : 'Flexible monthly access'}
+                  </p>
+                  <h3 className="text-2xl font-black text-slate-950">
+                    {isZh ? (
+                      <>HK$ 198<span className="text-xs text-slate-500 font-normal"> / 每月</span></>
+                    ) : (
+                      <>From HK$ 198<span className="text-xs text-slate-500 font-normal"> / month</span></>
+                    )}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {isZh
+                    ? '適合短期衝刺。你可隨時於後台取消下期訂閱。'
+                    : 'Flexible monthly access for fast brush-ups. Cancel anytime from your billing portal.'}
+                </p>
+                <ul className="text-xs text-slate-700 space-y-2 pt-2">
+                  {(isZh
+                    ? ['完整法定題庫與模擬考場', 'IRIS 土地查冊雙個案庫', '電腦及手機跨裝置使用']
+                    : ['Full Statutory Question Bank', 'IRIS Land Search Dossiers', 'Cross-device desktop & mobile access']
+                  ).map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2">
+                      <span className="text-slate-400 font-bold">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
+
+                {/* NOT Included Pass Promise Callout */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                  <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
+                    <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
+                    <span>{isZh ? '不包括合格承諾 Pass Promise' : 'Pass Promise not included'}</span>
+                  </p>
+                </div>
               </div>
               <Link href="/pricing?interval=monthly" className="w-full py-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs text-center transition">
-                View Monthly Options →
+                {isZh ? '查看按月選項 →' : 'View Monthly Options →'}
               </Link>
             </div>
 
             {/* 3-Month Pass */}
             <div className="bg-white rounded-3xl p-8 border-2 border-amber-500 shadow-xl flex flex-col justify-between space-y-6 relative">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
-                MOST POPULAR • SAVE 24%
+                {isZh ? '最受歡迎 • 節省 24%' : 'MOST POPULAR • SAVE 24%'}
               </div>
               <div className="space-y-4 pt-1">
-                <span className="text-xs font-bold text-amber-600 uppercase">3-MONTH PASS</span>
-                <h3 className="text-2xl font-black text-slate-950">From HK$ 480<span className="text-xs text-slate-500 font-normal"> / quarter</span></h3>
-                <p className="text-xs text-slate-600">The standard 90-day revision window recommended by top estate agency training coaches.</p>
-                <ul className="text-xs text-slate-600 space-y-2 pt-2">
-                  <li className="flex items-center gap-2 font-medium text-slate-900">✓ All Monthly Features included</li>
-                  <li className="flex items-center gap-2 font-medium text-slate-900">✓ Spaced Repetition (SRS) Flashcards</li>
-                  <li className="flex items-center gap-2 font-medium text-slate-900">✓ Diagnostic Passing Score Radar</li>
+                <span className="text-xs font-bold text-amber-600 uppercase">
+                  {isZh ? '3 個月考季通' : '3-MONTH PASS'}
+                </span>
+                <div className="space-y-1">
+                  <p className="text-sm font-extrabold text-amber-700">
+                    {isZh ? '標準 90 天衝刺週期' : 'Standard 90-day revision'}
+                  </p>
+                  <h3 className="text-2xl font-black text-slate-950">
+                    {isZh ? (
+                      <>HK$ 480<span className="text-xs text-slate-500 font-normal"> / 每季</span></>
+                    ) : (
+                      <>From HK$ 480<span className="text-xs text-slate-500 font-normal"> / quarter</span></>
+                    )}
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-600">
+                  {isZh
+                    ? '最推薦的 90 天溫習黃金期，讓你以最佳狀態應試。'
+                    : 'The standard 90-day revision window recommended by top estate agency training coaches.'}
+                </p>
+                <ul className="text-xs text-slate-700 space-y-2 pt-2">
+                  {(isZh
+                    ? ['包含所有按月訂閱權限', '間隔重複 (SRS) 閃卡系統', '官方合格分數診斷雷達']
+                    : ['All Monthly Features included', 'Spaced Repetition (SRS) Flashcards', 'Diagnostic Passing Score Radar']
+                  ).map((item, idx) => (
+                    <li key={idx} className="flex items-start gap-2 font-medium text-slate-900">
+                      <span className="text-emerald-500 font-bold">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
                 </ul>
+
+                {/* NOT Included Pass Promise Callout */}
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                  <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
+                    <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
+                    <span>{isZh ? '不包括合格承諾 Pass Promise' : 'Pass Promise not included'}</span>
+                  </p>
+                </div>
               </div>
               <Link href="/pricing?interval=3_monthly" className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs text-center transition shadow-md shadow-amber-500/20">
-                Get 3-Month Pass →
+                {isZh ? '購買 3 個月考季通 →' : 'Get 3-Month Pass →'}
               </Link>
             </div>
 
-            {/* One-Time Pass (Updated Bilingual Block) */}
+            {/* One-Time Pass (+56% Updated: From HK$ 780) */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <span className="text-xs font-bold text-slate-500 uppercase">
@@ -461,9 +506,9 @@ export default function HomePage() {
                   </p>
                   <h3 className="text-2xl font-black text-slate-950">
                     {isZh ? (
-                      <>HK$500 起<span className="text-xs text-slate-500 font-normal">，一次性</span></>
+                      <>HK$ 780 起<span className="text-xs text-slate-500 font-normal">，一次性</span></>
                     ) : (
-                      <>From HK$500<span className="text-xs text-slate-500 font-normal"> one-time</span></>
+                      <>From HK$ 780<span className="text-xs text-slate-500 font-normal"> one-time</span></>
                     )}
                   </h3>
                 </div>
@@ -500,31 +545,20 @@ export default function HomePage() {
 
                 {/* Pass Promise Callout */}
                 <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
-                  <p className="text-xs font-extrabold text-emerald-900">
-                    {isZh ? '已包括合格承諾 Pass Promise' : 'Pass Promise included'}
+                  <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{isZh ? '已包括合格承諾 Pass Promise' : 'Pass Promise included'}</span>
                   </p>
                   <p className="text-[11px] text-emerald-800 leading-relaxed">
                     {isZh ? (
                       <>
                         如你完成整個課程，應考後仍未合格，我們免費延長你的完整使用權 90 天，讓你重考。不設現金退款。詳見
-                        <a
-                          href="#pass-promise-conditions"
-                          className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5"
-                        >
-                          合格承諾條款
-                        </a>
-                        。
+                        <a href="#pass-promise-conditions" className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5">合格承諾條款</a>。
                       </>
                     ) : (
                       <>
                         If you complete the programme, sit your exam, and do not pass, we extend your full access free for 90 days so you can retake. No cash refund. See{' '}
-                        <a
-                          href="#pass-promise-conditions"
-                          className="underline font-bold text-emerald-950 hover:text-amber-700"
-                        >
-                          Pass Promise conditions
-                        </a>
-                        .
+                        <a href="#pass-promise-conditions" className="underline font-bold text-emerald-950 hover:text-amber-700">Pass Promise conditions</a>.
                       </>
                     )}
                   </p>
@@ -551,7 +585,7 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 6.5: PASS PROMISE CONDITIONS & FAQ (SAME-PAGE ANCHOR)
+          STAGE 6.5: PASS PROMISE CONDITIONS & FAQ
          ========================================================= */}
       <section
         id="pass-promise-conditions"

@@ -12,6 +12,7 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  ShieldAlert,
   HelpCircle,
   LogIn,
 } from 'lucide-react';
@@ -24,8 +25,11 @@ export default function PricingPage() {
   const { language, locale } = useLanguage();
   const { userEmail, userTier } = useAuth() as any;
 
-  const currentLang = (language || locale || 'ZH').toString().toUpperCase();
-  const isZh = currentLang.includes('ZH') || currentLang.includes('HK') || currentLang.includes('CN');
+  const [langOverride, setLangOverride] = useState<'EN' | 'ZH' | null>(null);
+  const detectedLang = (language || locale || 'ZH').toString().toUpperCase();
+  const isZh = langOverride
+    ? langOverride === 'ZH'
+    : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
 
   const isLoggedIn = Boolean(userEmail && userEmail !== 'guest@agentpass.hk');
 
@@ -34,7 +38,6 @@ export default function PricingPage() {
   const [acceptedPassPromise, setAcceptedPassPromise] = useState<boolean>(false);
   const [showTermsWarning, setShowTermsWarning] = useState<boolean>(false);
 
-  // Sync interval from query parameter (e.g., /pricing?interval=one_time)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -56,7 +59,7 @@ export default function PricingPage() {
       badge: null,
       priceMonthly: 198,
       price3Monthly: 480,
-      priceOneTime: 500,
+      priceOneTime: 780, // +56% from 500
       featuresZh: [
         '全真 60 題標準考場 (Part I 50 題 + Part II 10 題查冊個案)',
         '完整 130 題核心條例練習庫與常規陷阱剖析',
@@ -83,7 +86,7 @@ export default function PricingPage() {
       isPopular: true,
       priceMonthly: 288,
       price3Monthly: 688,
-      priceOneTime: 710,
+      priceOneTime: 1108, // +56% from 710 (710 * 1.56 = 1107.6 -> 1108)
       featuresZh: [
         '全真 100 題完整標準考卷 (Part I 80 題 + Part II 20 題查冊個案)',
         'IRIS 土地查冊雙個案庫 (Smart Mansion 遺產 / Central Tower 公司查冊)',
@@ -111,14 +114,13 @@ export default function PricingPage() {
       badge: isZh ? '最高性價比' : 'BEST VALUE',
       priceMonthly: 388,
       price3Monthly: 880,
-      priceOneTime: 930,
+      priceOneTime: 1451, // +56% from 930 (930 * 1.56 = 1450.8 -> 1451)
       featuresZh: [
         '同時解鎖 EAQE (100題) 與 SQE (60題) 兩套全真考卷',
         '智能題庫合成器 (Cognitive Synthesizer) 無限動態生成試題',
         '完整 130 題題庫與全套 20 大主題法規速記閃卡',
         '優先排程 AI 弱點診斷導師解析',
         '考前衝刺核心必背條例數字總整理',
-        '已包括合格承諾 Pass Promise（一次性通行證適用）',
       ],
       featuresEn: [
         'Simultaneous access to both EAQE (100 Qs) and SQE (60 Qs) suites',
@@ -126,7 +128,6 @@ export default function PricingPage() {
         'Full 130-question bank & complete active recall deck',
         'Priority AI Diagnostic Weakness Tutoring',
         'High-yield statutory numbers & formula cheat sheet',
-        'Pass Promise included (applies to One-Time Pass)',
       ],
     },
   ];
@@ -196,13 +197,11 @@ export default function PricingPage() {
       ];
 
   const handleCheckout = async (tier: PaidTier, track: 'EAQE' | 'SQE') => {
-    // 1. Require Pass Promise condition acknowledgment for One-Time Pass
     if (billingInterval === 'one_time' && !acceptedPassPromise) {
       setShowTermsWarning(true);
       return;
     }
 
-    // 2. Client-Side Gate: Require authentication prior to checkout
     if (!isLoggedIn) {
       router.push(`/login?redirect=${encodeURIComponent(`/pricing?tier=${tier}&interval=${billingInterval}`)}`);
       return;
@@ -213,7 +212,7 @@ export default function PricingPage() {
       const selectedTier = TIERS.find((t) => t.id === tier);
       let currentPrice = selectedTier?.price3Monthly || 480;
       if (billingInterval === 'monthly') currentPrice = selectedTier?.priceMonthly || 198;
-      if (billingInterval === 'one_time') currentPrice = selectedTier?.priceOneTime || 500;
+      if (billingInterval === 'one_time') currentPrice = selectedTier?.priceOneTime || 780;
 
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -246,15 +245,23 @@ export default function PricingPage() {
     <div className="min-h-screen py-10 sm:py-16 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900 transition-colors">
       <div className="max-w-6xl mx-auto space-y-12">
         
-        {/* Newly Confirmed User Conversion Banner */}
         <PricingWelcomeBanner />
 
         {/* Header Section */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 border border-amber-300 text-amber-900">
-            <Sparkles className="h-3.5 w-3.5 text-amber-600" />
-            <span>TRANSPARENT CANDIDATE PRICING</span>
-          </span>
+          <div className="flex items-center justify-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-amber-50 border border-amber-300 text-amber-900">
+              <Sparkles className="h-3.5 w-3.5 text-amber-600" />
+              <span>TRANSPARENT CANDIDATE PRICING</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setLangOverride(isZh ? 'EN' : 'ZH')}
+              className="px-2.5 py-0.5 rounded-full border border-slate-300 bg-white text-[11px] font-bold text-slate-700 hover:border-amber-500 transition cursor-pointer"
+            >
+              {isZh ? 'EN' : '繁體中文'}
+            </button>
+          </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-slate-900">
             {isZh ? '選擇適合你的備考進度方案' : 'Choose Your Preparation Plan'}
@@ -265,7 +272,6 @@ export default function PricingPage() {
               : 'Statutory-grounded exam prep platform designed for Hong Kong EAQE & SQE licensing candidates.'}
           </p>
 
-          {/* User Auth Status Notification */}
           <div className="pt-2 flex justify-center">
             {isLoggedIn ? (
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800">
@@ -286,14 +292,11 @@ export default function PricingPage() {
           {/* 3-Option Segmented Control */}
           <div className="pt-2 flex items-center justify-center">
             <div className="p-1.5 rounded-2xl bg-slate-200/90 border border-slate-300 grid grid-cols-3 gap-1 shadow-inner max-w-xl w-full">
-              
               <button
                 type="button"
                 onClick={() => setBillingInterval('monthly')}
                 className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${
-                  billingInterval === 'monthly'
-                    ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50'
-                    : 'text-slate-600 hover:text-slate-900'
+                  billingInterval === 'monthly' ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {isZh ? '按月訂閱' : 'Monthly'}
@@ -303,29 +306,22 @@ export default function PricingPage() {
                 type="button"
                 onClick={() => setBillingInterval('3_monthly')}
                 className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center relative ${
-                  billingInterval === '3_monthly'
-                    ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50'
-                    : 'text-slate-600 hover:text-slate-900'
+                  billingInterval === '3_monthly' ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <span>{isZh ? '3個月考季通' : '3-Month Pass'}</span>
-                <span className="hidden sm:inline-block ml-1.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-mono font-black">
-                  -24%
-                </span>
+                <span className="hidden sm:inline-block ml-1.5 px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-mono font-black">-24%</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setBillingInterval('one_time')}
                 className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer text-center ${
-                  billingInterval === 'one_time'
-                    ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50'
-                    : 'text-slate-600 hover:text-slate-900'
+                  billingInterval === 'one_time' ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300/50' : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 {isZh ? '一次性通行證' : 'One-Time Pass'}
               </button>
-
             </div>
           </div>
         </div>
@@ -353,20 +349,14 @@ export default function PricingPage() {
                 {isZh ? (
                   <>
                     我已閱讀合格承諾條款。我明白合格承諾是 90 天免費延期，不設退款。{' '}
-                    <a
-                      href="#pass-promise-conditions"
-                      className="underline font-extrabold text-amber-800 hover:text-amber-950"
-                    >
+                    <a href="#pass-promise-conditions" className="underline font-extrabold text-amber-800 hover:text-amber-950">
                       [查看條款]
                     </a>
                   </>
                 ) : (
                   <>
                     I have read the Pass Promise conditions. I understand Pass Promise is a free 90-day extension, not a refund.{' '}
-                    <a
-                      href="#pass-promise-conditions"
-                      className="underline font-extrabold text-amber-800 hover:text-amber-950"
-                    >
+                    <a href="#pass-promise-conditions" className="underline font-extrabold text-amber-800 hover:text-amber-950">
                       [View conditions]
                     </a>
                   </>
@@ -460,8 +450,8 @@ export default function PricingPage() {
                     ))}
                   </div>
 
-                  {/* Pass Promise Callout on One-Time Pass */}
-                  {billingInterval === 'one_time' && (
+                  {/* Pass Promise Callout - Display logic based on interval */}
+                  {billingInterval === 'one_time' ? (
                     <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
                       <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
                         <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -471,26 +461,21 @@ export default function PricingPage() {
                         {isZh ? (
                           <>
                             如你完成整個課程，應考後仍未合格，我們免費延長你的完整使用權 90 天，讓你重考。不設現金退款。詳見
-                            <a
-                              href="#pass-promise-conditions"
-                              className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5"
-                            >
-                              合格承諾條款
-                            </a>
-                            。
+                            <a href="#pass-promise-conditions" className="underline font-bold text-emerald-950 hover:text-amber-700 ml-0.5">合格承諾條款</a>。
                           </>
                         ) : (
                           <>
                             If you complete the programme, sit your exam, and do not pass, we extend your full access free for 90 days so you can retake. No cash refund. See{' '}
-                            <a
-                              href="#pass-promise-conditions"
-                              className="underline font-bold text-emerald-950 hover:text-amber-700"
-                            >
-                              Pass Promise conditions
-                            </a>
-                            .
+                            <a href="#pass-promise-conditions" className="underline font-bold text-emerald-950 hover:text-amber-700">Pass Promise conditions</a>.
                           </>
                         )}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                      <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
+                        <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
+                        <span>{isZh ? '不包括合格承諾 Pass Promise' : 'Pass Promise not included'}</span>
                       </p>
                     </div>
                   )}
@@ -585,7 +570,7 @@ export default function PricingPage() {
                 key={index}
                 className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2"
               >
-                <h3 className="text-sm font-black text-slate-900">
+                <h3 className="text-sm font-black text-slate-950">
                   {index + 1}. {faq.q}
                 </h3>
                 <p className="text-xs text-slate-700 leading-relaxed">{faq.a}</p>
