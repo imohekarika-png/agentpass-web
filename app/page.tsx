@@ -1,4 +1,3 @@
-
 // app/page.tsx
 'use client';
 
@@ -16,6 +15,7 @@ export default function HomePage() {
   const isZh = langOverride
     ? langOverride === 'ZH'
     : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
+
   // Shared EAA engine - same source as dashboard OfficialScheduleFetcher / ExamTrackerCTA
   // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027, no manual edit.
   const { exam, daysToExam, daysToReg } = useExamCountdown('EAQE');
@@ -23,6 +23,8 @@ export default function HomePage() {
   const examLabelEn = exam ? formatExamDate(exam.examDate, false) : '15 DEC';
   const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : '12月1日';
   const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : '1 DEC';
+  const regPostLabelZh = exam ? formatExamDate(exam.regPost, true) : '11月24日';
+  const regPostLabelEn = exam ? formatExamDate(exam.regPost, false) : '24 NOV';
 
   const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
   const [sampleAnswer, setSampleAnswer] = useState<string | null>(null);
@@ -93,8 +95,16 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-amber-100 selection:text-amber-900">
-      <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">{daysToReg > 0 ? (isZh ? `EAQE ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日` : `EAQE ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`) : (isZh ? `EAQE ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考` : `EAQE ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`)}</div>
-      
+      <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">
+        {daysToReg > 0
+          ? isZh
+            ? `EAQE ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日`
+            : `EAQE ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`
+          : isZh
+          ? `EAQE ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考`
+          : `EAQE ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`}
+      </div>
+
       {/* =========================================================
           STAGE 1: HERO SECTION + DUAL TRACK SELECTOR
          ========================================================= */}
@@ -106,15 +116,27 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6 text-left">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold tracking-wide shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                AI-Powered Prep for HK EAA Licensing Exams • EAQE 15 Dec Sprint
+                {isZh
+                  ? `AI 智能備戰香港 EAA 牌照考試 • EAQE ${examLabelZh}衝刺`
+                  : `AI-Powered Prep for HK EAA Licensing Exams • EAQE ${examLabelEn} Sprint`}
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.12]">
-                Pass <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE on 15 Dec</span> First Time
+                {isZh ? (
+                  <>
+                    一次過考取 <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE {examLabelZh}</span> 牌照
+                  </>
+                ) : (
+                  <>
+                    Pass <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE on {examLabelEn}</span> First Time
+                  </>
+                )}
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                Registration closes 1 Dec. 20 statutory blocks, SRS, Memory Palace mnemonics, and IRIS dossiers - built to fix the traps that fail most first-timers in 30 days. Aligned to EAA syllabus and practice circulars. Not EAA approved.
+                {isZh
+                  ? `網上報名 ${regLabelZh}截止。20 個法定單元、間隔重複 (SRS)、記憶宮殿口訣及 IRIS 查冊個案——專為 30 日內攻克首次考生最常失分的陷阱而設。對齊 EAA 考試大綱及實務通告，非 EAA 認可。`
+                  : `Registration closes ${regLabelEn}. 20 statutory blocks, SRS, Memory Palace mnemonics, and IRIS dossiers - built to fix the traps that fail most first-timers in 30 days. Aligned to EAA syllabus and practice circulars. Not EAA approved.`}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
@@ -122,13 +144,13 @@ export default function HomePage() {
                   href="/diagnostic"
                   className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5"
                 >
-                  Take Free 5-Question Diagnostic →
+                  {isZh ? '免費做 5 題弱點診斷 →' : 'Take Free 5-Question Diagnostic →'}
                 </Link>
                 <Link
                   href="/eaqe-dec-15"
                   className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition"
                 >
-                  See EAQE Dec 15 Plan
+                  {isZh ? `查看 EAQE ${examLabelZh}衝刺計劃` : `See EAQE ${examLabelEn} Plan`}
                 </Link>
               </div>
             </div>
@@ -137,15 +159,23 @@ export default function HomePage() {
             <div className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 border border-slate-200 space-y-5">
                 <div className="border-b border-slate-100 pb-4">
-                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-600">STEP 1: SELECT YOUR TARGET EXAM</p>
-                  <h3 className="text-xl font-black text-slate-950 mt-1">Streamline Relevant Content</h3>
-                  <p className="text-xs text-slate-500 mt-1">Focus your questions and statutory traps on your specific license category.</p>
+                  <p className="text-[11px] font-black uppercase tracking-wider text-amber-600">
+                    {isZh ? '第一步：選擇你的目標考試' : 'STEP 1: SELECT YOUR TARGET EXAM'}
+                  </p>
+                  <h3 className="text-xl font-black text-slate-950 mt-1">
+                    {isZh ? '精準鎖定應考範圍' : 'Streamline Relevant Content'}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {isZh
+                      ? '按你的牌照類別集中操練必考題型與法例陷阱。'
+                      : 'Focus your questions and statutory traps on your specific license category.'}
+                  </p>
                 </div>
 
                 <div className="space-y-3">
                   <button
                     onClick={() => setSelectedTrack('EAQE')}
-                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer ${
                       selectedTrack === 'EAQE'
                         ? 'border-amber-500 bg-amber-50/50 shadow-sm'
                         : 'border-slate-100 bg-slate-50 hover:border-slate-300'
@@ -153,10 +183,18 @@ export default function HomePage() {
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-sm text-slate-950">EAQE Estate Agent License (大牌)</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">Individual License</span>
+                        <span className="font-black text-sm text-slate-950">
+                          {isZh ? 'EAQE 地產代理牌照 (大牌)' : 'EAQE Estate Agent License (大牌)'}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200 text-amber-900">
+                          {isZh ? '個人牌照' : 'Individual License'}
+                        </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">20 Statutory Blocks • 100 Qs Full Paper • Part II IRIS Land Search</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {isZh
+                          ? '20 個法定單元 • 100 題全真考卷 • Part II IRIS 土地查冊'
+                          : '20 Statutory Blocks • 100 Qs Full Paper • Part II IRIS Land Search'}
+                      </p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedTrack === 'EAQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
                       {selectedTrack === 'EAQE' && <span className="text-xs">✓</span>}
@@ -165,7 +203,7 @@ export default function HomePage() {
 
                   <button
                     onClick={() => setSelectedTrack('SQE')}
-                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between ${
+                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer ${
                       selectedTrack === 'SQE'
                         ? 'border-amber-500 bg-amber-50/50 shadow-sm'
                         : 'border-slate-100 bg-slate-50 hover:border-slate-300'
@@ -173,10 +211,18 @@ export default function HomePage() {
                   >
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-black text-sm text-slate-950">SQE Salesperson License (細牌)</span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800">Salesperson</span>
+                        <span className="font-black text-sm text-slate-950">
+                          {isZh ? 'SQE 營業員牌照 (細牌)' : 'SQE Salesperson License (細牌)'}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-800">
+                          {isZh ? '營業員' : 'Salesperson'}
+                        </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">16 Statutory Blocks • 60 Qs Paper • Basic Agency & Form Practice</p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {isZh
+                          ? '16 個法定單元 • 60 題考卷 • 基礎代理及標準表格實務'
+                          : '16 Statutory Blocks • 60 Qs Paper • Basic Agency & Form Practice'}
+                      </p>
                     </div>
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedTrack === 'SQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
                       {selectedTrack === 'SQE' && <span className="text-xs">✓</span>}
@@ -189,7 +235,7 @@ export default function HomePage() {
                     href={`/diagnostic?track=${selectedTrack}`}
                     className="w-full py-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition"
                   >
-                    Launch {selectedTrack} Diagnostic Environment →
+                    {isZh ? `啟動 ${selectedTrack} 免費診斷測試 →` : `Launch ${selectedTrack} Diagnostic Environment →`}
                   </Link>
                 </div>
               </div>
@@ -205,40 +251,102 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
             <div className="space-y-1">
-              <p className="text-sm font-black text-slate-900">100% EAA Aligned</p>
-              <p className="text-xs text-slate-500">Cap. 511, Cap. 219 & Cap. 123</p>
+              <p className="text-sm font-black text-slate-900">
+                {isZh ? '100% 對齊 EAA 大綱' : '100% EAA Aligned'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isZh ? '第511章、第219章及第123章' : 'Cap. 511, Cap. 219 & Cap. 123'}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-black text-slate-900">Official 60% Passing Mark</p>
-              <p className="text-xs text-slate-500">Diagnostic Weakness Radar</p>
+              <p className="text-sm font-black text-slate-900">
+                {isZh ? '官方 60% 合格線' : 'Official 60% Passing Mark'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isZh ? '弱點診斷雷達分析' : 'Diagnostic Weakness Radar'}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-black text-slate-900">IRIS Land Search Cases</p>
-              <p className="text-xs text-slate-500">Probate, Lis Pendens & Encumbrances</p>
+              <p className="text-sm font-black text-slate-900">
+                {isZh ? 'IRIS 土地查冊個案' : 'IRIS Land Search Cases'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isZh ? '遺產承辦、待決訴訟及產權負擔' : 'Probate, Lis Pendens & Encumbrances'}
+              </p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm font-black text-slate-900">Spaced Repetition (SRS)</p>
-              <p className="text-xs text-slate-500">Automated Error Queue Review</p>
+              <p className="text-sm font-black text-slate-900">
+                {isZh ? '間隔重複記憶 (SRS)' : 'Spaced Repetition (SRS)'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isZh ? '自動錯題重溫排程' : 'Automated Error Queue Review'}
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* STAGE 2.5: EAQE DEC 15 - 30 DAY PLAN (SPRINT ADD) */}
+      {/* =========================================================
+          STAGE 2.5: EAQE DEC 15 - 30 DAY PLAN (SPRINT ADD)
+         ========================================================= */}
       <section className="py-16 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-amber-600">{isZh ? "EAQE 12月15日 • 30日計劃" : "EAQE 15 DEC • 30-DAY PLAN"}</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">{isZh ? "30 日，唔需要更多筆記" : "30 Days. You Do Not Need More Notes."}</h2>
-            <p className="text-sm text-slate-600">{isZh ? "你需要停低跌入同一個 IRIS 陷阱。先做診斷，再按計劃做。" : "You need to stop falling for the same IRIS traps. Diagnose first, then follow the plan."}</p>
+            <p className="text-xs font-black uppercase tracking-widest text-amber-600">
+              {isZh ? `EAQE ${examLabelZh} • 30日計劃` : `EAQE ${examLabelEn} • 30-DAY PLAN`}
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+              {isZh ? '30 日，唔需要更多筆記' : '30 Days. You Do Not Need More Notes.'}
+            </h2>
+            <p className="text-sm text-slate-600">
+              {isZh
+                ? '你需要停低跌入同一個 IRIS 陷阱。先做診斷，再按計劃做。'
+                : 'You need to stop falling for the same IRIS traps. Diagnose first, then follow the plan.'}
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">01</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 1-10 日：打底" : "Days 1-10: Foundations"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "完成 20 個法定單元。診斷到 60%。每日 60-90 分鐘。" : "Finish 20 statutory blocks. Diagnostic to 60%. 60-90 mins per day."}</p></div>
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">02</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 11-20 日：IRIS 陷阱" : "Days 11-20: IRIS Traps"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "Probate、Lis Pendens、Encumbrances、Floating Charges。Mock 1 + Mock 2。" : "Probate, Lis Pendens, Encumbrances, Floating Charges. Mock 1 + Mock 2."}</p></div>
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4"><span className="text-4xl font-black text-amber-500/20">03</span><h3 className="text-xl font-bold text-slate-950">{isZh ? "第 21-30 日：模擬 + 錯題" : "Days 21-30: Mocks + Errors"}</h3><p className="text-sm text-slate-600 leading-relaxed">{isZh ? "Mock 3 + SRS 錯題到 90%。考試日清單。" : "Mock 3 + SRS error queue to 90%. Exam-day checklist."}</p></div>
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4">
+              <span className="text-4xl font-black text-amber-500/20">01</span>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '第 1-10 日：打底' : 'Days 1-10: Foundations'}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {isZh
+                  ? '完成 20 個法定單元。診斷到 60%。每日 60-90 分鐘。'
+                  : 'Finish 20 statutory blocks. Diagnostic to 60%. 60-90 mins per day.'}
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4">
+              <span className="text-4xl font-black text-amber-500/20">02</span>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '第 11-20 日：IRIS 陷阱' : 'Days 11-20: IRIS Traps'}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {isZh
+                  ? 'Probate、Lis Pendens、Encumbrances、Floating Charges。Mock 1 + Mock 2。'
+                  : 'Probate, Lis Pendens, Encumbrances, Floating Charges. Mock 1 + Mock 2.'}
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4">
+              <span className="text-4xl font-black text-amber-500/20">03</span>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '第 21-30 日：模擬 + 錯題' : 'Days 21-30: Mocks + Errors'}
+              </h3>
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {isZh
+                  ? 'Mock 3 + SRS 錯題到 90%。考試日清單。'
+                  : 'Mock 3 + SRS error queue to 90%. Exam-day checklist.'}
+              </p>
+            </div>
           </div>
-          <div className="text-center"><Link href="/eaqe-dec-15" className="inline-flex px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition">{isZh ? "睇 EAQE 12月15日完整計劃 →" : "See Full EAQE Dec 15 Plan →"}</Link></div>
+          <div className="text-center">
+            <Link
+              href="/eaqe-dec-15"
+              className="inline-flex px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition"
+            >
+              {isZh ? `睇 EAQE ${examLabelZh}完整計劃 →` : `See Full EAQE ${examLabelEn} Plan →`}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -249,33 +357,53 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
           
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <p className="text-xs font-black uppercase tracking-widest text-amber-600">3-STEP CANDIDATE METHODOLOGY</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">How AgentPass™ Gives You The Edge</h2>
-            <p className="text-sm text-slate-600">A deliberate learning architecture designed to eliminate memorization fatigue and trap failures.</p>
+            <p className="text-xs font-black uppercase tracking-widest text-amber-600">
+              {isZh ? '三步備考方法論' : '3-STEP CANDIDATE METHODOLOGY'}
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+              {isZh ? 'AgentPass™ 如何助你穩奪合格優勢' : 'How AgentPass™ Gives You The Edge'}
+            </h2>
+            <p className="text-sm text-slate-600">
+              {isZh
+                ? '專為消除死記硬背疲勞與避免常見陷阱失分而設的系統化學習架構。'
+                : 'A deliberate learning architecture designed to eliminate memorization fatigue and trap failures.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">01</span>
-              <h3 className="text-xl font-bold text-slate-950">Study Statutory Blocks</h3>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '精讀法定教學單元' : 'Study Statutory Blocks'}
+              </h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Review verified statutory notes across all 20 syllabus blocks. Master essential ordinance provisions with side-by-side &quot;Do Not Confuse&quot; trap tables.
+                {isZh
+                  ? '覆蓋全部 20 個大綱單元的核實法例筆記，配合「切勿混淆」陷阱對比表，快速掌握核心條文。'
+                  : 'Review verified statutory notes across all 20 syllabus blocks. Master essential ordinance provisions with side-by-side "Do Not Confuse" trap tables.'}
               </p>
             </div>
 
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">02</span>
-              <h3 className="text-xl font-bold text-slate-950">Active Recall & Flashcards</h3>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '主動回憶與智能閃卡' : 'Active Recall & Flashcards'}
+              </h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Retain critical statutory numbers, penalties, and time bars using automated Leitner spaced repetition. Tricky legal limits resurface right before you forget them.
+                {isZh
+                  ? '運用 Leitner 間隔重複算法牢記關鍵法例數字、罰則及時效限制，易錯重點會在遺忘前自動重現。'
+                  : 'Retain critical statutory numbers, penalties, and time bars using automated Leitner spaced repetition. Tricky legal limits resurface right before you forget them.'}
               </p>
             </div>
 
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition space-y-4">
               <span className="text-4xl font-black text-amber-500/20">03</span>
-              <h3 className="text-xl font-bold text-slate-950">Dual-Stage Mock Exam</h3>
+              <h3 className="text-xl font-bold text-slate-950">
+                {isZh ? '雙階段全真模擬考試' : 'Dual-Stage Mock Exam'}
+              </h3>
               <p className="text-sm text-slate-600 leading-relaxed">
-                Experience the authentic 3-hour exam pressure. Tackle Part I statutory MCQs and Part II IRIS Land Search document dossiers under official countdown timers.
+                {isZh
+                  ? '體驗真實 3 小時考場節奏，在官方倒數計時下完成第一部分法例選擇題及第二部分 IRIS 土地查冊個案。'
+                  : 'Experience the authentic 3-hour exam pressure. Tackle Part I statutory MCQs and Part II IRIS Land Search document dossiers under official countdown timers.'}
               </p>
             </div>
           </div>
@@ -289,23 +417,29 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="text-center space-y-3 mb-10">
             <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold">
-              TRY A LIVE SAMPLE QUESTION
+              {isZh ? '即場試做精選模擬題' : 'TRY A LIVE SAMPLE QUESTION'}
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white">Can you answer this high-frequency exam trap?</h2>
-            <p className="text-xs sm:text-sm text-slate-400">Section 5 of the Land Registration Ordinance (Cap. 128)</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-white">
+              {isZh ? '你能識破這條高頻考試陷阱嗎？' : 'Can you answer this high-frequency exam trap?'}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400">
+              {isZh ? '《土地註冊條例》(第128章) 第5條' : 'Section 5 of the Land Registration Ordinance (Cap. 128)'}
+            </p>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
             <p className="text-base sm:text-lg font-bold text-slate-100">
-              Under Cap. 128, an instrument registered within how many days of execution retains statutory priority from its date of execution?
+              {isZh
+                ? '根據《土地註冊條例》(第128章)，文書在簽立後多少天內註冊，方可保留自簽立日期起計的法定優先權？'
+                : 'Under Cap. 128, an instrument registered within how many days of execution retains statutory priority from its date of execution?'}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               {[
-                { key: 'A', label: '14 days' },
-                { key: 'B', label: '30 days (One Month)' },
-                { key: 'C', label: '60 days' },
-                { key: 'D', label: '3 months' },
+                { key: 'A', label: isZh ? '14 天' : '14 days' },
+                { key: 'B', label: isZh ? '30 天（一個月）' : '30 days (One Month)' },
+                { key: 'C', label: isZh ? '60 天' : '60 days' },
+                { key: 'D', label: isZh ? '3 個月' : '3 months' },
               ].map((opt) => (
                 <button
                   key={opt.key}
@@ -331,16 +465,32 @@ export default function HomePage() {
               }`}>
                 {sampleAnswer === 'B' ? (
                   <p>
-                    <strong className="text-emerald-400">Correct!</strong> Under Section 5 of Cap. 128, instruments lodged within <strong>30 days</strong> of execution relate back to their execution date. After 30 days, priority is determined strictly by the registration date.
+                    {isZh ? (
+                      <>
+                        <strong className="text-emerald-400">答對了！</strong> 根據第128章第5條，文書在簽立後 <strong>30 天內</strong> 遞交註冊，其優先權可追溯至簽立日期。超過 30 天則嚴格按註冊日期計算優先次序。
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-emerald-400">Correct!</strong> Under Section 5 of Cap. 128, instruments lodged within <strong>30 days</strong> of execution relate back to their execution date. After 30 days, priority is determined strictly by the registration date.
+                      </>
+                    )}
                   </p>
                 ) : (
                   <p>
-                    <strong className="text-rose-400">Incorrect.</strong> The statutory window is <strong>30 days (Option B)</strong> under Cap. 128. Failure to register within 30 days forfeits retroactive priority back to the execution date.
+                    {isZh ? (
+                      <>
+                        <strong className="text-rose-400">答錯了。</strong> 根據第128章，法定期限為 <strong>30 天（選項 B）</strong>。若未能在 30 天內註冊，將喪失追溯至簽立日期的優先權。
+                      </>
+                    ) : (
+                      <>
+                        <strong className="text-rose-400">Incorrect.</strong> The statutory window is <strong>30 days (Option B)</strong> under Cap. 128. Failure to register within 30 days forfeits retroactive priority back to the execution date.
+                      </>
+                    )}
                   </p>
                 )}
                 <div className="mt-3 pt-3 border-t border-slate-800 flex justify-end">
                   <Link href="/mock-exam" className="text-amber-400 hover:text-amber-300 font-bold inline-flex items-center gap-1">
-                    Practice 10 More Free Questions →
+                    {isZh ? '免費練習多 10 條模擬題 →' : 'Practice 10 More Free Questions →'}
                   </Link>
                 </div>
               </div>
@@ -355,47 +505,98 @@ export default function HomePage() {
       <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center space-y-3 mb-12">
-            <h2 className="text-3xl font-black text-slate-950">Which License Are You Sitting For?</h2>
-            <p className="text-sm text-slate-600">Review the differences between Estate Agent (大牌) and Salesperson (細牌) requirements.</p>
+            <h2 className="text-3xl font-black text-slate-950">
+              {isZh ? '你準備應考哪一種牌照？' : 'Which License Are You Sitting For?'}
+            </h2>
+            <p className="text-sm text-slate-600">
+              {isZh
+                ? '比較地產代理 (大牌) 與地產營業員 (細牌) 的考試要求與主要分別。'
+                : 'Review the differences between Estate Agent (大牌) and Salesperson (細牌) requirements.'}
+            </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm border-collapse">
               <thead>
                 <tr className="border-b-2 border-slate-200 text-slate-400 uppercase text-xs">
-                  <th className="py-3 px-4">Parameter</th>
+                  <th className="py-3 px-4">{isZh ? '比較項目' : 'Parameter'}</th>
                   <th className="py-3 px-4 text-slate-900 font-black">EAQE (地產代理資格考試)</th>
                   <th className="py-3 px-4 text-slate-900 font-black">SQE (地產營業員資格考試)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 <tr>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">License Granted</td>
-                  <td className="py-3.5 px-4">Individual Estate Agent (大牌 - Can run agency)</td>
-                  <td className="py-3.5 px-4">Salesperson (細牌 - Employed agent)</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {isZh ? '獲發牌照類別' : 'License Granted'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '地產代理個人牌照 (大牌 - 可開設地產代理行)' : 'Individual Estate Agent (大牌 - Can run agency)'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '地產營業員牌照 (細牌 - 受僱營業員)' : 'Salesperson (細牌 - Employed agent)'}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">Exam Format</td>
-                  <td className="py-3.5 px-4">100 MCQs (3 Hours)</td>
-                  <td className="py-3.5 px-4">60 MCQs (2.5 Hours)</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {isZh ? '考試形式與時間' : 'Exam Format'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '100 條多項選擇題 (3 小時)' : '100 MCQs (3 Hours)'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '60 條多項選擇題 (2.5 小時)' : '60 MCQs (2.5 Hours)'}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">Passing Mark</td>
-                  <td className="py-3.5 px-4 font-semibold text-emerald-600">60% in both Part I & Part II</td>
-                  <td className="py-3.5 px-4 font-semibold text-emerald-600">60% in both Part I & Part II</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {isZh ? '合格分數線' : 'Passing Mark'}
+                  </td>
+                  <td className="py-3.5 px-4 font-semibold text-emerald-600">
+                    {isZh ? '第一及第二部分均須達 60%' : '60% in both Part I & Part II'}
+                  </td>
+                  <td className="py-3.5 px-4 font-semibold text-emerald-600">
+                    {isZh ? '第一及第二部分均須達 60%' : '60% in both Part I & Part II'}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">IRIS Land Search Depth</td>
-                  <td className="py-3.5 px-4">Part II: 20 Advanced Corporate & Probate cases</td>
-                  <td className="py-3.5 px-4">Part II: 10 Standard Residential cases</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {isZh ? 'IRIS 土地查冊深度' : 'IRIS Land Search Depth'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '第二部分：20 題進階公司及遺產查冊個案' : 'Part II: 20 Advanced Corporate & Probate cases'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '第二部分：10 題標準住宅查冊個案' : 'Part II: 10 Standard Residential cases'}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-3.5 px-4 font-bold text-slate-900">Key Statutory Focus</td>
-                  <td className="py-3.5 px-4">Cap. 511, Manager liabilities, floating charges</td>
-                  <td className="py-3.5 px-4">Standard Agency Agreements (Form 1 to 6), Cap. 511</td>
+                  <td className="py-3.5 px-4 font-bold text-slate-900">
+                    {isZh ? '核心法例重點' : 'Key Statutory Focus'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '第511章、經理法律責任、浮動押記' : 'Cap. 511, Manager liabilities, floating charges'}
+                  </td>
+                  <td className="py-3.5 px-4">
+                    {isZh ? '標準地產代理協議 (表格 1 至 6)、第511章' : 'Standard Agency Agreements (Form 1 to 6), Cap. 511'}
+                  </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            <Link
+              href="/eaqe-dec-15"
+              className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition"
+            >
+              {isZh ? `EAQE ${examLabelZh}衝刺計劃 →` : `EAQE ${examLabelEn} Plan →`}
+            </Link>
+            <Link
+              href="/sqe-next"
+              className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition"
+            >
+              {isZh ? '準備考 SQE？查看下期 SQE 備考計劃 →' : 'Sitting SQE next? See SQE Next Sitting Plan →'}
+            </Link>
           </div>
         </div>
       </section>
@@ -408,7 +609,9 @@ export default function HomePage() {
           
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <div className="flex items-center justify-center gap-3">
-              <p className="text-xs font-black uppercase tracking-widest text-amber-600">TRANSPARENT PASS PLANS</p>
+              <p className="text-xs font-black uppercase tracking-widest text-amber-600">
+                {isZh ? '清晰透明備考方案' : 'TRANSPARENT PASS PLANS'}
+              </p>
               <button
                 type="button"
                 onClick={() => setLangOverride(isZh ? 'EN' : 'ZH')}
@@ -417,8 +620,14 @@ export default function HomePage() {
                 {isZh ? 'EN' : '繁體中文'}
               </button>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">Invest in Your Hong Kong Real Estate Career</h2>
-            <p className="text-sm text-slate-600">Complete access to question banks, mock exams, and flashcards with instant Stripe checkout.</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
+              {isZh ? '投資你的香港地產代理專業事業' : 'Invest in Your Hong Kong Real Estate Career'}
+            </h2>
+            <p className="text-sm text-slate-600">
+              {isZh
+                ? '完整解鎖法定題庫、模擬考試與智能閃卡，經 Stripe 即時安全付款開通。'
+                : 'Complete access to question banks, mock exams, and flashcards with instant Stripe checkout.'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
@@ -665,16 +874,22 @@ export default function HomePage() {
          ========================================================= */}
       <section className="bg-slate-950 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
-          <h2 className="text-3xl font-black text-white">EAQE 15 Dec. Registration Closes 1 Dec.</h2>
+          <h2 className="text-3xl font-black text-white">
+            {isZh
+              ? `EAQE ${examLabelZh}。網上報名 ${regLabelZh}截止。`
+              : `EAQE ${examLabelEn}. Registration Closes ${regLabelEn}.`}
+          </h2>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
-            Registration closes 1 Dec online, 24 Nov by post. Over 65% of first-timers fail on IRIS traps and time bars. If you are sitting Dec 15, start tonight with the free diagnostic, then Block 1.
+            {isZh
+              ? `網上報名 ${regLabelZh}截止，郵寄 ${regPostLabelZh}截止。超過 65% 首次考生因 IRIS 陷阱與法例時效失分。如果你應考 ${examLabelZh}，今晚先做免費診斷，再開始第 1 單元。`
+              : `Registration closes ${regLabelEn} online, ${regPostLabelEn} by post. Over 65% of first-timers fail on IRIS traps and time bars. If you are sitting ${examLabelEn}, start tonight with the free diagnostic, then Block 1.`}
           </p>
           <div>
             <Link
               href="/diagnostic"
               className="inline-flex px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-xl shadow-amber-500/20"
             >
-              Start Free 5-Question Diagnostic →
+              {isZh ? '免費做 5 題弱點診斷 →' : 'Start Free 5-Question Diagnostic →'}
             </Link>
           </div>
         </div>
