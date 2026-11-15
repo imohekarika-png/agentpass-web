@@ -388,6 +388,15 @@ export default function HomePage() {
               </tbody>
             </table>
           </div>
+
+          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            <Link href="/eaqe-dec-15" className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition">
+              EAQE Dec 15 Plan →
+            </Link>
+            <Link href="/sqe-next" className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition">
+              Sitting SQE next? See SQE Next Sitting Plan →
+            </Link>
+          </div>
         </div>
       </section>
 
