@@ -1,4 +1,3 @@
-
 // app/lib/examSchedule.ts
 // SINGLE SOURCE OF TRUTH for all EAA exam countdowns
 // Used by: homepage banner, /eaqe-dec-15, /sqe-next, dashboard OfficialScheduleFetcher + ExamTrackerCTA
@@ -83,7 +82,6 @@ export const EAA_EXAMS: EAAExam[] = [
 // --- Pure helpers (no React, safe to use in Server Components too) ---
 
 function parseHK(dateStr: string, endOfDay = false): Date {
-  // Force HK timezone so countdown is same in HK regardless of visitor timezone
   return new Date(`${dateStr}T${endOfDay ? '23:59:59' : '00:00:00'}+08:00`);
 }
 
@@ -93,7 +91,6 @@ export function daysUntil(targetDateStr: string, now = new Date(), endOfDay = fa
 }
 
 export function getNextExam(track: ExamTrack, now = new Date()): EAAExam | null {
-  // First exam on/after today for this track. Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027.
   const todayStart = parseHK(now.toISOString().slice(0, 10));
   const upcoming = EAA_EXAMS.filter(
     (e) => e.track === track && parseHK(e.examDate).getTime() >= todayStart.getTime()
@@ -119,17 +116,11 @@ export function formatExamDate(dateStr: string, isZh: boolean): string {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
-// --- Hook: shared countdown engine ---
-// Mirrors dashboard behaviour: if user picked a date in dashboard (OfficialScheduleFetcher
-// saves it to localStorage 'agentpass_exam_date'), honour that date. Otherwise fall back to
-// the next official exam for the requested track. This is what makes homepage + dashboard
-// stay in sync - they read the same keys + same EAA_EXAMS list.
-
 export interface ExamCountdown {
   exam: EAAExam | null;
   examDateStr: string;
   daysToExam: number;
-  daysToReg: number; // days to online deadline (final)
+  daysToReg: number;
   daysToRegPost: number;
   isRegClosed: boolean;
   isRegPostClosed: boolean;
@@ -138,7 +129,6 @@ export interface ExamCountdown {
 }
 
 export function useExamCountdown(track: ExamTrack): ExamCountdown {
-  // Initial fallback = next official exam at build time (avoids hydration mismatch)
   const fallback = getNextExam(track) ?? EAA_EXAMS.find((e) => e.track === track) ?? null;
 
   const [exam, setExam] = useState<EAAExam | null>(fallback);
@@ -157,11 +147,6 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
       const now = new Date();
       let chosen: EAAExam | null = getNextExam(track, now);
 
-      // STRICT: only honour saved dates that are in EAA_EXAMS for this track.
-      // WHY: dashboard /api/schedule was returning WRONG dates (SQE 25 Nov, 10 Dec) that are
-      // NOT in the EAA timetable. Old code treated those as ad-hoc exams and counted to them.
-      // Now: if savedDate is NOT in EAA_EXAMS, ignore it + clear it, fall back to next official exam.
-      // Dashboard keys: 'agentpass_exam_date' + 'agentpass_selected_track' - see dashboard/page.tsx
       try {
         const savedDate = localStorage.getItem('agentpass_exam_date');
         const savedTrack = (localStorage.getItem('agentpass_selected_track') || '').toUpperCase();
@@ -172,15 +157,10 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
           if (isValidForTrack && isFuture && (savedTrack === track || !savedTrack)) {
             chosen = savedExam;
           } else if (!savedExam) {
-            // Invalid date (e.g. 2026-11-25 from buggy /api/schedule) - clear it so it never
-            // pollutes the countdown again. Fall back to official next exam (chosen already).
             localStorage.removeItem('agentpass_exam_date');
-            console.warn(`[examSchedule] Ignored invalid saved exam date ${savedDate} - not in EAA timetable. Using ${chosen?.examDate ?? 'next official'}.`);
           } else if (!isFuture) {
-            // Past date - let getNextExam handle roll-forward, clear stale value
             localStorage.removeItem('agentpass_exam_date');
           }
-          // If savedExam exists but for other track, ignore for this track (do not clear, other track may use it)
         }
       } catch {}
 
@@ -193,18 +173,19 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
     };
 
     calc();
-    const timer = setInterval(calc, 60 * 60 * 1000); // re-check hourly
-    // Re-sync if dashboard changes exam date in another tab
+    const timer = setInterval(calc, 60 * 60 * 1000);
     const onStorage = (e: StorageEvent) => {
       if (e.key === 'agentpass_exam_date' || e.key === 'agentpass_selected_track') calc();
     };
-    const onAuth = () => calc();
+    const onSync = () => calc();
     window.addEventListener('storage', onStorage);
-    window.addEventListener('agentpass_auth_change', onAuth);
+    window.addEventListener('agentpass_auth_change', onSync);
+    window.addEventListener('agentpass_exam_date_change', onSync);
     return () => {
       clearInterval(timer);
       window.removeEventListener('storage', onStorage);
-      window.removeEventListener('agentpass_auth_change', onAuth);
+      window.removeEventListener('agentpass_auth_change', onSync);
+      window.removeEventListener('agentpass_exam_date_change', onSync);
     };
   }, [track]);
 
@@ -220,4 +201,3 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
     hasNextExam: !!exam,
   };
 }
-

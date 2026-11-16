@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import ExamTrackerCTA from '@/app/components/ExamTrackerCTA';
 import OfficialScheduleFetcher from '@/app/components/OfficialScheduleFetcher';
+import { getNextExam } from '@/app/lib/examSchedule';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { useAuth } from '@/app/context/AuthContext';
 import { 
@@ -34,15 +35,16 @@ export default function DashboardPage() {
   const { userEmail } = useAuth();
 
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
-  const [selectedTrack, setSelectedTrack] = useState<string>('sqe');
+  const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
   const [isMounted, setIsMounted] = useState(false);
 
-  // Load reviews scoped specifically to the current user email
   const loadUserProgress = useCallback(() => {
     if (typeof window === 'undefined') return;
 
-    const savedTrack = localStorage.getItem('agentpass_selected_track');
-    if (savedTrack) setSelectedTrack(savedTrack);
+    const savedTrack = (localStorage.getItem('agentpass_selected_track') || '').toUpperCase();
+    if (savedTrack === 'EAQE' || savedTrack === 'SQE') {
+      setSelectedTrack(savedTrack);
+    }
 
     const storageKey = userEmail && userEmail !== 'guest@agentpass.hk'
       ? `agentpass_srs_${encodeURIComponent(userEmail.toLowerCase().trim())}`
@@ -57,7 +59,6 @@ export default function DashboardPage() {
           return;
         }
       }
-      // For any clean account or new user with no attempts, start at 0
       setReviews([]);
     } catch (e) {
       console.warn('Failed to load user SRS Queue:', e);
@@ -69,19 +70,43 @@ export default function DashboardPage() {
     setIsMounted(true);
     loadUserProgress();
 
-    // Listen to real-time auth changes across tabs or logout
-    const handleAuthEvent = () => loadUserProgress();
-    window.addEventListener('agentpass_auth_change', handleAuthEvent);
-    return () => window.removeEventListener('agentpass_auth_change', handleAuthEvent);
+    const handleSyncEvent = () => loadUserProgress();
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === 'agentpass_selected_track' || e.key === 'agentpass_exam_date') {
+        loadUserProgress();
+      }
+    };
+
+    window.addEventListener('agentpass_auth_change', handleSyncEvent);
+    window.addEventListener('agentpass_exam_date_change', handleSyncEvent);
+    window.addEventListener('storage', handleStorageEvent);
+    return () => {
+      window.removeEventListener('agentpass_auth_change', handleSyncEvent);
+      window.removeEventListener('agentpass_exam_date_change', handleSyncEvent);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, [loadUserProgress]);
+
+  const handleTrackSwitch = (newTrack: 'EAQE' | 'SQE') => {
+    setSelectedTrack(newTrack);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('agentpass_selected_track', newTrack);
+      const nextExam = getNextExam(newTrack);
+      if (nextExam) {
+        localStorage.setItem('agentpass_exam_date', nextExam.examDate);
+      }
+      window.dispatchEvent(new Event('agentpass_auth_change'));
+      window.dispatchEvent(new Event('agentpass_exam_date_change'));
+    }
+  };
 
   const handleSelectOfficialDate = (fetchedDate: string) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('agentpass_exam_date', fetchedDate);
+      window.dispatchEvent(new Event('agentpass_exam_date_change'));
     }
   };
 
-  // Maps any legacy format ('q-1', 'Block 01', 'b1') to a valid block route
   const getReviewHref = (item: ReviewItem) => {
     if (item.blockNum) {
       const digits = item.blockNum.replace(/\D/g, '');
@@ -108,7 +133,6 @@ export default function DashboardPage() {
     return '/quiz';
   };
 
-  // Calculate dynamic accuracy and confidence based on actual attempts
   const averageAccuracy = reviews.length > 0
     ? Math.round(reviews.reduce((sum, item) => sum + (item.accuracy || 0), 0) / reviews.length)
     : 0;
@@ -119,7 +143,7 @@ export default function DashboardPage() {
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 bg-slate-50 transition-colors duration-300">
       <div className="max-w-6xl mx-auto space-y-10">
 
-        {/* Header Banner */}
+        {/* Header Banner + Track Switcher */}
         <div className="p-8 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">
@@ -134,20 +158,46 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            {/* EAQE / SQE Track Switcher */}
+            <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200">
+              <button
+                type="button"
+                onClick={() => handleTrackSwitch('EAQE')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                  selectedTrack === 'EAQE'
+                    ? 'bg-slate-950 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {isZh ? 'EAQE 大牌' : 'EAQE (Agent)'}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleTrackSwitch('SQE')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
+                  selectedTrack === 'SQE'
+                    ? 'bg-slate-950 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                {isZh ? 'SQE 細牌' : 'SQE (Salesperson)'}
+              </button>
+            </div>
+
             <Link
-              href="/mock-exam"
+              href={`/mock-exam?track=${selectedTrack}`}
               className="px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition flex items-center gap-2"
             >
               <Award className="h-4 w-4" />
-              <span>{isZh ? '進入全真模擬考' : 'Full Mock Exam'}</span>
+              <span>{isZh ? `進入 ${selectedTrack} 全真模擬考` : `Full ${selectedTrack} Mock Exam`}</span>
             </Link>
           </div>
         </div>
 
         {/* Live Schedule Sync */}
         <OfficialScheduleFetcher
-          track={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+          track={selectedTrack}
           isZh={isZh}
           onSelectDate={handleSelectOfficialDate}
         />
@@ -155,15 +205,15 @@ export default function DashboardPage() {
         {/* Calendar & Reminder CTAs */}
         <ExamTrackerCTA
           isZh={isZh}
-          trackName={selectedTrack.toUpperCase() as 'EAQE' | 'SQE'}
+          trackName={selectedTrack}
         />
 
-        {/* Performance Overview Grid with Dynamic Resetting Metrics */}
+        {/* Performance Overview Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="p-6 rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-sm space-y-2 hover:shadow-md transition">
             <span className="text-xs font-mono font-bold uppercase text-slate-500 block">Active Track</span>
             <span className="text-xl font-black text-indigo-600">
-              {selectedTrack.toUpperCase()} {selectedTrack === 'sqe' ? '(16 Blocks)' : '(20 Blocks)'}
+              {selectedTrack} {selectedTrack === 'SQE' ? '(16 Blocks)' : '(20 Blocks)'}
             </span>
           </div>
 
@@ -179,7 +229,6 @@ export default function DashboardPage() {
                 {reviews.length > 0 ? `${averageAccuracy}% Pass Confidence` : (isZh ? '0% 尚未應考' : '0% Not Started')}
               </span>
             </div>
-            {/* Visual Dynamic Progress Bar */}
             <div className="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden mt-1">
               <div 
                 className="h-full bg-emerald-500 transition-all duration-500 rounded-full" 

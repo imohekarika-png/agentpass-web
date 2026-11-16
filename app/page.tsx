@@ -1,11 +1,11 @@
 // app/page.tsx
 'use client';
 
-import React, { useState } from 'react';
-import { useExamCountdown, formatExamDate } from '@/app/lib/examSchedule';
+import React, { useState, useEffect } from 'react';
+import { useExamCountdown, formatExamDate, getNextExam } from '@/app/lib/examSchedule';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Calendar } from 'lucide-react';
 
 export default function HomePage() {
   const { language, locale } = useLanguage();
@@ -16,18 +16,43 @@ export default function HomePage() {
     ? langOverride === 'ZH'
     : detectedLang.includes('ZH') || detectedLang.includes('HK') || detectedLang.includes('CN');
 
-  // Shared EAA engine - same source as dashboard OfficialScheduleFetcher / ExamTrackerCTA
-  // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027, no manual edit.
-  const { exam, daysToExam, daysToReg } = useExamCountdown('EAQE');
-  const examLabelZh = exam ? formatExamDate(exam.examDate, true) : '12月15日';
-  const examLabelEn = exam ? formatExamDate(exam.examDate, false) : '15 DEC';
-  const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : '12月1日';
-  const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : '1 DEC';
-  const regPostLabelZh = exam ? formatExamDate(exam.regPost, true) : '11月24日';
-  const regPostLabelEn = exam ? formatExamDate(exam.regPost, false) : '24 NOV';
-
   const [selectedTrack, setSelectedTrack] = useState<'EAQE' | 'SQE'>('EAQE');
   const [sampleAnswer, setSampleAnswer] = useState<string | null>(null);
+
+  // Sync initial selectedTrack from localStorage if previously chosen
+  useEffect(() => {
+    try {
+      const savedTrack = (localStorage.getItem('agentpass_selected_track') || '').toUpperCase();
+      if (savedTrack === 'EAQE' || savedTrack === 'SQE') {
+        setSelectedTrack(savedTrack);
+      }
+    } catch {}
+  }, []);
+
+  // Persist track selection + sync exam date to localStorage & cross-component listeners
+  const handleSelectTrack = (track: 'EAQE' | 'SQE') => {
+    setSelectedTrack(track);
+    try {
+      localStorage.setItem('agentpass_selected_track', track);
+      const nextForTrack = getNextExam(track);
+      if (nextForTrack) {
+        localStorage.setItem('agentpass_exam_date', nextForTrack.examDate);
+      }
+      window.dispatchEvent(new Event('agentpass_auth_change'));
+      window.dispatchEvent(new Event('agentpass_exam_date_change'));
+    } catch {}
+  };
+
+  // Dynamically follows selectedTrack ('EAQE' or 'SQE')
+  const { exam, daysToExam, daysToReg } = useExamCountdown(selectedTrack);
+  const examLabelZh = exam ? formatExamDate(exam.examDate, true) : selectedTrack === 'SQE' ? '1月25日' : '12月15日';
+  const examLabelEn = exam ? formatExamDate(exam.examDate, false) : selectedTrack === 'SQE' ? '25 JAN' : '15 DEC';
+  const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : selectedTrack === 'SQE' ? '1月11日' : '12月1日';
+  const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : selectedTrack === 'SQE' ? '11 JAN' : '1 DEC';
+  const regPostLabelZh = exam ? formatExamDate(exam.regPost, true) : selectedTrack === 'SQE' ? '1月4日' : '11月24日';
+  const regPostLabelEn = exam ? formatExamDate(exam.regPost, false) : selectedTrack === 'SQE' ? '4 JAN' : '24 NOV';
+
+  const trackPlanHref = selectedTrack === 'SQE' ? '/sqe-next' : '/eaqe-dec-15';
 
   const PASS_PROMISE_FAQS = isZh
     ? [
@@ -98,11 +123,11 @@ export default function HomePage() {
       <div className="bg-amber-500 text-slate-950 text-center text-xs sm:text-sm font-black py-2.5 px-4 tracking-wide">
         {daysToReg > 0
           ? isZh
-            ? `EAQE ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日`
-            : `EAQE ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`
+            ? `${selectedTrack} ${examLabelZh} • ${regLabelZh}截止報名 • 尚餘 ${daysToExam} 日`
+            : `${selectedTrack} ${examLabelEn} • REGISTRATION CLOSES ${regLabelEn} • ${daysToExam} DAYS LEFT`
           : isZh
-          ? `EAQE ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考`
-          : `EAQE ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`}
+          ? `${selectedTrack} ${examLabelZh} • 報名已截止 • 尚餘 ${daysToExam} 日應考`
+          : `${selectedTrack} ${examLabelEn} • REGISTRATION CLOSED • ${daysToExam} DAYS TO EXAM`}
       </div>
 
       {/* =========================================================
@@ -117,45 +142,45 @@ export default function HomePage() {
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-semibold tracking-wide shadow-sm">
                 <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                 {isZh
-                  ? `AI 智能備戰香港 EAA 牌照考試 • EAQE ${examLabelZh}衝刺`
-                  : `AI-Powered Prep for HK EAA Licensing Exams • EAQE ${examLabelEn} Sprint`}
+                  ? `AI 智能備戰香港 EAA 牌照考試 • ${selectedTrack} ${examLabelZh}衝刺`
+                  : `AI-Powered Prep for HK EAA Licensing Exams • ${selectedTrack} ${examLabelEn} Sprint`}
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.12]">
                 {isZh ? (
                   <>
-                    一次過考取 <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE {examLabelZh}</span> 牌照
+                    一次過考取 <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">{selectedTrack} {examLabelZh}</span> 牌照
                   </>
                 ) : (
                   <>
-                    Pass <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">EAQE on {examLabelEn}</span> First Time
+                    Pass <span className="text-amber-600 underline decoration-amber-300 decoration-wavy decoration-2">{selectedTrack} on {examLabelEn}</span> First Time
                   </>
                 )}
               </h1>
 
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
                 {isZh
-                  ? `網上報名 ${regLabelZh}截止。20 個法定單元、間隔重複 (SRS)、記憶宮殿口訣及 IRIS 查冊個案——專為 30 日內攻克首次考生最常失分的陷阱而設。對齊 EAA 考試大綱及實務通告，非 EAA 認可。`
-                  : `Registration closes ${regLabelEn}. 20 statutory blocks, SRS, Memory Palace mnemonics, and IRIS dossiers - built to fix the traps that fail most first-timers in 30 days. Aligned to EAA syllabus and practice circulars. Not EAA approved.`}
+                  ? `${daysToReg > 0 ? `網上報名 ${regLabelZh}截止。` : `考試日期 ${examLabelZh}。`}${selectedTrack === 'SQE' ? '16' : '20'} 個法定單元、間隔重複 (SRS)、記憶宮殿口訣及 IRIS 查冊個案——專為攻克首次考生最常失分的陷阱而設。對齊 EAA 考試大綱及實務通告，非 EAA 認可。`
+                  : `${daysToReg > 0 ? `Registration closes ${regLabelEn}. ` : `Exam date ${examLabelEn}. `}${selectedTrack === 'SQE' ? '16' : '20'} statutory blocks, SRS, Memory Palace mnemonics, and IRIS dossiers - built to fix the traps that fail most first-timers. Aligned to EAA syllabus and practice circulars. Not EAA approved.`}
               </p>
 
               <div className="flex flex-wrap items-center gap-4 pt-2">
                 <Link
-                  href="/diagnostic"
+                  href={`/diagnostic?track=${selectedTrack}`}
                   className="px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-amber-500/25 transition-all transform hover:-translate-y-0.5"
                 >
-                  {isZh ? '免費做 5 題弱點診斷 →' : 'Take Free 5-Question Diagnostic →'}
+                  {isZh ? `免費做 ${selectedTrack} 5 題弱點診斷 →` : `Take Free ${selectedTrack} 5-Question Diagnostic →`}
                 </Link>
                 <Link
-                  href="/eaqe-dec-15"
+                  href={trackPlanHref}
                   className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition"
                 >
-                  {isZh ? `查看 EAQE ${examLabelZh}衝刺計劃` : `See EAQE ${examLabelEn} Plan`}
+                  {isZh ? `查看 ${selectedTrack} ${examLabelZh}衝刺計劃` : `See ${selectedTrack} ${examLabelEn} Plan`}
                 </Link>
               </div>
             </div>
 
-            {/* Right Column: Track Selector */}
+            {/* Right Column: Track Selector (Synced with Exam Schedule Engine) */}
             <div className="lg:col-span-5">
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl shadow-slate-200/60 border border-slate-200 space-y-5">
                 <div className="border-b border-slate-100 pb-4">
@@ -167,14 +192,15 @@ export default function HomePage() {
                   </h3>
                   <p className="text-xs text-slate-500 mt-1">
                     {isZh
-                      ? '按你的牌照類別集中操練必考題型與法例陷阱。'
-                      : 'Focus your questions and statutory traps on your specific license category.'}
+                      ? '選擇牌照後，首頁與學習儀表板考期倒數將自動同步。'
+                      : 'Selecting your license syncs your exam countdown across the homepage and dashboard.'}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <button
-                    onClick={() => setSelectedTrack('EAQE')}
+                    type="button"
+                    onClick={() => handleSelectTrack('EAQE')}
                     className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer ${
                       selectedTrack === 'EAQE'
                         ? 'border-amber-500 bg-amber-50/50 shadow-sm'
@@ -196,13 +222,14 @@ export default function HomePage() {
                           : '20 Statutory Blocks • 100 Qs Full Paper • Part II IRIS Land Search'}
                       </p>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedTrack === 'EAQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedTrack === 'EAQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
                       {selectedTrack === 'EAQE' && <span className="text-xs">✓</span>}
                     </div>
                   </button>
 
                   <button
-                    onClick={() => setSelectedTrack('SQE')}
+                    type="button"
+                    onClick={() => handleSelectTrack('SQE')}
                     className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between cursor-pointer ${
                       selectedTrack === 'SQE'
                         ? 'border-amber-500 bg-amber-50/50 shadow-sm'
@@ -224,13 +251,33 @@ export default function HomePage() {
                           : '16 Statutory Blocks • 60 Qs Paper • Basic Agency & Form Practice'}
                       </p>
                     </div>
-                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedTrack === 'SQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${selectedTrack === 'SQE' ? 'border-amber-600 bg-amber-500 text-white' : 'border-slate-300'}`}>
                       {selectedTrack === 'SQE' && <span className="text-xs">✓</span>}
                     </div>
                   </button>
                 </div>
 
-                <div className="pt-2">
+                {/* Live Synced Schedule Pill */}
+                {exam && (
+                  <div className="p-3 rounded-2xl bg-blue-50/80 border border-blue-200 flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-2 text-blue-950 font-bold">
+                      <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span>
+                        {isZh
+                          ? `下期 ${selectedTrack} 考期：${examLabelZh}（尚餘 ${daysToExam} 日）`
+                          : `Next ${selectedTrack} Exam: ${examLabelEn} (${daysToExam}d left)`}
+                      </span>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="text-[11px] font-extrabold text-blue-700 hover:text-blue-900 underline shrink-0"
+                    >
+                      {isZh ? '查看日程' : 'Dashboard'}
+                    </Link>
+                  </div>
+                )}
+
+                <div className="pt-1">
                   <Link
                     href={`/diagnostic?track=${selectedTrack}`}
                     className="w-full py-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition"
@@ -287,13 +334,13 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 2.5: EAQE DEC 15 - 30 DAY PLAN (SPRINT ADD)
+          STAGE 2.5: SPRINT PLAN
          ========================================================= */}
       <section className="py-16 sm:py-20 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <p className="text-xs font-black uppercase tracking-widest text-amber-600">
-              {isZh ? `EAQE ${examLabelZh} • 30日計劃` : `EAQE ${examLabelEn} • 30-DAY PLAN`}
+              {isZh ? `${selectedTrack} ${examLabelZh} • 30日計劃` : `${selectedTrack} ${examLabelEn} • 30-DAY PLAN`}
             </p>
             <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight">
               {isZh ? '30 日，唔需要更多筆記' : '30 Days. You Do Not Need More Notes.'}
@@ -312,8 +359,8 @@ export default function HomePage() {
               </h3>
               <p className="text-sm text-slate-600 leading-relaxed">
                 {isZh
-                  ? '完成 20 個法定單元。診斷到 60%。每日 60-90 分鐘。'
-                  : 'Finish 20 statutory blocks. Diagnostic to 60%. 60-90 mins per day.'}
+                  ? `完成 ${selectedTrack === 'SQE' ? '16' : '20'} 個法定單元。診斷到 60%。每日 60-90 分鐘。`
+                  : `Finish ${selectedTrack === 'SQE' ? '16' : '20'} statutory blocks. Diagnostic to 60%. 60-90 mins per day.`}
               </p>
             </div>
             <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm space-y-4">
@@ -341,10 +388,10 @@ export default function HomePage() {
           </div>
           <div className="text-center">
             <Link
-              href="/eaqe-dec-15"
+              href={trackPlanHref}
               className="inline-flex px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition"
             >
-              {isZh ? `睇 EAQE ${examLabelZh}完整計劃 →` : `See Full EAQE ${examLabelEn} Plan →`}
+              {isZh ? `睇 ${selectedTrack} ${examLabelZh}完整計劃 →` : `See Full ${selectedTrack} ${examLabelEn} Plan →`}
             </Link>
           </div>
         </div>
@@ -589,7 +636,7 @@ export default function HomePage() {
               href="/eaqe-dec-15"
               className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition"
             >
-              {isZh ? `EAQE ${examLabelZh}衝刺計劃 →` : `EAQE ${examLabelEn} Plan →`}
+              {isZh ? 'EAQE 12月15日衝刺計劃 →' : 'EAQE Dec 15 Plan →'}
             </Link>
             <Link
               href="/sqe-next"
@@ -667,7 +714,6 @@ export default function HomePage() {
                   ))}
                 </ul>
 
-                {/* NOT Included Pass Promise Callout */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
                     <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
@@ -718,7 +764,6 @@ export default function HomePage() {
                   ))}
                 </ul>
 
-                {/* NOT Included Pass Promise Callout */}
                 <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <p className="text-xs font-extrabold text-slate-500 flex items-center gap-1.5">
                     <ShieldAlert className="h-4 w-4 text-slate-400 shrink-0" />
@@ -731,7 +776,7 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* One-Time Pass (+56% Updated: From HK$ 780) */}
+            {/* One-Time Pass */}
             <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
               <div className="space-y-4">
                 <span className="text-xs font-bold text-slate-500 uppercase">
@@ -780,7 +825,6 @@ export default function HomePage() {
                   ))}
                 </ul>
 
-                {/* Pass Promise Callout */}
                 <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
                   <p className="text-xs font-extrabold text-emerald-900 flex items-center gap-1.5">
                     <ShieldCheck className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -876,8 +920,8 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto px-4 text-center space-y-6">
           <h2 className="text-3xl font-black text-white">
             {isZh
-              ? `EAQE ${examLabelZh}。網上報名 ${regLabelZh}截止。`
-              : `EAQE ${examLabelEn}. Registration Closes ${regLabelEn}.`}
+              ? `${selectedTrack} ${examLabelZh}。${daysToReg > 0 ? `網上報名 ${regLabelZh}截止。` : '立即開始衝刺備考。'}`
+              : `${selectedTrack} ${examLabelEn}. ${daysToReg > 0 ? `Registration Closes ${regLabelEn}.` : 'Start Your Final Sprint Tonight.'}`}
           </h2>
           <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed">
             {isZh
@@ -886,10 +930,10 @@ export default function HomePage() {
           </p>
           <div>
             <Link
-              href="/diagnostic"
+              href={`/diagnostic?track=${selectedTrack}`}
               className="inline-flex px-8 py-4 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition shadow-xl shadow-amber-500/20"
             >
-              {isZh ? '免費做 5 題弱點診斷 →' : 'Start Free 5-Question Diagnostic →'}
+              {isZh ? `免費做 ${selectedTrack} 5 題弱點診斷 →` : `Start Free ${selectedTrack} 5-Question Diagnostic →`}
             </Link>
           </div>
         </div>

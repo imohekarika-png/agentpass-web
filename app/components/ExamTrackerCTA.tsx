@@ -1,46 +1,137 @@
-
 // app/components/ExamTrackerCTA.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Bell, Mail, CheckCircle2, ArrowRight, Download, ExternalLink, Sparkles } from 'lucide-react';
-import { generateGoogleCalendarUrl, downloadIcsCalendarFile } from '@/app/utils/calendar';
-import { useExamCountdown, formatExamDate, daysUntil } from '@/app/lib/examSchedule';
+import { useExamCountdown, formatExamDate, daysUntil, getExamByDate, getNextExam } from '@/app/lib/examSchedule';
 
 interface ExamTrackerCTAProps {
   isZh: boolean;
   trackName: 'EAQE' | 'SQE';
 }
 
+function buildGoogleCalendarHref(dateStr: string, track: 'EAQE' | 'SQE', isZh: boolean): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+  }
+  const compact = dateStr.replace(/-/g, '');
+  // 2:30 pm HKT = 06:30 UTC; EAQE ends 5:30 pm HKT (09:30 UTC), SQE ends 5:00 pm HKT (09:00 UTC)
+  const startUtc = `${compact}T063000Z`;
+  const endUtc = track === 'EAQE' ? `${compact}T093000Z` : `${compact}T090000Z`;
+  const matchedExam = getExamByDate(dateStr);
+  const title = isZh
+    ? `EAA ${track} 地產牌照資格考試${matchedExam ? ` (${matchedExam.sessionCode})` : ''}`
+    : `EAA ${track} Licensing Exam${matchedExam ? ` (${matchedExam.sessionCode})` : ''}`;
+  const details = isZh
+    ? `考試時間：${matchedExam?.examTime ?? '2:30 pm'}\n備考及模擬試場：https://www.agentpass.hk/dashboard`
+    : `Exam Time: ${matchedExam?.examTime ?? '2:30 pm'}\nPrep & Mock Exams: https://www.agentpass.hk/dashboard`;
+
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: title,
+    dates: `${startUtc}/${endUtc}`,
+    details,
+    location: 'Hong Kong (PEAK / EAA Exam Centre)',
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function triggerIcsDownload(dateStr: string, track: 'EAQE' | 'SQE', isZh: boolean) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return;
+  const compact = dateStr.replace(/-/g, '');
+  const startUtc = `${compact}T063000Z`;
+  const endUtc = track === 'EAQE' ? `${compact}T093000Z` : `${compact}T090000Z`;
+  const matchedExam = getExamByDate(dateStr);
+  const summary = isZh
+    ? `EAA ${track} 地產牌照資格考試${matchedExam ? ` (${matchedExam.sessionCode})` : ''}`
+    : `EAA ${track} Licensing Exam${matchedExam ? ` (${matchedExam.sessionCode})` : ''}`;
+
+  const icsLines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//AgentPass HK//Exam Schedule//EN',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    `UID:agentpass-${track}-${compact}@agentpass.hk`,
+    `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')}`,
+    `DTSTART:${startUtc}`,
+    `DTEND:${endUtc}`,
+    `SUMMARY:${summary}`,
+    `DESCRIPTION:Exam Time: ${matchedExam?.examTime ?? '2:30 pm'} HKT | Dashboard: https://www.agentpass.hk/dashboard`,
+    'LOCATION:Hong Kong (PEAK / EAA Exam Centre)',
+    'BEGIN:VALARM',
+    'TRIGGER:-P7D',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${track} Exam in 7 days - Final SRS & Mock Review`,
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const blob = new Blob([icsLines], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `AgentPass-${track}-${dateStr}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps) {
-  // Shared engine - same EAA_EXAMS list as homepage banner + OfficialScheduleFetcher
-  // Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027. No hardcoded fallback date anymore.
   const { exam, daysToExam, daysToReg } = useExamCountdown(trackName);
   const [customDate, setCustomDate] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string>('');
   const [isEmailSubscribed, setIsEmailSubscribed] = useState<boolean>(false);
   const [showEmailModal, setShowEmailModal] = useState<boolean>(false);
 
-  // examDate = manual override (from date picker / dashboard pick) else next official exam
-  const examDate = customDate ?? exam?.examDate ?? '';
-  // daysRemaining from shared engine (HK timezone) - honours localStorage override via useExamCountdown
-  const daysRemaining = customDate ? daysUntil(customDate) : daysToExam;
+  const syncFromStorage = () => {
+    if (typeof window === 'undefined') return;
+    const savedDate = localStorage.getItem('agentpass_exam_date');
+    if (savedDate) {
+      const matched = getExamByDate(savedDate);
+      // Only apply savedDate if it belongs to the active track or is a custom non-EAA date
+      if (!matched || matched.track === trackName) {
+        setCustomDate(savedDate);
+      } else {
+        setCustomDate(null);
+      }
+    } else {
+      setCustomDate(null);
+    }
+
+    const savedEmail = localStorage.getItem('agentpass_reminder_email') || localStorage.getItem('agentpass_user_email');
+    if (savedEmail && savedEmail !== 'guest@agentpass.hk') {
+      setUserEmail(savedEmail);
+    }
+  };
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedDate = localStorage.getItem('agentpass_exam_date');
-      if (savedDate) setCustomDate(savedDate);
+    syncFromStorage();
+    window.addEventListener('agentpass_exam_date_change', syncFromStorage);
+    window.addEventListener('agentpass_auth_change', syncFromStorage);
+    window.addEventListener('storage', syncFromStorage);
+    return () => {
+      window.removeEventListener('agentpass_exam_date_change', syncFromStorage);
+      window.removeEventListener('agentpass_auth_change', syncFromStorage);
+      window.removeEventListener('storage', syncFromStorage);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackName]);
 
-      const savedEmail = localStorage.getItem('agentpass_user_email');
-      if (savedEmail) setUserEmail(savedEmail);
-    }
-  }, []);
+  const effectiveExamDate = customDate || exam?.examDate || getNextExam(trackName)?.examDate || '';
+  const daysRemaining = effectiveExamDate ? daysUntil(effectiveExamDate) : daysToExam;
+
+  const googleCalendarUrl = useMemo(
+    () => buildGoogleCalendarHref(effectiveExamDate, trackName, isZh),
+    [effectiveExamDate, trackName, isZh]
+  );
 
   const handleDateChange = (newDate: string) => {
     setCustomDate(newDate);
     if (typeof window !== 'undefined') {
       localStorage.setItem('agentpass_exam_date', newDate);
-      // Notify useExamCountdown in same tab (storage event only fires cross-tab)
       window.dispatchEvent(new Event('agentpass_exam_date_change'));
     }
   };
@@ -58,8 +149,6 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
     }, 1500);
   };
 
-  // daysRemaining now comes from useExamCountdown above (HK timezone, auto-roll)
-
   return (
     <div className="p-6 sm:p-8 rounded-3xl border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm space-y-6">
       
@@ -74,8 +163,12 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
             {isZh ? `距離 ${trackName} 資格考試僅剩 ${daysRemaining} 天` : `${daysRemaining} Days Until Your ${trackName} Licensing Exam`}
           </h3>
           <p className="text-xs font-medium text-slate-600">
-            {exam ? (isZh ? `考期 ${formatExamDate(exam.examDate, true)} • ${formatExamDate(exam.regOnline, true)}截止報名` : `Exam ${formatExamDate(exam.examDate, false)} • Reg closes ${formatExamDate(exam.regOnline, false)}`) : ''}
-            {exam && daysToReg <= 0 ? (isZh ? ' • 報名已截止' : ' • Registration closed') : ''}
+            {effectiveExamDate
+              ? isZh
+                ? `目標考期 ${formatExamDate(effectiveExamDate, true)}${exam && exam.examDate === effectiveExamDate ? ` • ${formatExamDate(exam.regOnline, true)}截止報名` : ''}`
+                : `Target Exam ${formatExamDate(effectiveExamDate, false)}${exam && exam.examDate === effectiveExamDate ? ` • Reg closes ${formatExamDate(exam.regOnline, false)}` : ''}`
+              : ''}
+            {exam && exam.examDate === effectiveExamDate && daysToReg <= 0 ? (isZh ? ' • 報名已截止' : ' • Registration closed') : ''}
           </p>
         </div>
 
@@ -83,7 +176,7 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
           <label className="text-xs font-bold text-slate-600 shrink-0">{isZh ? '目標考期:' : 'Exam Date:'}</label>
           <input
             type="date"
-            value={examDate}
+            value={effectiveExamDate}
             onChange={(e) => handleDateChange(e.target.value)}
             className="px-3.5 py-1.5 rounded-xl border border-blue-200 bg-white font-bold text-xs text-slate-900 shadow-2xs focus:outline-none focus:border-blue-600 transition"
           />
@@ -95,7 +188,7 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
         
         {/* Google Calendar Direct Sync CTA */}
         <a
-          href={generateGoogleCalendarUrl(examDate, trackName, isZh)}
+          href={googleCalendarUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="p-4 rounded-2xl bg-white border border-blue-200 hover:border-blue-500 hover:shadow-md transition flex items-center justify-between group cursor-pointer"
@@ -115,7 +208,7 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
         {/* iCal / Outlook Download CTA */}
         <button
           type="button"
-          onClick={() => downloadIcsCalendarFile(examDate, trackName, isZh)}
+          onClick={() => triggerIcsDownload(effectiveExamDate, trackName, isZh)}
           className="p-4 rounded-2xl bg-white border border-blue-200 hover:border-blue-500 hover:shadow-md transition flex items-center justify-between group cursor-pointer text-left"
         >
           <div className="flex items-center gap-3">
@@ -133,7 +226,10 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
         {/* Email Notification Trigger CTA */}
         <button
           type="button"
-          onClick={() => setShowEmailModal(true)}
+          onClick={() => {
+            setIsEmailSubscribed(false);
+            setShowEmailModal(true);
+          }}
           className="p-4 rounded-2xl bg-white border border-blue-200 hover:border-blue-500 hover:shadow-md transition flex items-center justify-between group cursor-pointer text-left"
         >
           <div className="flex items-center gap-3">
@@ -162,7 +258,7 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
               >
                 ✕
               </button>
@@ -177,8 +273,8 @@ export default function ExamTrackerCTA({ isZh, trackName }: ExamTrackerCTAProps)
               <form onSubmit={handleSubscribeEmail} className="space-y-4 text-xs">
                 <p className="text-slate-600 font-medium">
                   {isZh
-                    ? `請輸入您的電郵，AgentPass 將於 ${examDate} 考期前的關鍵節點自動為您送上複習提示：`
-                    : `Enter your email to receive tailored review digest alerts leading up to ${examDate}:`}
+                    ? `請輸入您的電郵，AgentPass 將於 ${effectiveExamDate} 考期前的關鍵節點自動為您送上複習提示：`
+                    : `Enter your email to receive tailored review digest alerts leading up to ${effectiveExamDate}:`}
                 </p>
 
                 <input
