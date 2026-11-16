@@ -82,6 +82,7 @@ export const EAA_EXAMS: EAAExam[] = [
 // --- Pure helpers (no React, safe to use in Server Components too) ---
 
 function parseHK(dateStr: string, endOfDay = false): Date {
+  // Force HK timezone so countdown is same in HK regardless of visitor timezone
   return new Date(`${dateStr}T${endOfDay ? '23:59:59' : '00:00:00'}+08:00`);
 }
 
@@ -91,11 +92,24 @@ export function daysUntil(targetDateStr: string, now = new Date(), endOfDay = fa
 }
 
 export function getNextExam(track: ExamTrack, now = new Date()): EAAExam | null {
+  // First exam on/after today for this track. Auto-rolls: after 15 Dec, EAQE -> 18 Mar 2027.
   const todayStart = parseHK(now.toISOString().slice(0, 10));
   const upcoming = EAA_EXAMS.filter(
     (e) => e.track === track && parseHK(e.examDate).getTime() >= todayStart.getTime()
   ).sort((a, b) => a.examDate.localeCompare(b.examDate));
   return upcoming[0] ?? null;
+}
+
+export function getNextRegisterableExam(track: ExamTrack, now = new Date()): EAAExam | null {
+  // Next exam you can still register for (regOnline >= today).
+  // For SQE on 16 Nov: 17 Nov reg closed 3 Nov, so this returns 25 Jan 2027, not 17 Nov.
+  // For EAQE on 16 Nov: 15 Dec reg closes 1 Dec, so this returns 15 Dec.
+  const todayStr = now.toISOString().slice(0, 10);
+  const registerable = EAA_EXAMS.filter(
+    (e) => e.track === track && e.regOnline >= todayStr
+  ).sort((a, b) => a.examDate.localeCompare(b.examDate));
+  if (registerable.length > 0) return registerable[0];
+  return getNextExam(track, now);
 }
 
 export function isValidEAAExamDate(dateStr: string, track?: ExamTrack): boolean {
@@ -116,11 +130,13 @@ export function formatExamDate(dateStr: string, isZh: boolean): string {
   return `${d.getDate()} ${months[d.getMonth()]}`;
 }
 
+// --- Hook: shared countdown engine ---
+
 export interface ExamCountdown {
   exam: EAAExam | null;
   examDateStr: string;
   daysToExam: number;
-  daysToReg: number;
+  daysToReg: number; // days to online deadline (final)
   daysToRegPost: number;
   isRegClosed: boolean;
   isRegPostClosed: boolean;
@@ -129,6 +145,7 @@ export interface ExamCountdown {
 }
 
 export function useExamCountdown(track: ExamTrack): ExamCountdown {
+  // Initial fallback = next official exam at build time (avoids hydration mismatch)
   const fallback = getNextExam(track) ?? EAA_EXAMS.find((e) => e.track === track) ?? null;
 
   const [exam, setExam] = useState<EAAExam | null>(fallback);
@@ -156,9 +173,7 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
           const isFuture = parseHK(savedDate).getTime() >= parseHK(now.toISOString().slice(0, 10)).getTime();
           if (isValidForTrack && isFuture && (savedTrack === track || !savedTrack)) {
             chosen = savedExam;
-          } else if (!savedExam) {
-            localStorage.removeItem('agentpass_exam_date');
-          } else if (!isFuture) {
+          } else if (!savedExam || !isFuture) {
             localStorage.removeItem('agentpass_exam_date');
           }
         }
@@ -172,6 +187,69 @@ export function useExamCountdown(track: ExamTrack): ExamCountdown {
       }
     };
 
+    calc();
+    const timer = setInterval(calc, 60 * 60 * 1000);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'agentpass_exam_date' || e.key === 'agentpass_selected_track') calc();
+    };
+    const onSync = () => calc();
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('agentpass_auth_change', onSync);
+    window.addEventListener('agentpass_exam_date_change', onSync);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('agentpass_auth_change', onSync);
+      window.removeEventListener('agentpass_exam_date_change', onSync);
+    };
+  }, [track]);
+
+  return {
+    exam,
+    examDateStr: exam?.examDate ?? '',
+    daysToExam,
+    daysToReg,
+    daysToRegPost,
+    isRegClosed: daysToReg <= 0,
+    isRegPostClosed: daysToRegPost <= 0,
+    isExamToday: daysToExam === 0,
+    hasNextExam: !!exam,
+  };
+}
+
+// --- Hook: countdown to next REGISTERABLE exam (for SQE Next page + homepage SQE link) ---
+// Same as useExamCountdown but skips exams whose registration already closed.
+export function useRegisterableExamCountdown(track: ExamTrack): ExamCountdown {
+  const fallback = getNextRegisterableExam(track) ?? getNextExam(track) ?? null;
+  const [exam, setExam] = useState<EAAExam | null>(fallback);
+  const [daysToExam, setDaysToExam] = useState(() => (fallback ? daysUntil(fallback.examDate) : 0));
+  const [daysToReg, setDaysToReg] = useState(() => (fallback ? daysUntil(fallback.regOnline, new Date(), true) : 0));
+  const [daysToRegPost, setDaysToRegPost] = useState(() => (fallback ? daysUntil(fallback.regPost, new Date(), true) : 0));
+
+  useEffect(() => {
+    const calc = () => {
+      const now = new Date();
+      let chosen: EAAExam | null = getNextRegisterableExam(track, now);
+      try {
+        const savedDate = localStorage.getItem('agentpass_exam_date');
+        const savedTrack = (localStorage.getItem('agentpass_selected_track') || '').toUpperCase();
+        if (savedDate) {
+          const savedExam = getExamByDate(savedDate);
+          const isValid = !!savedExam && savedExam.track === track;
+          const isRegisterable = !!savedExam && savedExam.regOnline >= now.toISOString().slice(0, 10);
+          const isFuture = !!savedExam && parseHK(savedDate).getTime() >= parseHK(now.toISOString().slice(0, 10)).getTime();
+          if (isValid && isFuture && isRegisterable && (savedTrack === track || !savedTrack)) {
+            chosen = savedExam;
+          }
+        }
+      } catch {}
+      setExam(chosen);
+      if (chosen) {
+        setDaysToExam(daysUntil(chosen.examDate, now));
+        setDaysToReg(daysUntil(chosen.regOnline, now, true));
+        setDaysToRegPost(daysUntil(chosen.regPost, now, true));
+      }
+    };
     calc();
     const timer = setInterval(calc, 60 * 60 * 1000);
     const onStorage = (e: StorageEvent) => {

@@ -2,7 +2,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useExamCountdown, formatExamDate, getNextExam } from '@/app/lib/examSchedule';
+import {
+  useExamCountdown,
+  useRegisterableExamCountdown,
+  formatExamDate,
+  getNextRegisterableExam,
+} from '@/app/lib/examSchedule';
 import Link from 'next/link';
 import { useLanguage } from '@/app/context/LanguageContext';
 import { ShieldCheck, ShieldAlert, Calendar } from 'lucide-react';
@@ -29,12 +34,12 @@ export default function HomePage() {
     } catch {}
   }, []);
 
-  // Persist track selection + sync exam date to localStorage & cross-component listeners
+  // Persist track selection + sync next registerable exam date to localStorage & cross-component listeners
   const handleSelectTrack = (track: 'EAQE' | 'SQE') => {
     setSelectedTrack(track);
     try {
       localStorage.setItem('agentpass_selected_track', track);
-      const nextForTrack = getNextExam(track);
+      const nextForTrack = getNextRegisterableExam(track);
       if (nextForTrack) {
         localStorage.setItem('agentpass_exam_date', nextForTrack.examDate);
       }
@@ -43,14 +48,26 @@ export default function HomePage() {
     } catch {}
   };
 
-  // Dynamically follows selectedTrack ('EAQE' or 'SQE')
-  const { exam, daysToExam, daysToReg } = useExamCountdown(selectedTrack);
+  // Active track countdown (registerable sitting so SQE skips closed 17 Nov and shows 25 Jan)
+  const { exam, daysToExam, daysToReg } = useRegisterableExamCountdown(selectedTrack);
   const examLabelZh = exam ? formatExamDate(exam.examDate, true) : selectedTrack === 'SQE' ? '1月25日' : '12月15日';
   const examLabelEn = exam ? formatExamDate(exam.examDate, false) : selectedTrack === 'SQE' ? '25 JAN' : '15 DEC';
   const regLabelZh = exam ? formatExamDate(exam.regOnline, true) : selectedTrack === 'SQE' ? '1月11日' : '12月1日';
   const regLabelEn = exam ? formatExamDate(exam.regOnline, false) : selectedTrack === 'SQE' ? '11 JAN' : '1 DEC';
   const regPostLabelZh = exam ? formatExamDate(exam.regPost, true) : selectedTrack === 'SQE' ? '1月4日' : '11月24日';
   const regPostLabelEn = exam ? formatExamDate(exam.regPost, false) : selectedTrack === 'SQE' ? '4 JAN' : '24 NOV';
+
+  // Dedicated SQE Next registerable countdown (for Stage 5 comparison table CTA)
+  const { exam: sqeExam, daysToExam: sqeDaysToExam, daysToReg: sqeDaysToReg } = useRegisterableExamCountdown('SQE');
+  const sqeExamLabelZh = sqeExam ? formatExamDate(sqeExam.examDate, true) : '1月25日';
+  const sqeExamLabelEn = sqeExam ? formatExamDate(sqeExam.examDate, false) : '25 JAN';
+  const sqeRegLabelZh = sqeExam ? formatExamDate(sqeExam.regOnline, true) : '1月11日';
+  const sqeRegLabelEn = sqeExam ? formatExamDate(sqeExam.regOnline, false) : '11 JAN';
+
+  // Raw SQE next sitting (for closed notice context)
+  const { exam: sqeNextRaw, isRegClosed: isSqeRawRegClosed } = useExamCountdown('SQE');
+  const sqeRawLabelZh = sqeNextRaw ? formatExamDate(sqeNextRaw.examDate, true) : '11月17日';
+  const sqeRawLabelEn = sqeNextRaw ? formatExamDate(sqeNextRaw.examDate, false) : '17 Nov';
 
   const trackPlanHref = selectedTrack === 'SQE' ? '/sqe-next' : '/eaqe-dec-15';
 
@@ -264,8 +281,8 @@ export default function HomePage() {
                       <Calendar className="w-4 h-4 text-blue-600 shrink-0" />
                       <span>
                         {isZh
-                          ? `下期 ${selectedTrack} 考期：${examLabelZh}（尚餘 ${daysToExam} 日）`
-                          : `Next ${selectedTrack} Exam: ${examLabelEn} (${daysToExam}d left)`}
+                          ? `下期可報考 ${selectedTrack}：${examLabelZh}（尚餘 ${daysToExam} 日）`
+                          : `Next Registerable ${selectedTrack}: ${examLabelEn} (${daysToExam}d left)`}
                       </span>
                     </div>
                     <Link
@@ -547,7 +564,7 @@ export default function HomePage() {
       </section>
 
       {/* =========================================================
-          STAGE 5: EAQE VS. SQE COMPARISON TABLE
+          STAGE 5: EAQE VS. SQE COMPARISON TABLE + REGISTERABLE SQE LINK
          ========================================================= */}
       <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -631,19 +648,38 @@ export default function HomePage() {
             </table>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 mt-10">
-            <Link
-              href="/eaqe-dec-15"
-              className="px-6 py-3.5 rounded-2xl bg-slate-950 hover:bg-slate-800 text-white font-bold text-sm transition"
-            >
-              {isZh ? 'EAQE 12月15日衝刺計劃 →' : 'EAQE Dec 15 Plan →'}
-            </Link>
-            <Link
-              href="/sqe-next"
-              className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-sm border border-slate-300 shadow-sm transition"
-            >
-              {isZh ? '準備考 SQE？查看下期 SQE 備考計劃 →' : 'Sitting SQE next? See SQE Next Sitting Plan →'}
-            </Link>
+          {/* SQE Next link - synced to next registerable exam schedule */}
+          <div className="mt-8 text-center space-y-2.5">
+            <p className="text-xs font-bold text-slate-500">
+              {sqeDaysToReg > 0
+                ? isZh
+                  ? `SQE 下一可報考：${sqeExamLabelZh} • ${sqeRegLabelZh}截止報名 • 尚餘 ${sqeDaysToExam} 日`
+                  : `SQE NEXT REGISTERABLE: ${sqeExamLabelEn} • REG CLOSES ${sqeRegLabelEn} • ${sqeDaysToExam} DAYS LEFT`
+                : isZh
+                ? `SQE 下一考期：${sqeExamLabelZh} • 尚餘 ${sqeDaysToExam} 日`
+                : `SQE NEXT SITTING: ${sqeExamLabelEn} • ${sqeDaysToExam} DAYS LEFT`}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link
+                href="/eaqe-dec-15"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-950 hover:bg-slate-800 text-sm font-bold text-white transition"
+              >
+                {isZh ? '考 EAQE？睇 12月15日計劃 →' : 'Sitting EAQE? See Dec 15 Plan →'}
+              </Link>
+              <Link
+                href="/sqe-next"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-300 hover:border-amber-500 hover:shadow-md text-sm font-bold text-slate-900 transition"
+              >
+                {isZh ? '考 SQE？睇 SQE 下一期計劃 →' : 'Sitting SQE? See SQE Next Plan →'}
+              </Link>
+            </div>
+            {isSqeRawRegClosed && (
+              <p className="text-[11px] text-slate-400">
+                {isZh
+                  ? `SQE ${sqeRawLabelZh}已截止報名，此連結為下一可報考期`
+                  : `SQE ${sqeRawLabelEn} registration closed - this link is for the next registerable sitting`}
+              </p>
+            )}
           </div>
         </div>
       </section>
